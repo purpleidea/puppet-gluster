@@ -1,0 +1,6 @@
+WARNING: This module is in development phase, and things will change drastically. You've been warned. Sorry abou any ugliness that will soon disappear.
+
+Put these two folders in your $PUPPET_MODULE_DIR/gluster/
+Configure your nodes...
+Profit!!!
+
