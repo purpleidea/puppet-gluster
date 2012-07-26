@@ -15,18 +15,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class gluster::brick::xfs {
-  package { 'xfsprogs':
-    ensure => present,
-  }
-}
-
-class gluster::brick::ext4 {
-  package { 'e2fsprogs':
-    ensure => present,
-  }
-}
-
 define gluster::brick(
   $dev,				# /dev/sdc, /dev/disk/by-id/scsi-36003048007e14f0014ca2743150a5471
   $fsuuid,			# set a uuid for this fs
