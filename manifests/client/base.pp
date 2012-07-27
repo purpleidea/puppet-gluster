@@ -16,32 +16,33 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::client::base {
-  # TODO: ensure these are from our 'gluster' repo
-  package { ['glusterfs', 'glusterfs-fuse']:
-    ensure => present,
-  }
+	# TODO: ensure these are from our 'gluster' repo
+	package { ['glusterfs', 'glusterfs-fuse']:
+		ensure => present,
+	}
 
-  # FIXME: choose a reliable and correct way to ensure fuse is loaded
-  #[root@test2 ~]# dmesg | grep -i fuse
-  #[root@test2 ~]# modprobe fuse
-  #[root@test2 ~]# dmesg | grep -i fuse
-  #fuse init (API version 7.13)
-  #[root@test2 ~]# 
+	# FIXME: choose a reliable and correct way to ensure fuse is loaded
+	#[root@test2 ~]# dmesg | grep -i fuse
+	#[root@test2 ~]# modprobe fuse
+	#[root@test2 ~]# dmesg | grep -i fuse
+	#fuse init (API version 7.13)
+	#[root@test2 ~]#
 
-  # modprobe fuse if it's missing
-  exec { '/sbin/modprobe fuse':
-    logoutput => on_failure,
-    onlyif => '/usr/bin/test -z "`/bin/dmesg | grep -i fuse`"',
-    alias => 'gluster-fuse',
-  }
+	# modprobe fuse if it's missing
+	exec { '/sbin/modprobe fuse':
+		logoutput => on_failure,
+		onlyif => '/usr/bin/test -z "`/bin/dmesg | grep -i fuse`"',
+		alias => 'gluster-fuse',
+	}
 
-  # TODO: will this autoload the fuse module?
-  #file { '/etc/modprobe.d/fuse.conf':
-  #  content => "fuse\n",	# TODO: "install fuse /sbin/modprobe --ignore-install fuse ; /bin/true\n" ?
-  #  owner => root,
-  #  group => root,
-  #  mode => 644,		# u=rw,go=r
-  #  ensure => present,
-  #}
+	# TODO: will this autoload the fuse module?
+	#file { '/etc/modprobe.d/fuse.conf':
+	#	content => "fuse\n",	# TODO: "install fuse /sbin/modprobe --ignore-install fuse ; /bin/true\n" ?
+	#	owner => root,
+	#	group => root,
+	#	mode => 644,		# u=rw,go=r
+	#	ensure => present,
+	#}
 }
 
+# vim: ts=8

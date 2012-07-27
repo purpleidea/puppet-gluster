@@ -60,3 +60,4 @@
 # TODO: package { 'xfsdump': ensure => present } is this useful for something ?
 # TODO: find out when ports are actually necessary for version 3.3
 
+# vim: ts=8

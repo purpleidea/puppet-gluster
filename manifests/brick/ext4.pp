@@ -16,8 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::brick::ext4 {
-  package { 'e2fsprogs':
-    ensure => present,
-  }
+	package { 'e2fsprogs':
+		ensure => present,
+	}
 }
 
+# vim: ts=8

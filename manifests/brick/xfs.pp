@@ -16,8 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::brick::xfs {
-  package { 'xfsprogs':
-    ensure => present,
-  }
+	package { 'xfsprogs':
+		ensure => present,
+	}
 }
 
+# vim: ts=8
