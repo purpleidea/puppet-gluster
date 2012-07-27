@@ -1,6 +1,13 @@
-WARNING: This module is in development phase, and things will change drastically. You've been warned. Sorry abou any ugliness that will soon disappear.
+puppet-gluster, by James Shubin <james@shubin.ca>, https://ttboj.wordpress.com/
 
+WARNING: This module is in development phase, and things might change drastically. You've been warned. Sorry about any ugliness that is present at the moment.
+
+DEPENDENCIES: This module (optionally) depends on my unreleased puppet-shorewall module.
+
+PATCHES/DISCUSSION: Initially both welcome by email, although I'd prefer you give me a heads up first so that we're working in the same direction.
+
+USAGE:
 Put these two folders in your $PUPPET_MODULE_DIR/gluster/
-Configure your nodes...
+Configure your nodes... (All server nodes should have identical puppet config)
 Profit!!!
 
