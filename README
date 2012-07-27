@@ -4,7 +4,8 @@ WARNING: This module is in development phase, and things might change drasticall
 
 DEPENDENCIES: This module (optionally) depends on my unreleased puppet-shorewall module.
 
-PATCHES/DISCUSSION: Initially both welcome by email, although I'd prefer you give me a heads up first so that we're working in the same direction.
+PATCHES - should be submitted as pull requests
+DISCUSSION - are encouraged as github issues
 
 USAGE:
 Put these two folders in your $PUPPET_MODULE_DIR/gluster/
