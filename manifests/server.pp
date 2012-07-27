@@ -29,7 +29,7 @@ class gluster::server(
   package { 'glusterfs-server':
     ensure => present,
   }
-  
+
   # NOTE: not that we necessarily manage anything in here at the moment...
   file { '/etc/glusterfs/':
     ensure => directory,		# make sure this is a directory
@@ -42,7 +42,7 @@ class gluster::server(
     #notify => Service['glusterd'],	# TODO: ???
     require => Package['glusterfs-server'],
   }
-  
+
   file { '/etc/glusterfs/glusterd.vol':
     content => template('gluster/glusterd.vol.erb'),	# NOTE: currently no templating is being done
     owner => root,
@@ -51,7 +51,7 @@ class gluster::server(
     ensure => present,
     require => File['/etc/glusterfs/'],
   }
-  
+
   file { '/var/lib/glusterd/':
     ensure => directory,		# make sure this is a directory
     recurse => false,			# TODO: eventually...
@@ -63,7 +63,7 @@ class gluster::server(
     #notify => Service['glusterd'],	# TODO: eventually...
     require => File['/etc/glusterfs/glusterd.vol'],
   }
-  
+
   file { '/var/lib/glusterd/peers/':
     ensure => directory,		# make sure this is a directory
     recurse => true,			# recursively manage directory
@@ -75,7 +75,7 @@ class gluster::server(
     notify => Service['glusterd'],
     require => File['/var/lib/glusterd/'],
   }
-  
+
   if $shorewall {
     if $allow == 'all' {
       $net = 'net'
@@ -138,7 +138,7 @@ class gluster::server(
       ", comment => 'Allow nfs for gluster'}
     }
   }
-  
+
   # start service only after the firewall is opened and hosts are defined
   service { 'glusterd':
     enable => true,			# start on boot

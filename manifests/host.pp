@@ -47,7 +47,7 @@ define gluster::host(
       #require => File['/var/lib/glusterd/peers/'],
       require => Package['glusterfs-server'],
     }
-  
+
     # set state=
     exec { "/bin/echo 'state=3' >> '/var/lib/glusterd/peers/${uuid}'":
       logoutput => on_failure,
@@ -57,7 +57,7 @@ define gluster::host(
       require => Exec["gluster-host-uuid-${name}"],
       alias => "gluster-host-state-${name}",
     }
-  
+
     # set hostname1=...
     exec { "/bin/echo 'hostname1=${name}' >> '/var/lib/glusterd/peers/${uuid}'":
       logoutput => on_failure,
@@ -66,7 +66,7 @@ define gluster::host(
       before => File["/var/lib/glusterd/peers/${uuid}"],
       require => Exec["gluster-host-state-${name}"],
     }
-  
+
     # tag the file so it doesn't get removed by purge
     file { "/var/lib/glusterd/peers/${uuid}":
       ensure => present,

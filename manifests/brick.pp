@@ -34,29 +34,29 @@ define gluster::brick(
   if ! ( "${host}:${mount}" == "${name}" ) {
     fail('The brick $name must match a $host-$mount pattern.')
   }
-  
+
   Gluster::Host[$host] -> Gluster::Brick[$name]	# brick requires host
-  
+
   $ro_bool = $ro ? {			# this has been added as a convenience
     true => 'ro',
     default => 'rw',
   }
-  
+
   $valid_labeltype = $labeltype ? {
     #'msdos' => 'msdos',		# TODO
     default => 'gpt',
   }
-  
+
   $valid_fstype = $fstype ? {
     'ext4' => 'ext4',			# TODO
     default => 'xfs',
   }
-  
+
   $force_flag = $force ? {
     true => 'f',
     default => '',
   }
-  
+
   # XFS mount options:
   # http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/filesystems/xfs.txt;hb=HEAD
   if ( $valid_fstype == 'xfs' ) {
@@ -96,34 +96,34 @@ define gluster::brick(
     }
     
     $options_list = ["${option01}", "${option02}"]
-  
+
   } elsif ( $valid_fstype == 'ext4' ) {
     # exec requires
     include gluster::brick::ext4
     $exec_requires = [Package['e2fsprogs']]
-  
+
     # mkfs w/ uuid command
     $exec_mkfs = "/sbin/mkfs.${valid_fstype} -U '${fsuuid}' `/bin/readlink -e ${dev}`1"
-  
+
     # mount options
     $options_list = []			# TODO
   }
-  
+
   # put all the options in an array, remove the empty ones, and join with
   # commas (this removes ',,' double comma uglyness)
   # adding 'defaults' here ensures no ',' (leading comma) in mount command
   $mount_options = inline_template('<%= (["defaults"]+options_list).delete_if {|x| x.empty? }.join(",") %>')
-  
+
   $exec_noop = $areyousure ? {
     true => false,
     default => true,
   }
-  
+
   # if we're on itself
   if ( "${fqdn}" == "${host}" ) {
-  
+
     # first get the device ready
-  
+
     # the scary parted command to run...
     $exec_mklabel = "/sbin/parted -s -m -a optimal ${dev} mklabel ${valid_labeltype}"
     $exec_mkpart = "/sbin/parted -s -m -a optimal ${dev} mkpart primary 0% 100%"
@@ -133,7 +133,7 @@ define gluster::brick(
         message => "${scary_exec}",
       }
     }
-  
+
     exec { "${scary_exec}":
       logoutput => on_failure,
       unless => [		# if one element is true, this *doesn't* run
@@ -146,7 +146,7 @@ define gluster::brick(
       noop => $exec_noop,
       alias => "gluster-brick-make-${name}",
     }
-  
+
     # make an empty directory for the mount point
     file { "${mount}":
       ensure => directory,		# make sure this is a directory
@@ -155,7 +155,7 @@ define gluster::brick(
       force => false,			# don't purge subdirs and links
       require => Exec["gluster-brick-make-${name}"],
     }
-  
+
     mount { "${mount}":
       atboot => true,
       ensure => mounted,

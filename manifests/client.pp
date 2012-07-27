@@ -36,12 +36,12 @@ define gluster::client(
   #  true => 'suid',
   #  default => 'nosuid',
   #}
-  
+
   $mounted_bool = $mounted ? {
     true => mounted,
     default => unmounted,
   }
-  
+
   # make an empty directory for the mount point
   file { "${name}":
     ensure => directory,		# make sure this is a directory
@@ -49,7 +49,7 @@ define gluster::client(
     purge => false,			# don't purge unmanaged files
     force => false,			# don't purge subdirs and links
   }
-  
+
   # Mount Options:
   # * backupvolfile-server=server-name
   # * fetch-attempts=N (where N is number of attempts)

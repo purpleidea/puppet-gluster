@@ -28,23 +28,23 @@ define gluster::volume(
     'tcp,rdma' => 'tcp,rdma',
     default => 'tcp',
   }
-  
+
   $valid_replica = $replica ? {
     '1' => '',
     default => "replica ${replica} ",
   }
-  
+
   $valid_stripe = $stripe ? {
     '1' => '',
     default => "stripe ${stripe} ",
   }
-  
+
   #Gluster::Brick[$bricks] -> Gluster::Volume[$name]	# volume requires bricks
-  
+
   # get the bricks that match our fqdn, and append /$name to their path.
   # return only these paths, which can be used to build the volume dirs.
   $volume_dirs = split(inline_template("<%= bricks.find_all{|x| x.split(':')[0] == '${fqdn}' }.collect {|y| y.split(':')[1].chomp('/')+'/${name}' }.join(' ') %>"), ' ')
-  
+
   file { $volume_dirs:
     ensure => directory,		# make sure this is a directory
     recurse => false,			# don't recurse into directory
@@ -53,10 +53,10 @@ define gluster::volume(
     before => Exec["gluster-volume-create-${name}"],
     require => Gluster::Brick[$bricks],
   }
-  
+
   # add /${name} to the end of each: brick:/path entry
   $brick_spec = inline_template("<%= bricks.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
-  
+
   # EXAMPLE: gluster volume create test replica 2 transport tcp annex1.example.com:/storage1a/test annex2.example.com:/storage2a/test annex3.example.com:/storage3b/test annex4.example.com:/storage4b/test annex1.example.com:/storage1c/test annex2.example.com:/storage2c/test annex3.example.com:/storage3d/test annex4.example.com:/storage4d/test
   # NOTE: this should only happen on one host
   # FIXME: there might be a theoretical race condition if this runs at
@@ -71,7 +71,7 @@ define gluster::volume(
     #require => Gluster::Brick[$bricks],
     alias => "gluster-volume-create-${name}",
   }
-  
+
   # TODO:
   #if $shorewall {
   #  shorewall::rule { 'gluster-TODO':
@@ -82,7 +82,7 @@ define gluster::volume(
   #    before => Service['glusterd'],
   #  }
   #}
-  
+
   if $start == true {
     # try to start volume if stopped
     exec { "/usr/sbin/gluster volume start ${name}":
