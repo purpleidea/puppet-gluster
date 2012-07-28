@@ -104,7 +104,7 @@ class gluster::server(
 			rule => "
 			ACCEPT        ${zone}:${source_ips}    $FW        tcp    24008
 			",
-			comment => 'Allow incoming tcp:24008 for rdma.'
+			comment => 'Allow incoming tcp:24008 for rdma.',
 			before => Service['glusterd'],
 		}
 
