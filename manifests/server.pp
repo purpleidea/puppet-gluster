@@ -91,12 +91,20 @@ class gluster::server(
 		############################################################################
 		#	ACTION      SOURCE DEST                PROTO DEST  SOURCE  ORIGINAL
 		#	                                             PORT  PORT(S) DEST
-		# TODO: I've never seen anything connect on 24008. Is it ever used?
-		shorewall::rule { 'glusterd':
+		shorewall::rule { 'glusterd-management':
 			rule => "
-			ACCEPT        ${zone}:${source_ips}    $FW        tcp    24007:24008
+			ACCEPT        ${zone}:${source_ips}    $FW        tcp    24007
 			",
-			comment => 'Allow incoming tcp:24007-24008 from each other glusterd or client.',
+			comment => 'Allow incoming tcp:24007 from each other glusterd or client.',
+			before => Service['glusterd'],
+		}
+
+		# NOTE: used by rdma
+		shorewall::rule { 'glusterd-rdma':
+			rule => "
+			ACCEPT        ${zone}:${source_ips}    $FW        tcp    24008
+			",
+			comment => 'Allow incoming tcp:24008 for rdma.'
 			before => Service['glusterd'],
 		}
 
@@ -124,7 +132,6 @@ class gluster::server(
 		#$nfs_endport = inline_template('<%= 38465+hosts.count %>')	# XXX: is there one brick per server or two ? what does 'brick' mean in the context of open ports?
 		#shorewall::rule { 'gluster-24000':
 		#	rule => "
-		#	ACCEPT        ${zone}    $FW        tcp    24007,24008
 		#	ACCEPT        ${zone}    $FW        tcp    24009:${endport}
 		#	",
 		#	comment => 'Allow 24000s for gluster',
