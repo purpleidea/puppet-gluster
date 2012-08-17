@@ -66,7 +66,7 @@ define gluster::volume(
 	# available, which per node will happen right before this runs.
 	exec { "/usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec}":
 		logoutput => on_failure,
-		unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
+		unless => "/usr/sbin/gluster volume info | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
 		#before => TODO?,
 		#require => Gluster::Brick[$bricks],
 		alias => "gluster-volume-create-${name}",
