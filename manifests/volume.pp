@@ -39,7 +39,7 @@ define gluster::volume(
 		default => "stripe ${stripe} ",
 	}
 
-	#Gluster::Brick[$bricks] -> Gluster::Volume[$name]	# volume requires bricks
+	Gluster::Brick[$bricks] -> Gluster::Volume[$name]	# volume requires bricks
 
 	# get the bricks that match our fqdn, and append /$name to their path.
 	# return only these paths, which can be used to build the volume dirs.
