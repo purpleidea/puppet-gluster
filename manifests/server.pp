@@ -19,7 +19,7 @@ class gluster::server(
 	$hosts = [],	# this should be a list of fqdn's			# TODO: we could easily just setup gluster/shorewall by ip address instead of hostname!
 	$ips = [],	# this should be a list of ip's for each in hosts[]	# TODO: i would have rather this happen with a local dns resolver, but I can't figure out how to make one!	# NOTE: this can be overcome probably by using exported resources or dns names in shorewall (bad)
 	$clients = [],	# list of allowed client ip's
-	#$vip = '',	# vip of the cluster (optional, but recommended)
+	#$vip = '',	# vip of the cluster (optional but recommended)
 	$nfs = false,								# TODO
 	$shorewall = false,
 	$zone = 'net',								# TODO: allow a list of zones

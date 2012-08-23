@@ -20,6 +20,7 @@ define gluster::volume(
 	$transport = 'tcp',
 	$replica = 1,
 	$stripe = 1,
+	$vip = '',		# vip of the cluster (optional but recommended)
 	$start = undef		# start volume ? true, false (stop it) or undef
 ) {
 	# TODO: if using rdma, maybe we should pull in the rdma package... ?
@@ -39,6 +40,9 @@ define gluster::volume(
 		default => "stripe ${stripe} ",
 	}
 
+	# returns interface name that has vip, or '' if none are found.
+	$vipif = inline_template("<%= interfaces.split(',').find_all {|x| '${vip}' == scope.lookupvar('ipaddress_'+x) }[0,1].join('') %>")
+
 	#Gluster::Brick[$bricks] -> Gluster::Volume[$name]	# volume requires bricks
 
 	# get the bricks that match our fqdn, and append /$name to their path.
@@ -57,19 +61,24 @@ define gluster::volume(
 	# add /${name} to the end of each: brick:/path entry
 	$brick_spec = inline_template("<%= bricks.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
 
-	# EXAMPLE: gluster volume create test replica 2 transport tcp annex1.example.com:/storage1a/test annex2.example.com:/storage2a/test annex3.example.com:/storage3b/test annex4.example.com:/storage4b/test annex1.example.com:/storage1c/test annex2.example.com:/storage2c/test annex3.example.com:/storage3d/test annex4.example.com:/storage4d/test
-	# NOTE: this should only happen on one host
-	# FIXME: there might be a theoretical race condition if this runs at
-	# exactly the same time time on more than one host.
-	# FIXME: this should probably fail on at least N-1 nodes before it
-	# succeeds because it probably shouldn't work until all the bricks are
-	# available, which per node will happen right before this runs.
-	exec { "/usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec}":
-		logoutput => on_failure,
-		unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
-		#before => TODO?,
-		#require => Gluster::Brick[$bricks],
-		alias => "gluster-volume-create-${name}",
+	# run if vip not defined (by pass mode) or vip exists on this machine
+	if ($vip == '' or $vipif != '') {
+		# NOTE: This should only happen on one host!
+		# NOTE: There's maybe a theoretical race condition if this runs
+		# at exactly the same time on more than one host. That's why it
+		# is advisable to use a vip.
+		# NOTE: This could probably fail on at least N-1 nodes (without
+		# vip) or one (the vip node, when using vip) before it succeeds
+		# because it shouldn't work until all the bricks are available,
+		# which per node will happen right before this runs.
+		# EXAMPLE: gluster volume create test replica 2 transport tcp annex1.example.com:/storage1a/test annex2.example.com:/storage2a/test annex3.example.com:/storage3b/test annex4.example.com:/storage4b/test annex1.example.com:/storage1c/test annex2.example.com:/storage2c/test annex3.example.com:/storage3d/test annex4.example.com:/storage4d/test
+		exec { "/usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec}":
+			logoutput => on_failure,
+			unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
+			#before => TODO?,
+			#require => Gluster::Brick[$bricks],
+			alias => "gluster-volume-create-${name}",
+		}
 	}
 
 	# TODO:
@@ -83,29 +92,32 @@ define gluster::volume(
 	#	}
 	#}
 
-	if $start == true {
-		# try to start volume if stopped
-		exec { "/usr/sbin/gluster volume start ${name}":
-			logoutput => on_failure,
-			unless => "/usr/sbin/gluster volume status ${name}",	# returns false if stopped
-			require => Exec["gluster-volume-create-${name}"],
-			alias => "gluster-volume-start-${name}",
+	# run if vip not defined (by pass mode) or vip exists on this machine
+	if ($vip == '' or $vipif != '') {
+		if $start == true {
+			# try to start volume if stopped
+			exec { "/usr/sbin/gluster volume start ${name}":
+				logoutput => on_failure,
+				unless => "/usr/sbin/gluster volume status ${name}",	# returns false if stopped
+				require => Exec["gluster-volume-create-${name}"],
+				alias => "gluster-volume-start-${name}",
+			}
+		} elsif ( $start == false ) {
+			# try to stop volume if running
+			# NOTE: this will still succeed even if a client is mounted
+			# NOTE: This uses `yes` to workaround the: Stopping volume will
+			# make its data inaccessible. Do you want to continue? (y/n)
+			# TODO: http://community.gluster.org/q/how-can-i-make-automatic-scripts/
+			# TODO: gluster --mode=script volume stop ...
+			exec { "/usr/bin/yes | /usr/sbin/gluster volume stop ${name}":
+				logoutput => on_failure,
+				onlyif => "/usr/sbin/gluster volume status ${name}",	# returns true if started
+				require => Exec["gluster-volume-create-${name}"],
+				alias => "gluster-volume-stop-${name}",
+			}
+		} else {	# 'undef'-ined
+			# don't manage volume run state
 		}
-	} elsif ( $start == false ) {
-		# try to stop volume if running
-		# NOTE: this will still succeed even if a client is mounted
-		# NOTE: This uses `yes` to workaround the: Stopping volume will
-		# make its data inaccessible. Do you want to continue? (y/n)
-		# TODO: http://community.gluster.org/q/how-can-i-make-automatic-scripts/
-		# TODO: gluster --mode=script volume stop ...
-		exec { "/usr/bin/yes | /usr/sbin/gluster volume stop ${name}":
-			logoutput => on_failure,
-			onlyif => "/usr/sbin/gluster volume status ${name}",	# returns true if started
-			require => Exec["gluster-volume-create-${name}"],
-			alias => "gluster-volume-stop-${name}",
-		}
-	} else {
-		# don't manage volume run state
 	}
 }
 
