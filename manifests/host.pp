@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# TODO: instead of peering manually this way (which makes the most sense, but
+# might be unsupported by gluster) we could peer using the cli, and ensure that
+# only the host holding the vip is allowed to execute cluster peer operations.
+
 define gluster::host(
 	$uuid
 ) {

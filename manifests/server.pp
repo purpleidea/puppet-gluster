@@ -155,3 +155,4 @@ class gluster::server(
 	}
 }
 
+# vim: ts=8

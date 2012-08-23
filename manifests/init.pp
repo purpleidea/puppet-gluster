@@ -51,7 +51,7 @@
 #
 # XXX: does parted align disks properly ?
 # XXX: mkfs.xfs -ssize=4k /dev/sdc1 ?	# should "-s sector_size" be used ?	http://kb.lsi.com/KnowledgebaseArticle16187.aspx ?
-# XXX: setup auth somehow... ip address based for now
+# XXX: setup auth somehow... ip address based for now # XXX: use volume::property...
 
 # FIXME: test this: https://bugzilla.redhat.com/show_bug.cgi?id=GLUSTER-3769
 # FIXME: peering: maybe we can just specify a guid somewhere so that everyone peers together ?
