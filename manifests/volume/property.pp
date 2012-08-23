@@ -18,7 +18,8 @@
 # NOTE: thanks to Joe Julian for: http://community.gluster.org/q/what-is-the-command-that-someone-can-run-to-get-the-value-of-a-given-property/
 
 define gluster::volume::property(
-	$value
+	$value,
+	$autotype = true		# set to false to disable autotyping
 ) {
 	include gluster::volume::property::base
 
@@ -30,7 +31,47 @@ define gluster::volume::property(
 		fail('The property $name must match a $volume#$key pattern.')
 	}
 
-	$safe_value = shellquote($value)	# TODO: is this the safe thing?
+	# TODO: can we split out $etype lookup into a separate file, like?
+	# also do the same for jchar
+	#$etype = gluster::volume::property::etype	# pull in etype hash
+
+	# expected type			# XXX: add more variables
+	$etype = $key ? {
+		'auth.allow' => 'array',
+		'auth.reject' => 'array',
+		#'XXX' => 'string',	# XXX
+		#'XXXX' => 'array',	# XXX
+		default => 'undefined',
+	}
+
+	if (! $autotype) {
+		if type($value) != 'string' {
+			fail('Expecting type(string) if autotype is disabled.')
+		}
+		$safe_value = shellquote($value)	# TODO: is this the safe thing?
+
+	# if it's not a string and it's not the expected type, fail
+	} elsif ( type($value) != $etype ) {	# type() is from puppet-common
+		fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
+
+	# convert to correct type
+	} else {
+
+		if $etype == 'string' {
+			$safe_value = shellquote($value)	# TODO: is this the safe thing?
+		} elsif $etype == 'array' {
+			$jchar = $key ? {
+				'auth.allow' => ',',
+				'auth.deny' => ',',
+				default => '',
+			}
+			$safe_value = inline_template('<%= value.join(jchar) %>')
+		#} elsif ... {	# TODO: add more conversions here if needed
+
+		} else {
+			fail("Unknown type: ${etype}.")
+		}
+	}
 
 	# volume set <VOLNAME> <KEY> <VALUE>
 	# set a volume property only if value doesn't match what is available
