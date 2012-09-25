@@ -4,14 +4,10 @@ Puppet::Type.type(:gluster_volume).provide(:gluster) do
 
   def exists?
 
-    puts 'exist'
-
     if ! gluster('volume','list').match('\b'+@resource[:name]+'\b').nil?
-      puts "exists: true"
       @@info = load_volume_info(@resource[:name])
       return true
     else
-      puts "exists: false"
       return false
     end
 
