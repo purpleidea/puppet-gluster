@@ -150,9 +150,13 @@ class gluster::server(
 		enable => true,			# start on boot
 		ensure => running,		# ensure it stays running
 		hasstatus => false,		# FIXME: BUG: https://bugzilla.redhat.com/show_bug.cgi?id=836007
+		pattern => '/usr/sbin/glusterd',# Correct regex as "glusterd" is also found when only the client is running.
 		hasrestart => true,		# use restart, not start; stop
 		require => Gluster::Host[$hosts],
 	}
+
+	# Gluster service must be up and running before the volumes are created
+	Service['glusterd']->Gluster_volume<||>
 }
 
 # vim: ts=8
