@@ -4,7 +4,17 @@ Puppet::Type.type(:gluster_volume).provide(:gluster) do
 
   def exists?
 
-    if ! gluster('volume','list').match('\b'+@resource[:name]+'\b').nil?
+    output = gluster('volume','list')
+
+    # There is a chance that the glusterd is just started and the volume info is not yet propagated.
+    # Giving 5 secs to sync volume info
+    # Is there a way to check this situation, instead of a "guessed" sleep
+    if output =~ /No volumes present in cluster/
+      sleep(5)
+      output = gluster('volume','list')
+    end
+
+    if ! output.match('\b'+@resource[:name]+'\b').nil?
       @@info = load_volume_info(@resource[:name])
       return true
     else
