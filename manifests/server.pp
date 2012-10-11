@@ -61,7 +61,6 @@ class gluster::server(
 		group => root,
 		mode => 644,
 		#notify => Service['glusterd'],	# TODO: eventually...
-		require => File['/etc/glusterfs/glusterd.vol'],
 	}
 
 	file { '/var/lib/glusterd/peers/':
