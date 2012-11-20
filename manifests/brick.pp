@@ -129,7 +129,7 @@ define gluster::brick(
 		$exec_mkpart = "/sbin/parted -s -m -a optimal ${dev} mkpart primary 0% 100%"
 		$scary_exec = "${exec_mklabel} && ${exec_mkpart} && ${exec_mkfs}"	# the command
 		if $exec_noop {
-			notify { 'noop mode:':
+			notify { "noop for ${name}":
 				message => "${scary_exec}",
 			}
 		}
