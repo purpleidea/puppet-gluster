@@ -32,13 +32,14 @@ define gluster::host(
 			mode => 644,					# u=rw,go=r
 			ensure => present,
 			require => File['/var/lib/glusterd/'],
+			before => Package['glusterfs-server'],
 		}
 	} else {
 		# set uuid=
 		exec { "/bin/echo 'uuid=${uuid}' >> '/var/lib/glusterd/peers/${uuid}'":
 			logoutput => on_failure,
 			unless => "/bin/grep -qF 'uuid=' '/var/lib/glusterd/peers/${uuid}'",
-			notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+			notify => [File['/var/lib/glusterd/peers/'],Service['glusterd']],	# propagate the notify up
 			before => File["/var/lib/glusterd/peers/${uuid}"],
 			alias => "gluster-host-uuid-${name}",
 			# FIXME: doing this causes a dependency cycle! adding
@@ -56,7 +57,7 @@ define gluster::host(
 		exec { "/bin/echo 'state=3' >> '/var/lib/glusterd/peers/${uuid}'":
 			logoutput => on_failure,
 			unless => "/bin/grep -qF 'state=' '/var/lib/glusterd/peers/${uuid}'",
-			notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+			notify => [File['/var/lib/glusterd/peers/'],Service['glusterd']],       # propagate the notify up
 			before => File["/var/lib/glusterd/peers/${uuid}"],
 			require => Exec["gluster-host-uuid-${name}"],
 			alias => "gluster-host-state-${name}",
@@ -66,7 +67,7 @@ define gluster::host(
 		exec { "/bin/echo 'hostname1=${name}' >> '/var/lib/glusterd/peers/${uuid}'":
 			logoutput => on_failure,
 			unless => "/bin/grep -qF 'hostname1=' '/var/lib/glusterd/peers/${uuid}'",
-			notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+			notify => [File['/var/lib/glusterd/peers/'],Service['glusterd']],       # propagate the notify up
 			before => File["/var/lib/glusterd/peers/${uuid}"],
 			require => Exec["gluster-host-state-${name}"],
 		}
@@ -74,7 +75,7 @@ define gluster::host(
 		# tag the file so it doesn't get removed by purge
 		file { "/var/lib/glusterd/peers/${uuid}":
 			ensure => present,
-			notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+			notify => [File['/var/lib/glusterd/peers/'],Service['glusterd']],       # propagate the notify up
 			owner => root,
 			group => root,
 			# NOTE: this mode was found by inspecting the process
