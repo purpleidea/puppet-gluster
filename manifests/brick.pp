@@ -29,7 +29,11 @@ define gluster::brick(
 	# eg: annex1.example.com:/storage1a
 	$split = split($name, ':')	# do some $name parsing
 	$host = $split[0]		# host fqdn
-	$mount = $split[1]		# brick mount
+	# NOTE: technically $mount should be everything BUT split[0]. This
+	# lets our $mount include colons if for some reason they're needed.
+	#$mount = $split[1]		# brick mount
+	# TODO: create substring function
+	$mount = inline_template("<%= '${name}'.slice('${host}'.length+1, '${name}'.length-'${host}'.length-1) %>")
 
 	if ! ( "${host}:${mount}" == "${name}" ) {
 		fail('The brick $name must match a $host-$mount pattern.')
