@@ -78,7 +78,7 @@ define gluster::volume::property(
 	# FIXME: check that the value we're setting isn't the default
 	# FIXME: you can check defaults with... gluster volume set help | ...
 	exec { "/usr/sbin/gluster volume set ${volume} ${key} ${safe_value}":
-		unless => "/usr/bin/test \"`/usr/sbin/gluster volume --xml info ${volume} | ./xml.py ${key}`\" = '${safe_value}'",
+		unless => "/usr/bin/test \"`/usr/sbin/gluster volume --xml info ${volume} | /var/lib/puppet/tmp/gluster/xml.py ${key}`\" = '${safe_value}'",
 		logoutput => on_failure,
 		require => [
 			Gluster::Volume[$volume],

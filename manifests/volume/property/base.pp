@@ -21,7 +21,7 @@ class gluster::volume::property::base {
 	}
 
 	file { '/var/lib/puppet/tmp/gluster/xml.py':
-		source => 'puppet:///files/gluster/xml.py',
+		source => 'puppet:///modules/gluster/xml.py',
 		owner => root,
 		group => nobody,
 		mode => 700,			# u=rwx
