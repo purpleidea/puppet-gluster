@@ -61,7 +61,7 @@ define gluster::volume(
 	# add /${name} to the end of each: brick:/path entry
 	$brick_spec = inline_template("<%= bricks.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
 
-	# run if vip not defined (by pass mode) or vip exists on this machine
+	# run if vip not defined (bypass mode) or if vip exists on this machine
 	if ($vip == '' or $vipif != '') {
 		# NOTE: This should only happen on one host!
 		# NOTE: There's maybe a theoretical race condition if this runs

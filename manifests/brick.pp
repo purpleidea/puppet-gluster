@@ -17,7 +17,7 @@
 
 define gluster::brick(
 	$dev,				# /dev/sdc, /dev/disk/by-id/scsi-36003048007e14f0014ca2743150a5471
-	$fsuuid,			# set a uuid for this fs
+	$fsuuid,			# set a uuid for this fs (uuidgen)
 	$labeltype = '',		# gpt
 	$fstype = '',			# xfs
 	$xfs_inode64 = false,
@@ -139,7 +139,7 @@ define gluster::brick(
 			unless => [		# if one element is true, this *doesn't* run
 				"/usr/bin/test -e `/bin/readlink -e ${dev}`1",	# does partition 1 exist ?
 				"/usr/bin/test -e /dev/disk/by-uuid/${fsuuid}",
-				"/bin/false",	# TODO: add more criteria
+				'/bin/false',	# TODO: add more criteria
 			],
 			require => $exec_requires,
 			timeout => 3600,			# set to something very long
