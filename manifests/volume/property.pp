@@ -22,6 +22,9 @@ define gluster::volume::property(
 	$autotype = true		# set to false to disable autotyping
 ) {
 	include gluster::volume::property::base
+	include gluster::vardir
+	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
+	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
 	$split = split($name, '#')	# do some $name parsing
 	$volume = $split[0]		# volume name
@@ -51,7 +54,7 @@ define gluster::volume::property(
 		$safe_value = shellquote($value)	# TODO: is this the safe thing?
 
 	# if it's not a string and it's not the expected type, fail
-	} elsif ( type($value) != $etype ) {	# type() is from puppet-common
+	} elsif ( type($value) != $etype ) {	# type() from puppetlabs-stdlib
 		fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
 
 	# convert to correct type
@@ -78,11 +81,11 @@ define gluster::volume::property(
 	# FIXME: check that the value we're setting isn't the default
 	# FIXME: you can check defaults with... gluster volume set help | ...
 	exec { "/usr/sbin/gluster volume set ${volume} ${key} ${safe_value}":
-		unless => "/usr/bin/test \"`/usr/sbin/gluster volume --xml info ${volume} | /var/lib/puppet/tmp/gluster/xml.py ${key}`\" = '${safe_value}'",
+		unless => "/usr/bin/test \"`/usr/sbin/gluster volume --xml info ${volume} | ${vardir}/xml.py ${key}`\" = '${safe_value}'",
 		logoutput => on_failure,
 		require => [
 			Gluster::Volume[$volume],
-			File['/var/lib/puppet/tmp/gluster/xml.py'],
+			File["${vardir}/xml.py"],
 		],
 	}
 }

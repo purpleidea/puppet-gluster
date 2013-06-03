@@ -1,0 +1,18 @@
+To install this puppet module, copy this folder to your puppet modulepath.
+
+You can usually find out where this is by running:
+
+$ puppet config print modulepath
+
+on your puppetmaster. In my case, this contains the directory:
+
+/etc/puppet/modules/
+
+I keep all of my puppet modules in git managed directories named:
+
+puppet-<modulename>
+
+You must remove the 'puppet-' prefix from the directory name for it to work!
+
+Happy hacking!
+

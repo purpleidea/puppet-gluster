@@ -1,13 +1,23 @@
-puppet-gluster, by James Shubin <james@shubin.ca>, https://ttboj.wordpress.com/
+This is puppet-gluster a puppet module for gluster.
 
-WARNING: This module is in development phase, and things might change drastically. You've been warned. Sorry about any ugliness that is present at the moment.
+Please read the INSTALL file for instructions on getting this installed.
+Look in the examples/ folder for usage. If none exist, please contribute one!
+This code may be a work in progress. The interfaces may change without notice.
+Patches are welcome, but please be patient. They are best received by email.
+Please ping me if you have big changes in mind, before you write a giant patch.
 
-DEPENDENCIES: This module (optionally) depends on my unreleased puppet-shorewall module.
+Module specific notes:
+* All the participating nodes, need to have an identical puppet-gluster config.
+* There is an experimental gluster::wrapper class, for easier deployment.
+* You can use less of the available resources, if you only want to manage some.
 
-PATCHES/DISCUSSION: Initially both welcome by email, although I'd prefer you give me a heads up first so that we're working in the same direction.
+Dependencies:
+* puppetlabs-stdlib (required)
+* my puppet-common module (optional)
+* my puppet-shorewall module (optional)
+* my puppet-puppet module (optional)
 
-USAGE:
-Put these two folders in your $PUPPET_MODULE_DIR/gluster/
-Configure your nodes... (All server nodes should have identical puppet config)
-Profit!!!
+
+Happy hacking,
+James Shubin <james@shubin.ca>, https://ttboj.wordpress.com/
 

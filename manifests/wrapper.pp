@@ -57,7 +57,8 @@ class gluster::wrapper(
 	#$hosttree = inline_template('<%= nodetree.each_with_object({}) {|(x,y), h| h[x] = y.select{ |key,value| ["uuid"].include?(key) } }.to_yaml %>')
 	$hosttree = inline_template('<%= nodetree.inject({}) {|h, (x,y)| h[x] = y.select{ |key,value| ["uuid"].include?(key) }; h }.to_yaml %>')
 	# newhash = oldhash.inject({}) { |h,(k,v)| h[k] = some_operation(v); h }	# XXX: does this form work ?
-	create_resources('gluster::host', loadyaml($hosttree))
+	$yaml_host = parseyaml($hosttree)
+	create_resources('gluster::host', $yaml_host)
 
 	#
 	#	build gluster::brick
@@ -78,7 +79,8 @@ class gluster::wrapper(
 	$bricktree = inline_template('<%= r = {}; nodetree.each {|x,y| y["bricks"].each {|k,v| r[x+":"+k] = v} }; r.to_yaml %>')
 	# this version removes any invalid keys from the brick specifications
 	#$bricktree = inline_template('<%= r = {}; nodetree.each {|x,y| y["bricks"].each {|k,v| r[x+":"+k] = v.select{ |key,value| ["dev", "labeltype", "fstype", "fsuuid", "..."].include?(key) } } }; r.to_yaml %>')
-	create_resources('gluster::brick', loadyaml($bricktree))
+	$yaml_brick = parseyaml($bricktree)
+	create_resources('gluster::brick', $yaml_brick)
 
 	#
 	#	build gluster::volume
@@ -112,7 +114,8 @@ class gluster::wrapper(
 	}
 	# loop through volumetree... if special defaults are missing, then add!
 	$volumetree_updated = inline_template('<%= volumetree.each_with_object({}) {|(x,y), h| h[x] = y; volumetree_defaults.each {|k,v| h[k] = h.fetch(k, v)} }.to_yaml %>')
-	create_resources('gluster::volume', loadyaml($volumetree_updated))
+	$yaml_volume = parseyaml($volumetree_updated)
+	create_resources('gluster::volume', $yaml_volume)
 
 	#
 	#	build gluster::volume::property (auth.allow)
@@ -125,7 +128,8 @@ class gluster::wrapper(
 
 	#$simplewrongname = inline_template('<%= volumetree.each_with_object({}) {|(x,y), h| h[x+"#auth.allow"] = y.select{ |key,value| ["clients"].include?(key) } }.to_yaml %>')
 	$propertytree = inline_template('<%= volumetree.each_with_object({}) {|(x,y), h| h[x+"#auth.allow"] = { "value" => y.fetch("clients", []) } }.to_yaml %>')
-	create_resources('gluster::volume::property', loadyaml($propertytree))
+	$yaml_volume_property = parseyaml($propertytree)
+	create_resources('gluster::volume::property', $yaml_volume_property)
 }
 
 # vim: ts=8

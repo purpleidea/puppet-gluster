@@ -16,18 +16,26 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::volume::property::base {
+	include gluster::vardir
+
 	package { 'python-lxml':		# for parsing gluster xml output
 		ensure => present,
 	}
 
-	file { '/var/lib/puppet/tmp/gluster/xml.py':
+	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
+	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
+
+	file { "${vardir}/xml.py":
 		source => 'puppet:///modules/gluster/xml.py',
 		owner => root,
 		group => nobody,
 		mode => 700,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		ensure => present,
-		require => Package['python-lxml'],
+		require => [
+			Package['python-lxml'],
+			File["${vardir}/"],
+		],
 	}
 }
 
