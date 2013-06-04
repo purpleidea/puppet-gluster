@@ -10,12 +10,16 @@ Module specific notes:
 * All the participating nodes, need to have an identical puppet-gluster config.
 * There is an experimental gluster::wrapper class, for easier deployment.
 * You can use less of the available resources, if you only want to manage some.
+* You can get CentOS and RHEL rpms from:
+	* http://download.gluster.org/pub/gluster/glusterfs/LATEST/CentOS/ or:
+	* http://repos.fedorapeople.org/repos/kkeithle/glusterfs/epel-6/x86_64/
 
 Dependencies:
 * puppetlabs-stdlib (required)
 * my puppet-common module (optional)
 * my puppet-shorewall module (optional)
 * my puppet-puppet module (optional)
+* gluster packages (see above notes)
 
 
 Happy hacking,
