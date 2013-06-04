@@ -1,5 +1,5 @@
 # Simple? gluster module by James
-# Copyright (C) 2010-2012  James Shubin
+# Copyright (C) 2012-2013+ James Shubin
 # Written by James Shubin <james@shubin.ca>
 #
 # This program is free software: you can redistribute it and/or modify

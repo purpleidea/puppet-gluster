@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012  James Shubin <james@shubin.ca>
-# Copyright (C) 2012  Jordi Gutiérrez Hermoso <jordigh@octave.org>
+# Copyright (C) 2012+ Jordi Gutiérrez Hermoso <jordigh@octave.org>
+# Copyright (C) 2012-2013+ James Shubin
+# Written by James Shubin <james@shubin.ca>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
