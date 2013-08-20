@@ -45,7 +45,7 @@ define gluster::client(
 	# make an empty directory for the mount point
 	file { "${name}":
 		ensure => directory,		# make sure this is a directory
-		recurse => false,			# don't recurse into directory
+		recurse => false,		# don't recurse into directory
 		purge => false,			# don't purge unmanaged files
 		force => false,			# don't purge subdirs and links
 	}

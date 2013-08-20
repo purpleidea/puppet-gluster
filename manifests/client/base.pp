@@ -22,18 +22,23 @@ class gluster::client::base {
 	}
 
 	# FIXME: choose a reliable and correct way to ensure fuse is loaded
-	#[root@test2 ~]# dmesg | grep -i fuse
-	#[root@test2 ~]# modprobe fuse
-	#[root@test2 ~]# dmesg | grep -i fuse
+	# dmesg | grep -i fuse
+	# modprobe fuse
+	# dmesg | grep -i fuse
 	#fuse init (API version 7.13)
-	#[root@test2 ~]#
+	#
 
 	# modprobe fuse if it's missing
 	exec { '/sbin/modprobe fuse':
 		logoutput => on_failure,
-		onlyif => '/usr/bin/test -z "`/bin/dmesg | grep -i fuse`"',
+		onlyif => '/usr/bin/test -z "`/bin/dmesg | /bin/grep -i fuse`"',
 		alias => 'gluster-fuse',
 	}
+	#exec { '/sbin/modprobe fuse':
+	#	logoutput => on_failure,
+	#	unless => "/sbin/lsmod | /bin/grep -q '^fuse'",
+	#	alias => 'gluster-modprobe-fuse',
+	#}
 
 	# TODO: will this autoload the fuse module?
 	#file { '/etc/modprobe.d/fuse.conf':
