@@ -138,7 +138,7 @@ class gluster_base {
 
 	# namevar must be: <VOLNAME>#<KEY>
 	gluster::volume::property { 'examplevol#auth.reject':
-		value => '192.0.2.13,198.51.100.42,203.0.113.69',
+		value => ['192.0.2.13', '198.51.100.42', '203.0.113.69'],
 	}
 
 	#gluster::volume::property { 'examplevol#cluster.data-self-heal-algorithm':

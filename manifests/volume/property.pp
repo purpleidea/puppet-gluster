@@ -65,9 +65,10 @@ define gluster::volume::property(
 		} elsif $etype == 'array' {
 			$jchar = $key ? {
 				'auth.allow' => ',',
-				'auth.deny' => ',',
+				'auth.reject' => ',',
 				default => '',
 			}
+
 			$safe_value = inline_template('<%= value.join(jchar) %>')
 		#} elsif ... {	# TODO: add more conversions here if needed
 

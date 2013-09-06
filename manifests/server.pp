@@ -25,6 +25,8 @@ class gluster::server(
 	$zone = 'net',								# TODO: allow a list of zones
 	$allow = 'all'
 ) {
+	$FW = '$FW'			# make using $FW in shorewall easier
+
 	# TODO: ensure these are from our 'gluster' repo
 	package { 'glusterfs-server':
 		ensure => present,

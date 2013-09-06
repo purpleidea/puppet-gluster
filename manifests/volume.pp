@@ -77,6 +77,7 @@ define gluster::volume(
 			unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
 			#before => TODO?,
 			#require => Gluster::Brick[$bricks],
+			require => Service['glusterd'],
 			alias => "gluster-volume-create-${name}",
 		}
 	}
