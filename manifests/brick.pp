@@ -16,8 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 define gluster::brick(
-	$dev,				# /dev/sdc, /dev/disk/by-id/scsi-36003048007e14f0014ca2743150a5471
-	$fsuuid,			# set a uuid for this fs (uuidgen)
+	# if dev is false, path in $name is used directly after a mkdir -p
+	$dev = false,			# /dev/sdc, /dev/disk/by-id/scsi-36003048007e14f0014ca2743150a5471
+	$fsuuid = '',			# set a uuid for this fs (uuidgen)
 	$labeltype = '',		# gpt
 	$fstype = '',			# xfs
 	$xfs_inode64 = false,
@@ -29,14 +30,14 @@ define gluster::brick(
 	# eg: annex1.example.com:/storage1a
 	$split = split($name, ':')	# do some $name parsing
 	$host = $split[0]		# host fqdn
-	# NOTE: technically $mount should be everything BUT split[0]. This
-	# lets our $mount include colons if for some reason they're needed.
-	#$mount = $split[1]		# brick mount
+	# NOTE: technically $path should be everything BUT split[0]. This
+	# lets our $path include colons if for some reason they're needed.
+	#$path = $split[1]		# brick mount or storage path
 	# TODO: create substring function
-	$mount = inline_template("<%= '${name}'.slice('${host}'.length+1, '${name}'.length-'${host}'.length-1) %>")
+	$path = inline_template("<%= '${name}'.slice('${host}'.length+1, '${name}'.length-'${host}'.length-1) %>")
 
-	if ! ( "${host}:${mount}" == "${name}" ) {
-		fail('The brick $name must match a $host-$mount pattern.')
+	if ! ( "${host}:${path}" == "${name}" ) {
+		fail('The brick $name must match a $host-$path pattern.')
 	}
 
 	Gluster::Host[$host] -> Gluster::Brick[$name]	# brick requires host
@@ -51,9 +52,16 @@ define gluster::brick(
 		default => 'gpt',
 	}
 
-	$valid_fstype = $fstype ? {
-		'ext4' => 'ext4',	# TODO
-		default => 'xfs',
+	# if $dev is false, we assume we're using a path backing store on brick
+	$valid_fstype = type($dev) ? {
+		'boolean' => $dev ? {
+			false => 'path',	# no dev, just a path spec
+			default => '',		# invalid type
+		},
+		default => $fstype ? {
+			'ext4' => 'ext4',	# TODO
+			default => 'xfs',
+		},
 	}
 
 	$force_flag = $force ? {
@@ -61,9 +69,14 @@ define gluster::brick(
 		default => '',
 	}
 
+	if ( $valid_fstype == 'path' ) {
+
+		# do a mkdir -p in the execution section below...
+		$options_list = []	# n/a
+
 	# XFS mount options:
 	# http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=Documentation/filesystems/xfs.txt;hb=HEAD
-	if ( $valid_fstype == 'xfs' ) {
+	} elsif ( $valid_fstype == 'xfs' ) {
 		# exec requires
 		include gluster::brick::xfs
 		$exec_requires = [Package['xfsprogs']]
@@ -111,6 +124,8 @@ define gluster::brick(
 
 		# mount options
 		$options_list = []	# TODO
+	} else {
+		fail('The $fstype is invalid.')
 	}
 
 	# put all the options in an array, remove the empty ones, and join with
@@ -123,8 +138,8 @@ define gluster::brick(
 		default => true,
 	}
 
-	# if we're on itself
-	if ( "${fqdn}" == "${host}" ) {
+	# if we're on itself, and we have a real device to work with
+	if (type($dev) != 'boolean') and ("${fqdn}" == "${host}") {
 
 		# first get the device ready
 
@@ -152,7 +167,7 @@ define gluster::brick(
 		}
 
 		# make an empty directory for the mount point
-		file { "${mount}":
+		file { "${path}":
 			ensure => directory,		# make sure this is a directory
 			recurse => false,		# don't recurse into directory
 			purge => false,			# don't purge unmanaged files
@@ -160,7 +175,7 @@ define gluster::brick(
 			require => Exec["gluster-brick-make-${name}"],
 		}
 
-		mount { "${mount}":
+		mount { "${path}":
 			atboot => true,
 			ensure => mounted,
 			device => "UUID=${fsuuid}",
@@ -174,8 +189,19 @@ define gluster::brick(
 			# xfs uses xfs_check and friends only when suspect.
 			pass => '2',			# fs_passno: 0 to skip fsck on boot
 			require => [
-				File["${mount}"],
+				File["${path}"],
 			],
+		}
+
+	} elsif ((type($dev) == 'boolean') and (! $dev)) and ("${fqdn}" == "${host}") {
+
+		$valid_path = sprintf("%s/", regsubst($path, '\/$', ''))
+		# ensure the full path exists!
+		exec { "/bin/mkdir -p '${valid_path}'":
+			creates => "${valid_path}",
+			logoutput => on_failure,
+			noop => $exec_noop,
+			alias => "gluster-brick-mkdir ${name}",
 		}
 	}
 }
