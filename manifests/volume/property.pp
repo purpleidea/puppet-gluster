@@ -21,7 +21,7 @@ define gluster::volume::property(
 	$value,
 	$autotype = true		# set to false to disable autotyping
 ) {
-	include gluster::volume::property::base
+	include gluster::xml
 	include gluster::vardir
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
@@ -82,7 +82,8 @@ define gluster::volume::property(
 	# FIXME: check that the value we're setting isn't the default
 	# FIXME: you can check defaults with... gluster volume set help | ...
 	exec { "/usr/sbin/gluster volume set ${volume} ${key} ${safe_value}":
-		unless => "/usr/bin/test \"`/usr/sbin/gluster volume --xml info ${volume} | ${vardir}/xml.py ${key}`\" = '${safe_value}'",
+		unless => "/usr/bin/test \"`/usr/sbin/gluster volume --xml info ${volume} | ${vardir}/xml.py --property ${key}`\" = '${safe_value}'",
+		onlyif => "/usr/sbin/gluster volume list | /bin/grep -qxF '${volume}' -",
 		logoutput => on_failure,
 		require => [
 			Gluster::Volume[$volume],

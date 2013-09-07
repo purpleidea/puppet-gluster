@@ -21,8 +21,18 @@ define gluster::volume(
 	$replica = 1,
 	$stripe = 1,
 	$vip = '',		# vip of the cluster (optional but recommended)
+	$ping = true,		# do we want to include fping checks ?
 	$start = undef		# start volume ? true, false (stop it) or undef
 ) {
+	include gluster::xml
+	include gluster::vardir
+	if $ping {
+		include gluster::volume::ping
+	}
+
+	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
+	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
+
 	# TODO: if using rdma, maybe we should pull in the rdma package... ?
 	$valid_transport = $transport ? {
 		'rdma' => 'rdma',
@@ -61,6 +71,32 @@ define gluster::volume(
 	# add /${name} to the end of each: brick:/path entry
 	$brick_spec = inline_template("<%= bricks.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
 
+	# get the list of bricks fqdn's that don't have our fqdn
+	$others = inline_template("<%= bricks.find_all{|x| x.split(':')[0] != '${fqdn}' }.collect {|y| y.split(':')[0] }.join(' ') %>")
+
+	$fping = sprintf("/usr/sbin/fping -q %s", $others)
+	$status = sprintf("/usr/sbin/gluster peer status --xml | ${vardir}/xml.py --connected %s", $others)
+
+	$onlyif = $ping ? {
+		false => "${status}",
+		default => [
+			"${fping}",
+			"${status}",
+		],
+	}
+
+	$require = $ping ? {
+		false => [
+			Service['glusterd'],
+			File["${vardir}/xml.py"],	# status check
+		],
+		default => [
+			Service['glusterd'],
+			Package['fping'],
+			File["${vardir}/xml.py"],	# status check
+		],
+	}
+
 	# run if vip not defined (bypass mode) or if vip exists on this machine
 	if ($vip == '' or $vipif != '') {
 		# NOTE: This should only happen on one host!
@@ -71,13 +107,15 @@ define gluster::volume(
 		# vip) or one (the vip node, when using vip) before it succeeds
 		# because it shouldn't work until all the bricks are available,
 		# which per node will happen right before this runs.
+		# fping all the other nodes to ensure they're up for creation
 		# EXAMPLE: gluster volume create test replica 2 transport tcp annex1.example.com:/storage1a/test annex2.example.com:/storage2a/test annex3.example.com:/storage3b/test annex4.example.com:/storage4b/test annex1.example.com:/storage1c/test annex2.example.com:/storage2c/test annex3.example.com:/storage3d/test annex4.example.com:/storage4d/test
 		exec { "/usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec}":
 			logoutput => on_failure,
 			unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
+			onlyif => $onlyif,
 			#before => TODO?,
 			#require => Gluster::Brick[$bricks],
-			require => Service['glusterd'],
+			require => $require,
 			alias => "gluster-volume-create-${name}",
 		}
 	}
@@ -99,6 +137,7 @@ define gluster::volume(
 			# try to start volume if stopped
 			exec { "/usr/sbin/gluster volume start ${name}":
 				logoutput => on_failure,
+				onlyif => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",
 				unless => "/usr/sbin/gluster volume status ${name}",	# returns false if stopped
 				require => Exec["gluster-volume-create-${name}"],
 				alias => "gluster-volume-start-${name}",

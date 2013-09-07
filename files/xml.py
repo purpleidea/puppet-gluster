@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012+ Jordi Gutiérrez Hermoso <jordigh@octave.org>
 # Copyright (C) 2012-2013+ James Shubin
 # Written by James Shubin <james@shubin.ca>
 #
@@ -17,24 +16,69 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# thanks to Jordi for fighting with the xml for me so that I didn't have to :)
+# 	EXAMPLE:
+#	$ gluster peer status --xml | ./xml.py --connected <PEER1> <PEER2> <PEERn>
+#	<BOOL>
 
 # 	EXAMPLE:
-#	$ gluster volume --xml info <VOLNAME> | ./xml.py <KEY>
+#	$ gluster volume --xml info <VOLNAME> | ./xml.py --property <KEY>
 #	<VALUE>
 
 import sys
 import lxml.etree as etree
 
-if len(sys.argv) != 2:
-	sys.exit(1)
+argv = sys.argv
+argv.pop(0)	# get rid of $0
 
-t = etree.parse(sys.stdin)
-r = t.getroot()
-v = [x.find('value').text for x in r.findall('.//option') if x.find('name').text == str(sys.argv[1])]
-if len(v) == 1:
-	print v[0]
+if len(argv) < 1:
+	sys.exit(3)
+
+mode = argv.pop(0)
+tree = etree.parse(sys.stdin)
+root = tree.getroot()
+
+# are all the hostnames in argv connected ?
+if mode == '--connected':
+	store = {}
+	peers = [x for x in argv if x != '']
+
+	for i in root.findall('.//peerStatus'):
+		p = i.find('peer')
+		h = p.find('hostname').text
+		c = (str(p.find('connected').text) == '1')	# connected
+		store[h] = c	# save for later...
+
+	# if no peers specified, assume we should check all...
+	if len(peers) == 0:
+		peers = store.keys()
+
+	for i in peers:
+		if i in store.keys():
+			if not store[i]:
+				# someone is unconnected
+				sys.exit(1)
+		else:
+			# we're looking for a peer that isn't peered yet
+			sys.exit(2)
+
+	# must be good!
 	sys.exit(0)
-else:			# more than one value found
-	sys.exit(1)
+
+elif mode == '--property':
+	if len(argv) != 1:
+		sys.exit(3)
+
+	store = []
+	for i in root.findall('.//option'):
+		if i.find('name').text == str(argv[0]):
+			store.append(i.find('value').text)
+
+	if len(store) == 1:
+		print(store[0])
+		sys.exit(0)
+	else:			# more than one value found
+		sys.exit(1)
+
+# else:
+sys.exit(3)
 

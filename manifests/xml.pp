@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class gluster::volume::property::base {
+class gluster::xml {
 	include gluster::vardir
 
 	package { 'python-lxml':		# for parsing gluster xml output
