@@ -29,7 +29,9 @@ define gluster::host(
 			content => template('gluster/glusterd.info.erb'),
 			owner => root,
 			group => root,
-			mode => 644,					# u=rw,go=r
+			mode => 600,				# u=rw,go=r
+			seltype => 'glusterd_var_lib_t',
+			seluser => 'unconfined_u',
 			ensure => present,
 			require => File['/var/lib/glusterd/'],
 		}
@@ -78,7 +80,9 @@ define gluster::host(
 			owner => root,
 			group => root,
 			# NOTE: this mode was found by inspecting the process
-			mode => 600,					# u=rw,go=
+			mode => 600,				# u=rw,go=r
+			seltype => 'glusterd_var_lib_t',
+			seluser => 'unconfined_u',
 		}
 	}
 }
