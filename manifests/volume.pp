@@ -57,16 +57,17 @@ define gluster::volume(
 
 	# get the bricks that match our fqdn, and append /$name to their path.
 	# return only these paths, which can be used to build the volume dirs.
-	$volume_dirs = split(inline_template("<%= bricks.find_all{|x| x.split(':')[0] == '${fqdn}' }.collect {|y| y.split(':')[1].chomp('/')+'/${name}' }.join(' ') %>"), ' ')
-
-	file { $volume_dirs:
-		ensure => directory,		# make sure this is a directory
-		recurse => false,		# don't recurse into directory
-		purge => false,			# don't purge unmanaged files
-		force => false,			# don't purge subdirs and links
-		before => Exec["gluster-volume-create-${name}"],
-		require => Gluster::Brick[$bricks],
-	}
+	# NOTE: gluster v3.4 won't create a volume if this dir already exists.
+	# TODO: is this needed when bricks are devices and not on filesystem ?
+	#$volume_dirs = split(inline_template("<%= bricks.find_all{|x| x.split(':')[0] == '${fqdn}' }.collect {|y| y.split(':')[1].chomp('/')+'/${name}' }.join(' ') %>"), ' ')
+	#file { $volume_dirs:
+	#	ensure => directory,		# make sure this is a directory
+	#	recurse => false,		# don't recurse into directory
+	#	purge => false,			# don't purge unmanaged files
+	#	force => false,			# don't purge subdirs and links
+	#	before => Exec["gluster-volume-create-${name}"],
+	#	require => Gluster::Brick[$bricks],
+	#}
 
 	# add /${name} to the end of each: brick:/path entry
 	$brick_spec = inline_template("<%= bricks.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
@@ -89,11 +90,13 @@ define gluster::volume(
 		false => [
 			Service['glusterd'],
 			File["${vardir}/xml.py"],	# status check
+			Gluster::Brick[$bricks],
 		],
 		default => [
 			Service['glusterd'],
 			Package['fping'],
 			File["${vardir}/xml.py"],	# status check
+			Gluster::Brick[$bricks],
 		],
 	}
 
@@ -114,7 +117,6 @@ define gluster::volume(
 			unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
 			onlyif => $onlyif,
 			#before => TODO?,
-			#require => Gluster::Brick[$bricks],
 			require => $require,
 			alias => "gluster-volume-create-${name}",
 		}
