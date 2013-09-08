@@ -89,12 +89,17 @@ class gluster::server(
 		#$all_ips = inline_template("<%= (ips+[vip]+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
 		#$list_of_hosts_except_myself = split(inline_template("<%= host_list.delete_if {|x| x == '${fqdn}' }.join(' ') %>"), ' ')
 
+		$src = "${source_ips}" ? {
+			'' => "${zone}",
+			default => "${zone}:${source_ips}",
+		}
+
 		############################################################################
 		#	ACTION      SOURCE DEST                PROTO DEST  SOURCE  ORIGINAL
 		#	                                             PORT  PORT(S) DEST
 		shorewall::rule { 'glusterd-management':
 			rule => "
-			ACCEPT        ${zone}:${source_ips}    $FW        tcp    24007
+			ACCEPT        ${src}    $FW        tcp    24007
 			",
 			comment => 'Allow incoming tcp:24007 from each other glusterd or client.',
 			before => Service['glusterd'],
@@ -103,7 +108,7 @@ class gluster::server(
 		# NOTE: used by rdma
 		shorewall::rule { 'glusterd-rdma':
 			rule => "
-			ACCEPT        ${zone}:${source_ips}    $FW        tcp    24008
+			ACCEPT        ${src}    $FW        tcp    24008
 			",
 			comment => 'Allow incoming tcp:24008 for rdma.',
 			before => Service['glusterd'],
@@ -112,7 +117,7 @@ class gluster::server(
 		# TODO: Use the correct port range
 		shorewall::rule { 'glusterfsd-easyfw':
 			rule => "
-			ACCEPT        ${zone}:${source_ips}    $FW        tcp    24009:25009	# XXX: Use the correct port range
+			ACCEPT        ${src}    $FW        tcp    24009:25009	# XXX: Use the correct port range
 			",
 			comment => 'Allow incoming tcp:24009-25009 from each other glusterfsd and clients.',
 			before => Service['glusterd'],
@@ -121,8 +126,8 @@ class gluster::server(
 		# TODO: is this only used for nfs?
 		shorewall::rule { 'gluster-111':
 			rule => "
-			ACCEPT        ${zone}:${source_ips}    $FW        tcp    111
-			ACCEPT        ${zone}:${source_ips}    $FW        udp    111
+			ACCEPT        ${src}    $FW        tcp    111
+			ACCEPT        ${src}    $FW        udp    111
 			",
 			comment => 'Allow tcp/udp 111.',
 			before => Service['glusterd'],
