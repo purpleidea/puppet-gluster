@@ -27,6 +27,8 @@ define gluster::host(
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
+	Gluster::Host[$name] -> Service['glusterd']	# glusterd requires host
+
 	# if we're on itself
 	if ( "${fqdn}" == "${name}" ) {
 		# don't purge the uuid file generated within
@@ -55,6 +57,7 @@ define gluster::host(
 				seltype => 'glusterd_var_lib_t',
 				seluser => 'unconfined_u',
 				ensure => present,
+				notify => Service['glusterd'],
 				require => File['/var/lib/glusterd/'],
 			}
 
@@ -121,13 +124,13 @@ define gluster::host(
 			# tag the file so it doesn't get removed by purge
 			file { "/var/lib/glusterd/peers/${valid_uuid}":
 				ensure => present,
-				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
 				owner => root,
 				group => root,
 				# NOTE: this mode was found by inspecting the process
 				mode => 600,			# u=rw,go=r
 				seltype => 'glusterd_var_lib_t',
 				seluser => 'unconfined_u',
+				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
 			}
 		}
 	}

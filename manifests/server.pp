@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::server(
-	$hosts = [],	# this should be a list of fqdn's			# TODO: we could easily just setup gluster/shorewall by ip address instead of hostname!
 	$ips = [],	# this should be a list of ip's for each in hosts[]	# TODO: i would have rather this happen with a local dns resolver, but I can't figure out how to make one!	# NOTE: this can be overcome probably by using exported resources or dns names in shorewall (bad)
 	$clients = [],	# list of allowed client ip's
 	#$vip = '',	# vip of the cluster (optional but recommended)
@@ -153,7 +152,6 @@ class gluster::server(
 		ensure => running,		# ensure it stays running
 		hasstatus => false,		# FIXME: BUG: https://bugzilla.redhat.com/show_bug.cgi?id=836007
 		hasrestart => true,		# use restart, not start; stop
-		require => Gluster::Host[$hosts],
 	}
 }
 

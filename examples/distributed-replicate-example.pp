@@ -13,7 +13,6 @@ $some_client_ip = ''
 class gluster_base {
 
 	class { 'gluster::server':
-		hosts => ['annex1.example.com', 'annex2.example.com', 'annex3.example.com', 'annex4.example.com'],
 		ips => ["${annex_loc_ip_1}", "${annex_loc_ip_2}", "${annex_loc_ip_3}", "${annex_loc_ip_4}"],
 		#vip => "${annex_loc_vip_1}",
 		clients => [$some_client_ip],

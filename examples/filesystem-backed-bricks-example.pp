@@ -6,7 +6,6 @@
 class gluster_base {
 
 	class { '::gluster::server':
-		hosts => ['annex1.example.com', 'annex2.example.com'],
 		ips => ['192.168.123.101', '192.168.123.102'],
 		shorewall => true,
 	}
