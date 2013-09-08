@@ -23,7 +23,8 @@ class gluster_base {
 
 	gluster::host { 'annex1.example.com':
 		# use uuidgen to make these
-		uuid => '1f660ca2-2c78-4aa0-8f4d-21608218c69c',
+		# NOTE: specifying a host uuid is optional and can be automatic
+		#uuid => '1f660ca2-2c78-4aa0-8f4d-21608218c69c',
 	}
 
 	gluster::brick { 'annex1.example.com:/mnt/storage1a':

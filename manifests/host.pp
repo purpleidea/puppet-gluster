@@ -20,69 +20,115 @@
 # only the host holding the vip is allowed to execute cluster peer operations.
 
 define gluster::host(
-	$uuid
+	$uuid = ''	# if empty, puppet will attempt to use the gluster fact
 ) {
+	include gluster::vardir
+
+	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
+	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
+
 	# if we're on itself
 	if ( "${fqdn}" == "${name}" ) {
-		# set a unique uuid per host
-		file { '/var/lib/glusterd/glusterd.info':
-			content => template('gluster/glusterd.info.erb'),
-			owner => root,
-			group => root,
-			mode => 600,				# u=rw,go=r
-			seltype => 'glusterd_var_lib_t',
-			seluser => 'unconfined_u',
-			ensure => present,
-			require => File['/var/lib/glusterd/'],
+		# don't purge the uuid file generated within
+		file { "${vardir}/uuid/":
+			ensure => directory,	# make sure this is a directory
+			recurse => false,	# don't recurse into directory
+			purge => false,		# don't purge unmanaged files
+			force => false,		# don't purge subdirs and links
+			require => File["${vardir}/"],
 		}
+
+		$valid_uuid = "${uuid}" ? {
+			# fact from the data generated in: ${vardir}/uuid/uuid
+			'' => "${::gluster_uuid}",
+			default => "${uuid}",
+		}
+		if "${valid_uuid}" == '' {
+			fail('No valid UUID exists yet!')
+		} else {
+			# set a unique uuid per host
+			file { '/var/lib/glusterd/glusterd.info':
+				content => template('gluster/glusterd.info.erb'),
+				owner => root,
+				group => root,
+				mode => 600,			# u=rw,go=r
+				seltype => 'glusterd_var_lib_t',
+				seluser => 'unconfined_u',
+				ensure => present,
+				require => File['/var/lib/glusterd/'],
+			}
+
+			# NOTE: $name here should probably be the fqdn...
+			@@file { "${vardir}/uuid/uuid_${name}":
+				content => "${valid_uuid}\n",
+				tag => 'gluster_uuid',
+				owner => root,
+				group => root,
+				mode => 600,
+				ensure => present,
+			}
+		}
+
+		File <<| tag == 'gluster_uuid' |>> {	# collect to make facts
+		}
+
 	} else {
-		# set uuid=
-		exec { "/bin/echo 'uuid=${uuid}' >> '/var/lib/glusterd/peers/${uuid}'":
-			logoutput => on_failure,
-			unless => "/bin/grep -qF 'uuid=' '/var/lib/glusterd/peers/${uuid}'",
-			notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
-			before => File["/var/lib/glusterd/peers/${uuid}"],
-			alias => "gluster-host-uuid-${name}",
-			# FIXME: doing this causes a dependency cycle! adding
-			# the Package[] require doesn't. It would be most
-			# correct to require the peers/ folder, but since it's
-			# not working, requiring the Package[] will still give
-			# us the same result. (Package creates peers/ folder).
-			# NOTE: it's possible the cycle is a bug in puppet or a
-			# bug in the dependencies somewhere else in this module.
-			#require => File['/var/lib/glusterd/peers/'],
-			require => Package['glusterfs-server'],
+		$valid_uuid = "${uuid}" ? {
+			# fact from the data generated in: ${vardir}/uuid/uuid
+			'' => getvar("gluster_uuid_${name}"),	# fact !
+			default => "${uuid}",
 		}
+		if "${valid_uuid}" == '' {
+			notice('No valid UUID exists yet.')	# different msg
+		} else {
+			# set uuid=
+			exec { "/bin/echo 'uuid=${valid_uuid}' >> '/var/lib/glusterd/peers/${valid_uuid}'":
+				logoutput => on_failure,
+				unless => "/bin/grep -qF 'uuid=' '/var/lib/glusterd/peers/${valid_uuid}'",
+				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+				before => File["/var/lib/glusterd/peers/${valid_uuid}"],
+				alias => "gluster-host-uuid-${name}",
+				# FIXME: doing this causes a dependency cycle! adding
+				# the Package[] require doesn't. It would be most
+				# correct to require the peers/ folder, but since it's
+				# not working, requiring the Package[] will still give
+				# us the same result. (Package creates peers/ folder).
+				# NOTE: it's possible the cycle is a bug in puppet or a
+				# bug in the dependencies somewhere else in this module.
+				#require => File['/var/lib/glusterd/peers/'],
+				require => Package['glusterfs-server'],
+			}
 
-		# set state=
-		exec { "/bin/echo 'state=3' >> '/var/lib/glusterd/peers/${uuid}'":
-			logoutput => on_failure,
-			unless => "/bin/grep -qF 'state=' '/var/lib/glusterd/peers/${uuid}'",
-			notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
-			before => File["/var/lib/glusterd/peers/${uuid}"],
-			require => Exec["gluster-host-uuid-${name}"],
-			alias => "gluster-host-state-${name}",
-		}
+			# set state=
+			exec { "/bin/echo 'state=3' >> '/var/lib/glusterd/peers/${valid_uuid}'":
+				logoutput => on_failure,
+				unless => "/bin/grep -qF 'state=' '/var/lib/glusterd/peers/${valid_uuid}'",
+				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+				before => File["/var/lib/glusterd/peers/${valid_uuid}"],
+				require => Exec["gluster-host-uuid-${name}"],
+				alias => "gluster-host-state-${name}",
+			}
 
-		# set hostname1=...
-		exec { "/bin/echo 'hostname1=${name}' >> '/var/lib/glusterd/peers/${uuid}'":
-			logoutput => on_failure,
-			unless => "/bin/grep -qF 'hostname1=' '/var/lib/glusterd/peers/${uuid}'",
-			notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
-			before => File["/var/lib/glusterd/peers/${uuid}"],
-			require => Exec["gluster-host-state-${name}"],
-		}
+			# set hostname1=...
+			exec { "/bin/echo 'hostname1=${name}' >> '/var/lib/glusterd/peers/${valid_uuid}'":
+				logoutput => on_failure,
+				unless => "/bin/grep -qF 'hostname1=' '/var/lib/glusterd/peers/${valid_uuid}'",
+				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+				before => File["/var/lib/glusterd/peers/${valid_uuid}"],
+				require => Exec["gluster-host-state-${name}"],
+			}
 
-		# tag the file so it doesn't get removed by purge
-		file { "/var/lib/glusterd/peers/${uuid}":
-			ensure => present,
-			notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
-			owner => root,
-			group => root,
-			# NOTE: this mode was found by inspecting the process
-			mode => 600,				# u=rw,go=r
-			seltype => 'glusterd_var_lib_t',
-			seluser => 'unconfined_u',
+			# tag the file so it doesn't get removed by purge
+			file { "/var/lib/glusterd/peers/${valid_uuid}":
+				ensure => present,
+				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+				owner => root,
+				group => root,
+				# NOTE: this mode was found by inspecting the process
+				mode => 600,			# u=rw,go=r
+				seltype => 'glusterd_var_lib_t',
+				seluser => 'unconfined_u',
+			}
 		}
 	}
 }

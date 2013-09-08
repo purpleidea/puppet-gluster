@@ -25,7 +25,9 @@ class gluster_base {
 	}
 
 	gluster::host { 'annex2.example.com':
-		uuid => '2fbe6e2f-f6bc-4c2d-a301-62fa90c459f8',
+		# NOTE: specifying a host uuid is now optional!
+		# if you don't choose one, one will be assigned
+		#uuid => '2fbe6e2f-f6bc-4c2d-a301-62fa90c459f8',
 	}
 
 	gluster::brick { 'annex2.example.com:/data/gluster-storage2':
