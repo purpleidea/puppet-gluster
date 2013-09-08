@@ -35,6 +35,8 @@ define gluster::brick(
 	#$path = $split[1]		# brick mount or storage path
 	# TODO: create substring function
 	$path = inline_template("<%= '${name}'.slice('${host}'.length+1, '${name}'.length-'${host}'.length-1) %>")
+	$short_path = sprintf("%s", regsubst($path, '\/$', ''))	# no trailing
+	$valid_path = sprintf("%s/", regsubst($path, '\/$', ''))
 
 	if ! ( "${host}:${path}" == "${name}" ) {
 		fail('The brick $name must match a $host-$path pattern.')
@@ -167,7 +169,7 @@ define gluster::brick(
 		}
 
 		# make an empty directory for the mount point
-		file { "${path}":
+		file { "${valid_path}":
 			ensure => directory,		# make sure this is a directory
 			recurse => false,		# don't recurse into directory
 			purge => false,			# don't purge unmanaged files
@@ -175,7 +177,8 @@ define gluster::brick(
 			require => Exec["gluster-brick-make-${name}"],
 		}
 
-		mount { "${path}":
+		# mount points don't seem to like trailing slashes...
+		mount { "${short_path}":
 			atboot => true,
 			ensure => mounted,
 			device => "UUID=${fsuuid}",
@@ -189,13 +192,12 @@ define gluster::brick(
 			# xfs uses xfs_check and friends only when suspect.
 			pass => '2',			# fs_passno: 0 to skip fsck on boot
 			require => [
-				File["${path}"],
+				File["${valid_path}"],
 			],
 		}
 
 	} elsif ((type($dev) == 'boolean') and (! $dev)) and ("${fqdn}" == "${host}") {
 
-		$valid_path = sprintf("%s/", regsubst($path, '\/$', ''))
 		# ensure the full path exists!
 		exec { "/bin/mkdir -p '${valid_path}'":
 			creates => "${valid_path}",
