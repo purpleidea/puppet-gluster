@@ -23,6 +23,8 @@ define gluster::volume::property(
 ) {
 	include gluster::xml
 	include gluster::vardir
+	include gluster::volume::property::data
+
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
@@ -34,17 +36,18 @@ define gluster::volume::property(
 		fail('The property $name must match a $volume#$key pattern.')
 	}
 
-	# TODO: can we split out $etype lookup into a separate file, like?
-	# also do the same for jchar
-	#$etype = gluster::volume::property::etype	# pull in etype hash
+	# split out $etype and $jchar lookup into a separate file
+	$etypes = $::gluster::volume::property::data::etypes
+	$jchars = $::gluster::volume::property::data::jchars
 
-	# expected type			# XXX: add more variables
-	$etype = $key ? {
-		'auth.allow' => 'array',
-		'auth.reject' => 'array',
-		#'XXX' => 'string',	# XXX
-		#'XXXX' => 'array',	# XXX
-		default => 'undefined',
+	# expected type
+	if has_key($etypes, "${key}") {
+		$etype = $etypes["${key}"] ? {
+			'' => 'undefined',
+			default => $etypes["${key}"],
+		}
+	} else {
+		$etype = 'undefined'
 	}
 
 	if (! $autotype) {
@@ -63,10 +66,12 @@ define gluster::volume::property(
 		if $etype == 'string' {
 			$safe_value = shellquote($value)	# TODO: is this the safe thing?
 		} elsif $etype == 'array' {
-			$jchar = $key ? {
-				'auth.allow' => ',',
-				'auth.reject' => ',',
-				default => '',
+
+			# join char
+			if has_key($jchars, "${key}") {
+				$jchar = $jchars["${key}"]
+			} else {
+				$jchar = ''
 			}
 
 			$safe_value = inline_template('<%= value.join(jchar) %>')
