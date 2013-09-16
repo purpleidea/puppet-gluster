@@ -163,17 +163,17 @@ define gluster::brick(
 				'/bin/false',	# TODO: add more criteria
 			],
 			require => $exec_requires,
-			timeout => 3600,			# set to something very long
+			timeout => 3600,	# set to something very long
 			noop => $exec_noop,
 			alias => "gluster-brick-make-${name}",
 		}
 
 		# make an empty directory for the mount point
 		file { "${valid_path}":
-			ensure => directory,		# make sure this is a directory
-			recurse => false,		# don't recurse into directory
-			purge => false,			# don't purge unmanaged files
-			force => false,			# don't purge subdirs and links
+			ensure => directory,	# make sure this is a directory
+			recurse => false,	# don't recurse into directory
+			purge => false,		# don't purge unmanaged files
+			force => false,		# don't purge subdirs and links
 			require => Exec["gluster-brick-make-${name}"],
 		}
 
@@ -185,12 +185,12 @@ define gluster::brick(
 			fstype => "${valid_fstype}",
 			# noatime,nodiratime to save gluster from silly updates
 			options => "${mount_options},${ro_bool},noatime,nodiratime,noexec",	# TODO: is nodev? nosuid? noexec? a good idea?
-			dump => '0',			# fs_freq: 0 to skip file system dumps
+			dump => '0',	# fs_freq: 0 to skip file system dumps
 			# NOTE: technically this should be '2', to `fsck.xfs`
 			# after the rootfs ('1'), but fsck.xfs actually does
 			# 'nothing, successfully', so it's irrelevant, because
 			# xfs uses xfs_check and friends only when suspect.
-			pass => '2',			# fs_passno: 0 to skip fsck on boot
+			pass => '2',	# fs_passno: 0 to skip fsck on boot
 			require => [
 				File["${valid_path}"],
 			],

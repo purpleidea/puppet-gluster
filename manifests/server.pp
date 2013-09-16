@@ -66,7 +66,7 @@ class gluster::server(
 
 	file { '/var/lib/glusterd/peers/':
 		ensure => directory,		# make sure this is a directory
-		recurse => true,			# recursively manage directory
+		recurse => true,		# recursively manage directory
 		purge => true,
 		force => true,
 		owner => root,
@@ -124,10 +124,10 @@ class gluster::server(
 
 	# start service only after the firewall is opened and hosts are defined
 	service { 'glusterd':
-		enable => true,			# start on boot
-		ensure => running,		# ensure it stays running
-		hasstatus => false,		# FIXME: BUG: https://bugzilla.redhat.com/show_bug.cgi?id=836007
-		hasrestart => true,		# use restart, not start; stop
+		enable => true,		# start on boot
+		ensure => running,	# ensure it stays running
+		hasstatus => false,	# FIXME: BUG: https://bugzilla.redhat.com/show_bug.cgi?id=836007
+		hasrestart => true,	# use restart, not start; stop
 	}
 }
 
