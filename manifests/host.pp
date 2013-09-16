@@ -20,6 +20,7 @@
 # only the host holding the vip is allowed to execute cluster peer operations.
 
 define gluster::host(
+	$ip = $::ipaddress,	# specify which ip address to use (if multiple)
 	$uuid = ''	# if empty, puppet will attempt to use the gluster fact
 ) {
 	include gluster::vardir
@@ -132,6 +133,78 @@ define gluster::host(
 				seluser => 'unconfined_u',
 				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
 			}
+		}
+	}
+
+	# firewalling...
+	$shorewall = $::gluster::server::shorewall
+	if ( "${fqdn}" == "${name}" ) and $shorewall {
+		$zone = $::gluster::server::zone	# firewall zone
+		$ips = $::gluster::server::ips		# override host ip list
+
+		#$other_host_ips = inline_template("<%= ips.delete_if {|x| x == '${ipaddress}' }.join(',') %>")		# list of ips except myself
+		#$all_ips = inline_template("<%= (ips+[vip]+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
+		$source_ips = type($ips) ? {
+			'array' => inline_template("<%= (ips+[]).uniq.delete_if {|x| x.empty? }.join(',') %>"),
+			default => ["${ip}"],
+		}
+
+		@@shorewall::rule { "glusterd-management-${name}":
+			action => 'ACCEPT',
+			source => "${zone}",	# override this on collect...
+			source_ips => $source_ips,
+			dest => '$FW',
+			proto => 'tcp',
+			port => '24007',
+			comment => 'Allow incoming tcp:24007 from each glusterd.',
+			tag => 'gluster_firewall_management',
+			ensure => present,
+		}
+
+		# NOTE: used by rdma
+		@@shorewall::rule { "glusterd-rdma-${name}":
+			action => 'ACCEPT',
+			source => "${zone}",	# override this on collect...
+			source_ips => $source_ips,
+			dest => '$FW',
+			proto => 'tcp',
+			port => '24008',
+			comment => 'Allow incoming tcp:24008 for rdma.',
+			tag => 'gluster_firewall_management',
+			ensure => present,
+		}
+
+		# TODO: is this only used for nfs?
+		@@shorewall::rule { "gluster-tcp111-${name}":
+			action => 'ACCEPT',
+			source => "${zone}",	# override this on collect...
+			source_ips => $source_ips,
+			dest => '$FW',
+			proto => 'tcp',
+			port => '111',
+			comment => 'Allow tcp 111.',
+			tag => 'gluster_firewall_management',
+			ensure => present,
+		}
+
+		# TODO: is this only used for nfs?
+		@@shorewall::rule { "gluster-udp111-${name}":
+			action => 'ACCEPT',
+			source => "${zone}",	# override this on collect...
+			source_ips => $source_ips,
+			dest => '$FW',
+			proto => 'udp',
+			port => '111',
+			comment => 'Allow udp 111.',
+			tag => 'gluster_firewall_management',
+			ensure => present,
+		}
+
+		# TODO: this collects our own entries too... we could exclude
+		# them but this isn't a huge issue at the moment...
+		Shorewall::Rule <<| tag == 'gluster_firewall_management' |>> {
+			source => "${zone}",	# use our source zone
+			before => Service['glusterd'],
 		}
 	}
 }

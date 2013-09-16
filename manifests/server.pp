@@ -16,13 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::server(
-	$ips = [],	# this should be a list of ip's for each in hosts[]	# TODO: i would have rather this happen with a local dns resolver, but I can't figure out how to make one!	# NOTE: this can be overcome probably by using exported resources or dns names in shorewall (bad)
-	$clients = [],	# list of allowed client ip's
 	#$vip = '',	# vip of the cluster (optional but recommended)
 	$nfs = false,								# TODO
 	$shorewall = false,
 	$zone = 'net',								# TODO: allow a list of zones
-	$allow = 'all'
+	$ips = false,	# an optional list of ip's for each in hosts[]
+	$clients = []	# list of allowed client ip's	# TODO: get from exported resources
 ) {
 	$FW = '$FW'			# make using $FW in shorewall easier
 
@@ -78,77 +77,49 @@ class gluster::server(
 	}
 
 	if $shorewall {
-		if $allow == 'all' {
-			$net = 'net'
-		} else {
-			$net = "net:${allow}"
-		}
-		# TODO: could the facter values help here ?
-		#$other_host_ips = inline_template("<%= ips.delete_if {|x| x == '${ipaddress}' }.join(',') %>")		# list of ips except myself
-		$source_ips = inline_template("<%= (ips+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
-		#$all_ips = inline_template("<%= (ips+[vip]+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
-		#$list_of_hosts_except_myself = split(inline_template("<%= host_list.delete_if {|x| x == '${fqdn}' }.join(' ') %>"), ' ')
-
-		$src = "${source_ips}" ? {
-			'' => "${zone}",
-			default => "${zone}:${source_ips}",
-		}
-
-		############################################################################
-		#	ACTION      SOURCE DEST                PROTO DEST  SOURCE  ORIGINAL
-		#	                                             PORT  PORT(S) DEST
-		shorewall::rule { 'glusterd-management':
-			rule => "
-			ACCEPT        ${src}    $FW        tcp    24007
-			",
-			comment => 'Allow incoming tcp:24007 from each other glusterd or client.',
-			before => Service['glusterd'],
-		}
-
-		# NOTE: used by rdma
-		shorewall::rule { 'glusterd-rdma':
-			rule => "
-			ACCEPT        ${src}    $FW        tcp    24008
-			",
-			comment => 'Allow incoming tcp:24008 for rdma.',
-			before => Service['glusterd'],
-		}
-
-		# TODO: Use the correct port range
-		shorewall::rule { 'glusterfsd-easyfw':
-			rule => "
-			ACCEPT        ${src}    $FW        tcp    24009:25009	# XXX: Use the correct port range
-			",
-			comment => 'Allow incoming tcp:24009-25009 from each other glusterfsd and clients.',
-			before => Service['glusterd'],
-		}
-
-		# TODO: is this only used for nfs?
-		shorewall::rule { 'gluster-111':
-			rule => "
-			ACCEPT        ${src}    $FW        tcp    111
-			ACCEPT        ${src}    $FW        udp    111
-			",
-			comment => 'Allow tcp/udp 111.',
-			before => Service['glusterd'],
-		}
-
 		# XXX: WIP
-		#$endport = inline_template('<%= 24009+hosts.count %>')		# XXX: is there one brick per server or two ? what does 'brick' mean in the context of open ports?
-		#$nfs_endport = inline_template('<%= 38465+hosts.count %>')	# XXX: is there one brick per server or two ? what does 'brick' mean in the context of open ports?
+		#if type($ips) == 'array' {
+		#	#$other_host_ips = inline_template("<%= ips.delete_if {|x| x == '${ipaddress}' }.join(',') %>")		# list of ips except myself
+		#	$source_ips = inline_template("<%= (ips+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
+		#	#$all_ips = inline_template("<%= (ips+[vip]+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
+
+		#	$src = "${source_ips}" ? {
+		#		'' => "${zone}",
+		#		default => "${zone}:${source_ips}",
+		#	}
+
+		#} else {
+		#	# automatically build our source ip list...
+		#	if "${::gluster_firewall_ips}" == '' {	# fact !
+		#		$src = "${zone}"
+		#	} else {
+		#		$src = "${zone}:${::gluster_firewall_ips}"
+		#	}
+		#}
+
+		#shorewall::rule { 'glusterfsd-easyfw':	# XXX: use the correct port range
+		#	rule => "
+		#	ACCEPT    ${src}    $FW    tcp    24009:25009
+		#	",
+		#	comment => 'Allow incoming tcp:24009-25009 from each other glusterfsd and clients.',
+		#	before => Service['glusterd'],
+		#}
+
+		#$endport = inline_template('<%= 24009+hosts.count %>')
+		#$nfs_endport = inline_template('<%= 38465+hosts.count %>')
 		#shorewall::rule { 'gluster-24000':
 		#	rule => "
-		#	ACCEPT        ${zone}    $FW        tcp    24009:${endport}
+		#	ACCEPT    ${src}    $FW    tcp    24009:${endport}
 		#	",
 		#	comment => 'Allow 24000s for gluster',
 		#	before => Service['glusterd'],
 		#}
 
-		if $nfs {							# FIXME: TODO
-			shorewall::rule { 'gluster-nfs': rule => "
-			ACCEPT        $(net}    $FW        tcp    38465:${nfs_endport}
-			", comment => 'Allow nfs for gluster'}
-		}
+		#if $nfs {					# FIXME: TODO
+		#	shorewall::rule { 'gluster-nfs': rule => "
+		#	ACCEPT    $(src}    $FW    tcp    38465:${nfs_endport}
+		#	", comment => 'Allow nfs for gluster'}
+		#}
 	}
 
 	# start service only after the firewall is opened and hosts are defined
