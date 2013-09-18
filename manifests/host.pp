@@ -99,7 +99,11 @@ define gluster::host(
 			exec { "/bin/echo 'uuid=${valid_uuid}' >> '/var/lib/glusterd/peers/${valid_uuid}'":
 				logoutput => on_failure,
 				unless => "/bin/grep -qF 'uuid=' '/var/lib/glusterd/peers/${valid_uuid}'",
-				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+				notify => [
+					# propagate the notify up
+					File['/var/lib/glusterd/peers/'],
+					Service['glusterd'],	# ensure reload
+				],
 				before => File["/var/lib/glusterd/peers/${valid_uuid}"],
 				alias => "gluster-host-uuid-${name}",
 				# FIXME: doing this causes a dependency cycle! adding
@@ -117,7 +121,11 @@ define gluster::host(
 			exec { "/bin/echo 'state=3' >> '/var/lib/glusterd/peers/${valid_uuid}'":
 				logoutput => on_failure,
 				unless => "/bin/grep -qF 'state=' '/var/lib/glusterd/peers/${valid_uuid}'",
-				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+				notify => [
+					# propagate the notify up
+					File['/var/lib/glusterd/peers/'],
+					Service['glusterd'],	# ensure reload
+				],
 				before => File["/var/lib/glusterd/peers/${valid_uuid}"],
 				require => Exec["gluster-host-uuid-${name}"],
 				alias => "gluster-host-state-${name}",
@@ -127,7 +135,11 @@ define gluster::host(
 			exec { "/bin/echo 'hostname1=${name}' >> '/var/lib/glusterd/peers/${valid_uuid}'":
 				logoutput => on_failure,
 				unless => "/bin/grep -qF 'hostname1=' '/var/lib/glusterd/peers/${valid_uuid}'",
-				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+				notify => [
+					# propagate the notify up
+					File['/var/lib/glusterd/peers/'],
+					Service['glusterd'],	# ensure reload
+				],
 				before => File["/var/lib/glusterd/peers/${valid_uuid}"],
 				require => Exec["gluster-host-state-${name}"],
 			}
@@ -141,7 +153,11 @@ define gluster::host(
 				mode => 600,			# u=rw,go=r
 				seltype => 'glusterd_var_lib_t',
 				seluser => 'unconfined_u',
-				notify => File['/var/lib/glusterd/peers/'],	# propagate the notify up
+				notify => [
+					# propagate the notify up
+					File['/var/lib/glusterd/peers/'],
+					Service['glusterd'],	# ensure reload
+				],
 			}
 		}
 	}
