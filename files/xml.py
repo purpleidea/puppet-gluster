@@ -36,6 +36,24 @@ import sys
 import argparse
 import lxml.etree as etree
 
+#	List of state codes:
+#		<MESSAGE>					<CODE>
+#	static char *glusterd_friend_sm_state_names[] = {	# glusterd-sm.c
+#		"Establishing Connection",			# 0
+#		"Probe Sent to Peer",				# 1
+#		"Probe Received from Peer",			# 2
+#		"Peer in Cluster",				# 3 (verified)
+#		"Accepted peer request",			# 4
+#		"Sent and Received peer request",		# 5
+#		"Peer Rejected",				# 6 (verified)
+#		"Peer detach in progress",			# 7
+#		"Probe Received from peer",			# 8
+#		"Connected to Peer",				# 9
+#		"Peer is connected and Accepted",		# 10
+#		"Invalid State"					# 11
+#	};
+valid_peered = ['3']
+
 parser = argparse.ArgumentParser(description='gluster xml parsing tools')
 #parser.add_argument('--debug', dest='debug', action='store_true', default=False)
 subparsers = parser.add_subparsers(dest='mode')
@@ -82,8 +100,9 @@ if args.mode == 'connected':
 	for i in root.findall('.//peerStatus'):
 		p = i.find('peer')
 		h = p.find('hostname').text
-		c = (str(p.find('connected').text) == '1')	# connected
-		store[h] = c	# save for later...
+		c = (str(p.find('connected').text) == '1')	# connected...?
+		s = (str(p.find('state').text) in valid_peered)	# valid peering
+		store[h] = c and s	# save for later...
 
 	# if no peers specified, assume we should check all...
 	if len(peers) == 0:
