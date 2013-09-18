@@ -26,6 +26,7 @@ define gluster::volume(
 ) {
 	include gluster::xml
 	include gluster::vardir
+	include gluster::volume::base
 	if $ping {
 		include gluster::volume::ping
 	}
@@ -78,6 +79,8 @@ define gluster::volume(
 	# will error if they see that volume directory already present, so when
 	# we error we should rmdir any empty volume dirs to keep it pristine...
 	# TODO: this should be a gluster bug... we must hope it doesn't happen!
+	# maybe related to: https://bugzilla.redhat.com/show_bug.cgi?id=835494
+	$rmdir_volume_dirs = sprintf("/bin/rmdir '%s'", inline_template("<%= bricks.find_all{|x| x.split(':')[0] == '${fqdn}' }.collect {|y| y.split(':')[1].chomp('/')+'/${name}/' }.join('\' \'') %>"))
 
 	# get the list of bricks fqdn's that don't have our fqdn
 	$others = inline_template("<%= bricks.find_all{|x| x.split(':')[0] != '${fqdn}' }.collect {|y| y.split(':')[0] }.join(' ') %>")
@@ -96,11 +99,13 @@ define gluster::volume(
 	$require = $ping ? {
 		false => [
 			Service['glusterd'],
+			File["${vardir}/volume/create-${name}.sh"],
 			File["${vardir}/xml.py"],	# status check
 			Gluster::Brick[$bricks],
 		],
 		default => [
 			Service['glusterd'],
+			File["${vardir}/volume/create-${name}.sh"],
 			Package['fping'],
 			File["${vardir}/xml.py"],	# status check
 			Gluster::Brick[$bricks],
@@ -109,6 +114,17 @@ define gluster::volume(
 
 	# run if vip not defined (bypass mode) or if vip exists on this machine
 	if ($vip == '' or $vipif != '') {
+
+		# store command in a separate file to run as bash...
+		file { "${vardir}/volume/create-${name}.sh":
+			content => inline_template("#!/bin/bash\n/usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} > >(/usr/bin/tee '/tmp/gluster-volume-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
+			owner => root,
+			group => root,
+			mode => 755,
+			ensure => present,
+			require => File["${vardir}/volume/"],
+		}
+
 		# NOTE: This should only happen on one host!
 		# NOTE: There's maybe a theoretical race condition if this runs
 		# at exactly the same time on more than one host. That's why it
@@ -119,8 +135,11 @@ define gluster::volume(
 		# which per node will happen right before this runs.
 		# fping all the other nodes to ensure they're up for creation
 		# TODO: consider piping in a /usr/bin/yes to avoid warnings...
+		# NOTE: in this command, we save the std{out,err} and pass them
+		# on too for puppet to consume. we save in /tmp for fast access
 		# EXAMPLE: gluster volume create test replica 2 transport tcp annex1.example.com:/storage1a/test annex2.example.com:/storage2a/test annex3.example.com:/storage3b/test annex4.example.com:/storage4b/test annex1.example.com:/storage1c/test annex2.example.com:/storage2c/test annex3.example.com:/storage3d/test annex4.example.com:/storage4d/test
-		exec { "/usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec}":
+		exec { "gluster-volume-create-${name}":
+			command => "${vardir}/volume/create-${name}.sh",
 			logoutput => on_failure,
 			unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
 			onlyif => $onlyif,
