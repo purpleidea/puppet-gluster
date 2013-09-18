@@ -58,6 +58,8 @@ define gluster::host(
 			fail('No valid UUID exists yet!')
 		} else {
 			# set a unique uuid per host
+			# FIXME: set appropriate version based on gluster version
+			$valid_version = '2'
 			file { '/var/lib/glusterd/glusterd.info':
 				content => template('gluster/glusterd.info.erb'),
 				owner => root,
