@@ -31,7 +31,15 @@ define gluster::host(
 	Gluster::Host[$name] -> Service['glusterd']	# glusterd requires host
 
 	# if we're on itself
-	if ( "${fqdn}" == "${name}" ) {
+	if "${fqdn}" == "${name}" {
+
+		# store the ip here so that it can be accessed by bricks...
+		class { '::gluster::host::data':
+			#name => $name,
+			ip => "${ip}",
+			fqdn => "${fqdn}",
+		}
+
 		# don't purge the uuid file generated within
 		file { "${vardir}/uuid/":
 			ensure => directory,	# make sure this is a directory

@@ -122,17 +122,6 @@ define gluster::volume(
 		}
 	}
 
-	# TODO:
-	#if $shorewall {
-	#	shorewall::rule { 'gluster-TODO':
-	#		rule => "
-	#		ACCEPT        ${zone}    $FW        tcp    24009:${endport}
-	#		",
-	#		comment => 'TODO',
-	#		before => Service['glusterd'],
-	#	}
-	#}
-
 	# run if vip not defined (by pass mode) or vip exists on this machine
 	if ($vip == '' or $vipif != '') {
 		if $start == true {
@@ -159,6 +148,41 @@ define gluster::volume(
 			}
 		} else {	# 'undef'-ined
 			# don't manage volume run state
+		}
+	}
+
+	$shorewall = $::gluster::server::shorewall
+	if $shorewall {
+		$zone = $::gluster::server::zone	# firewall zone
+
+		$ips = $::gluster::server::ips		# override host ip list
+		$ip = $::gluster::host::data::ip	# ip of brick's host...
+		$source_ips = type($ips) ? {
+			'array' => inline_template("<%= (ips+[]).uniq.delete_if {|x| x.empty? }.join(',') %>"),
+			default => ["${ip}"],
+		}
+
+		$port = getvar("gluster_ports_volume_${name}")	# fact !
+
+		# NOTE: we need to add the $fqdn so that exported resources
+		# don't conflict... I'm not sure they should anyways though
+		@@shorewall::rule { "gluster-volume-${name}-${fqdn}":
+			action => 'ACCEPT',
+			source => "${zone}",	# override this on collect...
+			source_ips => $source_ips,
+			dest => '$FW',
+			proto => 'tcp',
+			port => "${port}",	# comma separated string or list
+			#comment => "${fqdn}",
+			comment => 'Allow incoming tcp port from glusterfsds.',
+			tag => 'gluster_firewall_volume',
+			ensure => present,
+		}
+		# we probably shouldn't collect the above rule from our self...
+		#Shorewall::Rule <<| tag == 'gluster_firewall_volume' and comment != "${fqdn}" |>> {
+		Shorewall::Rule <<| tag == 'gluster_firewall_volume' |>> {
+			source => "${zone}",	# use our source zone
+			before => Service['glusterd'],
 		}
 	}
 }
