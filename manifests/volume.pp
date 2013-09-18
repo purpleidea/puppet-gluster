@@ -72,6 +72,13 @@ define gluster::volume(
 	# add /${name} to the end of each: brick:/path entry
 	$brick_spec = inline_template("<%= bricks.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
 
+	# if volume creation fails for a stupid reason, in many cases, glusterd
+	# already did some of the work and left us with volume name directories
+	# on all bricks. the problem is that the future volume create commands,
+	# will error if they see that volume directory already present, so when
+	# we error we should rmdir any empty volume dirs to keep it pristine...
+	# TODO: this should be a gluster bug... we must hope it doesn't happen!
+
 	# get the list of bricks fqdn's that don't have our fqdn
 	$others = inline_template("<%= bricks.find_all{|x| x.split(':')[0] != '${fqdn}' }.collect {|y| y.split(':')[0] }.join(' ') %>")
 
