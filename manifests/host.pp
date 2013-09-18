@@ -196,6 +196,7 @@ define gluster::host(
 		}
 
 		# TODO: is this only used for nfs?
+		# TODO: johnmark says gluster nfs udp doesn't work :P
 		@@shorewall::rule { "gluster-udp111-${name}":
 			action => 'ACCEPT',
 			source => "${zone}",	# override this on collect...

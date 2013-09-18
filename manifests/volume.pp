@@ -111,6 +111,7 @@ define gluster::volume(
 		# because it shouldn't work until all the bricks are available,
 		# which per node will happen right before this runs.
 		# fping all the other nodes to ensure they're up for creation
+		# TODO: consider piping in a /usr/bin/yes to avoid warnings...
 		# EXAMPLE: gluster volume create test replica 2 transport tcp annex1.example.com:/storage1a/test annex2.example.com:/storage2a/test annex3.example.com:/storage3b/test annex4.example.com:/storage4b/test annex1.example.com:/storage1c/test annex2.example.com:/storage2c/test annex3.example.com:/storage3d/test annex4.example.com:/storage4d/test
 		exec { "/usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec}":
 			logoutput => on_failure,
