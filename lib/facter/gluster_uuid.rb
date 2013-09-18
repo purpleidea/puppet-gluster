@@ -120,3 +120,19 @@ found.keys.each do |x|
 	end
 end
 
+# list of generated gluster_uuid's
+Facter.add('gluster_uuid_facts') do
+	#confine :operatingsystem => %w{CentOS, RedHat, Fedora}
+	setcode {
+		found.keys.collect {|x| 'gluster_uuid_'+x }.join(',')
+	}
+end
+
+Facter.add('gluster_fqdns') do
+	#confine :operatingsystem => %w{CentOS, RedHat, Fedora}
+	setcode {
+		found.keys.sort.join(',')
+	}
+end
+
+# vim: ts=8
