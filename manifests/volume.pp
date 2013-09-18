@@ -76,7 +76,7 @@ define gluster::volume(
 	$others = inline_template("<%= bricks.find_all{|x| x.split(':')[0] != '${fqdn}' }.collect {|y| y.split(':')[0] }.join(' ') %>")
 
 	$fping = sprintf("/usr/sbin/fping -q %s", $others)
-	$status = sprintf("/usr/sbin/gluster peer status --xml | ${vardir}/xml.py --connected %s", $others)
+	$status = sprintf("/usr/sbin/gluster peer status --xml | ${vardir}/xml.py connected %s", $others)
 
 	$onlyif = $ping ? {
 		false => "${status}",

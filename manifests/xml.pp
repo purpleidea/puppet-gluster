@@ -18,6 +18,10 @@
 class gluster::xml {
 	include gluster::vardir
 
+	package { 'python-argparse':
+		ensure => present,
+	}
+
 	package { 'python-lxml':		# for parsing gluster xml output
 		ensure => present,
 	}
@@ -33,6 +37,7 @@ class gluster::xml {
 		backup => false,		# don't backup to filebucket
 		ensure => present,
 		require => [
+			Package['python-argparse'],
 			Package['python-lxml'],
 			File["${vardir}/"],
 		],
