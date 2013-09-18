@@ -135,9 +135,9 @@ elif args.mode == 'property':
 elif args.mode == 'port':
 	port = 0
 	found = False
-	#print args.volume  # volume
-	#print args.host  # hostname
-	#print args.path  # path
+	#print args.volume	# volume
+	#print args.host	# hostname
+	#print args.path	# path
 	for i in root.findall('.//volumes'):
 		for j in i.findall('.//volume'):
 			v = str(j.find('volName').text)
@@ -158,14 +158,14 @@ elif args.mode == 'port':
 	if found and port > 0:
 		print(port)
 		sys.exit(0)
-	else:		   # no value found
+	else:			# no value found
 		sys.exit(1)
 
 # list all the ports used by one volume
 elif args.mode == 'ports':
 	ports = []
 	found = False
-	#print args.volume  # volume (optional)
+	#print args.volume	# volume (optional)
 	for i in root.findall('.//volumes'):
 		for j in i.findall('.//volume'):
 			v = str(j.find('volName').text)
@@ -188,7 +188,7 @@ elif args.mode == 'ports':
 		# here we remove any duplicates and convert each int to strings
 		print(','.join([str(x) for x in list(set(ports))]))
 		sys.exit(0)
-	else:		   # no value found
+	else:			# no value found
 		sys.exit(1)
 
 # else:

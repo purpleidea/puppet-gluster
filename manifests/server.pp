@@ -88,23 +88,6 @@ class gluster::server(
 		#		default => "${zone}:${source_ips}",
 		#	}
 
-		#} else {
-		#	# automatically build our source ip list...
-		#	if "${::gluster_firewall_ips}" == '' {	# fact !
-		#		$src = "${zone}"
-		#	} else {
-		#		$src = "${zone}:${::gluster_firewall_ips}"
-		#	}
-		#}
-
-		#shorewall::rule { 'glusterfsd-easyfw':	# XXX: use the correct port range
-		#	rule => "
-		#	ACCEPT    ${src}    $FW    tcp    24009:25009
-		#	",
-		#	comment => 'Allow incoming tcp:24009-25009 from each other glusterfsd and clients.',
-		#	before => Service['glusterd'],
-		#}
-
 		#$endport = inline_template('<%= 24009+hosts.count %>')
 		#$nfs_endport = inline_template('<%= 38465+hosts.count %>')
 		#shorewall::rule { 'gluster-24000':
