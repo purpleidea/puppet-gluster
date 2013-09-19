@@ -116,8 +116,10 @@ define gluster::volume(
 	if ($vip == '' or $vipif != '') {
 
 		# store command in a separate file to run as bash...
+		# NOTE: we sleep for 5 seconds to give glusterd a chance to
+		# settle down first if we're doing a hot (clean) puppet run
 		file { "${vardir}/volume/create-${name}.sh":
-			content => inline_template("#!/bin/bash\n/usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} > >(/usr/bin/tee '/tmp/gluster-volume-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
+			content => inline_template("#!/bin/bash\n/bin/sleep 5s && /usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} > >(/usr/bin/tee '/tmp/gluster-volume-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
 			owner => root,
 			group => root,
 			mode => 755,
