@@ -57,9 +57,33 @@ define gluster::host(
 		if "${valid_uuid}" == '' {
 			fail('No valid UUID exists yet!')
 		} else {
-			# set a unique uuid per host
-			# FIXME: set appropriate version based on gluster version
-			$valid_version = '2'
+			# get shorter version string for loose matching...
+			$gluster_main_version = regsubst(
+				"${gluster_version}",		# eg: 3.4.0
+				'^(\d+)\.(\d+)\.(\d+)$',	# int.int.int
+				'\1.\2'				# print int.int
+			)
+
+			# TODO: add additional values to this table...
+			$operating_version = "${gluster_version}" ? {
+				'' => '',	# gluster not yet installed...
+				# specific version matches go here...
+				'3.4.0' => '2',
+				default => "${gluster_main_version}" ? {
+					# loose version matches go here...
+					#'3.3' => '1',		# blank...
+					'3.4' => '2',
+					#'3.5' => '3',		# guessing...
+					default => '-1',	# unknown...
+				},
+			}
+
+			# this catches unknown gluster versions to add to table
+			if "${operating_version}" == '-1' {
+				warning("Gluster version '${gluster_version}' is unknown.")
+			}
+
+			# set a unique uuid per host, and operating version...
 			file { '/var/lib/glusterd/glusterd.info':
 				content => template('gluster/glusterd.info.erb'),
 				owner => root,
