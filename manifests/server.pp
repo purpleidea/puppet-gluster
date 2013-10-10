@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::server(
-	#$vip = '',	# vip of the cluster (optional but recommended)
+	$vip = '',	# vip of the cluster (optional but recommended)
 	$nfs = false,								# TODO
 	$shorewall = false,
 	$zone = 'net',								# TODO: allow a list of zones

@@ -51,8 +51,13 @@ define gluster::volume(
 		default => "stripe ${stripe} ",
 	}
 
+	$valid_vip = "${vip}" ? {
+		'' => $::gluster::server::vip,
+		default => "${vip}",
+	}
+
 	# returns interface name that has vip, or '' if none are found.
-	$vipif = inline_template("<%= interfaces.split(',').find_all {|x| '${vip}' == scope.lookupvar('ipaddress_'+x) }[0,1].join('') %>")
+	$vipif = inline_template("<%= interfaces.split(',').find_all {|x| '${valid_vip}' == scope.lookupvar('ipaddress_'+x) }[0,1].join('') %>")
 
 	#Gluster::Brick[$bricks] -> Gluster::Volume[$name]	# volume requires bricks
 
@@ -113,7 +118,7 @@ define gluster::volume(
 	}
 
 	# run if vip not defined (bypass mode) or if vip exists on this machine
-	if ($vip == '' or $vipif != '') {
+	if ("${valid_vip}" == '' or "${vipif}" != '') {
 
 		# store command in a separate file to run as bash...
 		# NOTE: we sleep for 5 seconds to give glusterd a chance to
@@ -152,7 +157,7 @@ define gluster::volume(
 	}
 
 	# run if vip not defined (by pass mode) or vip exists on this machine
-	if ($vip == '' or $vipif != '') {
+	if ("${valid_vip}" == '' or "${vipif}" != '') {
 		if $start == true {
 			# try to start volume if stopped
 			exec { "/usr/sbin/gluster volume start ${name}":
