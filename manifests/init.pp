@@ -1,4 +1,4 @@
-# Simple? gluster module by James
+# GlusterFS module by James
 # Copyright (C) 2010-2013+ James Shubin
 # Written by James Shubin <james@shubin.ca>
 #
