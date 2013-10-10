@@ -15,18 +15,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class gluster::volume::base {
+class gluster::volume::fsm {
 
 	include gluster::vardir
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
-	file { "${vardir}/volume/":
+	file { "${vardir}/volume/fsm/":
 		ensure => directory,	# make sure this is a directory
 		recurse => true,	# don't recurse into directory
 		purge => true,		# don't purge unmanaged files
 		force => true,		# don't purge subdirs and links
-		require => File["${vardir}/"],
+		require => File["${vardir}/volume/"],
 	}
 }
 # vim: ts=8

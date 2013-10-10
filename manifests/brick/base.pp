@@ -15,13 +15,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class gluster::volume::base {
+class gluster::brick::base {
 
 	include gluster::vardir
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
-	file { "${vardir}/volume/":
+	file { "${vardir}/brick/":
 		ensure => directory,	# make sure this is a directory
 		recurse => true,	# don't recurse into directory
 		purge => true,		# don't purge unmanaged files

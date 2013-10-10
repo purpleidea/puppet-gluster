@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 define gluster::brick(
+	$group = 'default',		# grouping for multiple puppet-glusters
 	# if dev is false, path in $name is used directly after a mkdir -p
 	$dev = false,			# /dev/sdc, /dev/disk/by-id/scsi-36003048007e14f0014ca2743150a5471
 	$fsuuid = '',			# set a uuid for this fs (uuidgen)
@@ -27,6 +28,12 @@ define gluster::brick(
 	$force = false,			# if true, this will overwrite any xfs fs it sees, useful for rebuilding gluster and wiping data. NOTE: there are other safeties in place to stop this.
 	$areyousure = false		# do you allow puppet to do dangerous things ?
 ) {
+	include gluster::brick::base
+	include gluster::vardir
+
+	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
+	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
+
 	# eg: annex1.example.com:/storage1a
 	$split = split($name, ':')	# do some $name parsing
 	$host = $split[0]		# host fqdn
@@ -43,6 +50,17 @@ define gluster::brick(
 	}
 
 	Gluster::Host[$host] -> Gluster::Brick[$name]	# brick requires host
+
+	# create a brick tag to be collected by the gluster_brick_group_* fact!
+	$safename = regsubst("${name}", '/', '_', 'G')	# make /'s safe
+	file { "${vardir}/brick/${safename}.${group}":
+		content => "${name}\n",
+		owner => root,
+		group => root,
+		mode => 644,
+		ensure => present,
+		require => File["${vardir}/brick/"],
+	}
 
 	$ro_bool = $ro ? {		# this has been added as a convenience
 		true => 'ro',
