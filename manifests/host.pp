@@ -28,6 +28,10 @@ define gluster::host(
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
+	if ("${uuid}" != '') and "${uuid}" =~ /^[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12}$/) {
+		fail("The chosen UUID: '${uuid}' is not valid.")
+	}
+
 	Gluster::Host[$name] -> Service['glusterd']	# glusterd requires host
 
 	# if we're on itself
