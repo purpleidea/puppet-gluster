@@ -53,6 +53,21 @@ define gluster::host(
 			require => File["${vardir}/"],
 		}
 
+		# if we manually *pick* a uuid, then store it too, so that it
+		# sticks if we ever go back to using automatic uuids. this is
+		# useful if a user wants to initially import uuids by picking
+		# them manually, and then letting puppet take over afterwards
+		if "${uuid}" != '' {
+			file { "${vardir}/uuid/uuid":
+				content => "${uuid}\n",
+				owner => root,
+				group => root,
+				mode => 600,	# might as well...
+				ensure => present,
+				require => File["${vardir}/uuid/"],
+			}
+		}
+
 		$valid_uuid = "${uuid}" ? {
 			# fact from the data generated in: ${vardir}/uuid/uuid
 			'' => "${::gluster_uuid}",
