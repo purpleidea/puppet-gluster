@@ -71,7 +71,8 @@ define gluster::volume(
 		}
 	}
 
-	$collected_bricks = split(getvar("gluster_brick_group_${group}"), ',')
+	$gluster_brick_group_fact = getvar("gluster_brick_group_${group}")
+	$collected_bricks = split($gluster_brick_group_fact, ',')
 	$valid_bricks = type($bricks) ? {
 		'boolean' => $bricks ? {
 			true => $collected_bricks,		# an array...
@@ -318,6 +319,7 @@ define gluster::volume(
 			source => "${zone}",	# use our source zone
 			before => Service['glusterd'],
 		}
+	}
 
 	# fsm variables and boilerplate
 	$statefile = "${vardir}/volume/fsm/${name}/state"

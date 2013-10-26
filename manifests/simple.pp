@@ -20,7 +20,8 @@ class gluster::simple(
 	$volume = 'puppet',	# NOTE: this can be a list...
 	$replica = 1,
 	$stripe = 1,		# TODO: not fully implemented in puppet-gluster
-	$vip = ''		# strongly recommended
+	$vip = '',		# strongly recommended
+	$shorewall = true
 ) {
 	include gluster::vardir
 
@@ -58,7 +59,7 @@ class gluster::simple(
 	class { '::gluster::server':
 		vip => "${vip}",
 		#zone => 'net',	# defaults to net
-		shorewall => true,
+		shorewall => $shorewall,
 	}
 
 	@@gluster::host { "${::fqdn}":
