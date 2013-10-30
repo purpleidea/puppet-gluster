@@ -52,7 +52,7 @@ import lxml.etree as etree
 #		"Peer is connected and Accepted",		# 10
 #		"Invalid State"					# 11
 #	};
-valid_peered = ['3']
+VALID_PEERED = ['3']
 
 parser = argparse.ArgumentParser(description='gluster xml parsing tools')
 #parser.add_argument('--debug', dest='debug', action='store_true', default=False)
@@ -101,7 +101,7 @@ if args.mode == 'connected':
 		p = i.find('peer')
 		h = p.find('hostname').text
 		c = (str(p.find('connected').text) == '1')	# connected...?
-		s = (str(p.find('state').text) in valid_peered)	# valid peering
+		s = (str(p.find('state').text) in VALID_PEERED)	# valid peering
 		store[h] = c and s	# save for later...
 
 	# if no peers specified, assume we should check all...
