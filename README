@@ -13,6 +13,7 @@ Module specific notes:
 * You can get CentOS and RHEL rpms from:
 	* http://download.gluster.org/pub/gluster/glusterfs/LATEST/CentOS/ or:
 	* http://repos.fedorapeople.org/repos/kkeithle/glusterfs/epel-6/x86_64/
+* Documentation is now available! Please report bugs including grammar and spelling.
 
 Dependencies:
 * puppetlabs-stdlib (required)
@@ -20,6 +21,7 @@ Dependencies:
 * my puppet-shorewall module (optional)
 * my puppet-puppet module (optional)
 * gluster packages (see above notes)
+* pandoc (for building a pdf of the documentation)
 
 
 Happy hacking,
