@@ -33,9 +33,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	* [Simple setup](#simple-setup)
 	* [Elastic setup](#elastic-setup)
 	* [Advanced setup](#advanced-setup)
-<!--- TODO
-	* [Client setup](#client-setup)
--->
 4. [Usage/FAQ - Notes on management and frequently asked questions](#usage-and-frequently-asked-questions)
 5. [Reference - Class and type reference](#reference)
 	* [gluster::simple](#glustersimple)
@@ -45,9 +42,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	* [gluster::brick](#glusterbrick)
 	* [gluster::volume](#glustervolume)
 	* [gluster::volume::property](#glustervolumeproperty)
-<!--- TODO
-	* [gluster::client](#glusterclient)
--->
 6. [Examples - Example configurations](#examples)
 7. [Limitations - Puppet versions, OS compatibility, etc...](#limitations)
 8. [Development - Background on module development](#development)
@@ -174,11 +168,6 @@ gluster::volume::property { 'examplevol#auth.reject':
 }
 ```
 
-<!--- TODO
-###Client setup
-This is currently undocumented. Woops!
--->
-
 ##Usage and frequently asked questions
 
 All management should be done by manipulating the arguments on the appropriate
@@ -257,9 +246,6 @@ If you feel that a well used option needs documenting here, please contact me.
 * [gluster::brick](#glusterbrick): Brick type for each defined brick, per host.
 * [gluster::volume](#glustervolume): Volume type for each defined volume.
 * [gluster::volume::property](#glustervolumeproperty): Manages properties for each volume.
-<!--- TODO
-* [gluster::client](#glusterclient): Client volume mount point management.
--->
 
 ###gluster::simple
 This is gluster::simple. It should probably take care of 80% of all use cases.
@@ -464,14 +450,6 @@ you don't use all the others.
 
 ####`value`
 The value to be used for this volume property.
-
-<!--- TODO
-###gluster::client
-Under construction.
-
-####`foo`
-bar
--->
 
 ##Examples
 For example configurations, please consult the [examples/](https://github.com/purpleidea/puppet-gluster/tree/master/examples) directory in the git
