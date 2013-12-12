@@ -47,20 +47,20 @@ else
 end
 
 # NOTE: module specific mkdirs, needed to ensure there is no blocking/deadlock!
-if not File.directory?(var)
+if not(var.nil?) and not File.directory?(var)
 	Dir::mkdir(var)
 end
 
-if not File.directory?(module_vardir)
+if not(module_vardir.nil?) and not File.directory?(module_vardir)
 	Dir::mkdir(module_vardir)
 end
 
-if not File.directory?(uuiddir)
+if not(uuiddir.nil?) and not File.directory?(uuiddir)
 	Dir::mkdir(uuiddir)
 end
 
 # generate uuid and parent directory if they don't already exist...
-if not(uuidfile.nil?) and File.directory?(module_vardir)
+if not(module_vardir.nil?) and File.directory?(module_vardir)
 	if not File.directory?(uuiddir)
 		Dir::mkdir(uuiddir)
 	end
@@ -75,7 +75,7 @@ if not(uuidfile.nil?) and File.directory?(module_vardir)
 end
 
 # create the fact if the uuid file contains a valid uuid
-if File.exist?(uuidfile)
+if not(uuidfile.nil?) and File.exist?(uuidfile)
 	uuid = File.open(uuidfile, 'r').read.strip.downcase	# read into str
 	# skip over uuid's of the wrong length or that don't match (security!!)
 	if uuid.length == 36 and regexp.match(uuid)
@@ -95,7 +95,7 @@ end
 _uuid = ''
 found = {}
 prefix = 'uuid_'
-if File.directory?(uuiddir)
+if not(uuiddir.nil?) and File.directory?(uuiddir)
 	Dir.glob(uuiddir+prefix+'*').each do |f|
 
 		b = File.basename(f)

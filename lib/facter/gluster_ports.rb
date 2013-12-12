@@ -32,7 +32,7 @@ end
 
 if var.nil?
 	# if we can't get a valid vardirtmp, then we can't continue
-	uuidfile = nil
+	xmlfile = nil
 else
 	module_vardir = var+'gluster/'
 	xmlfile = module_vardir+'xml.py'
@@ -42,7 +42,7 @@ host = Facter.value('fqdn')
 found = {}
 
 # we need the script installed first to be able to generate the port facts...
-if File.exist?(xmlfile)
+if not(xmlfile.nil?) and File.exist?(xmlfile)
 	volumes = `/usr/sbin/gluster volume list`
 	if $?.exitstatus == 0
 		volumes.split.each do |x|
