@@ -68,7 +68,7 @@ if not(module_vardir.nil?) and File.directory?(module_vardir)
 	# create a uuid and store it in our vardir if it doesn't already exist!
 	if File.directory?(uuiddir) and (not File.exist?(uuidfile))
 		result = system("/usr/bin/uuidgen > '" + uuidfile + "'")
-		if not(result):
+		if not(result)
 			# TODO: print warning
 		end
 	end
