@@ -21,6 +21,7 @@ class gluster::simple(
 	$replica = 1,
 	$stripe = 1,		# TODO: not fully implemented in puppet-gluster
 	$vip = '',		# strongly recommended
+	$repo = true,
 	$shorewall = true
 ) {
 	include gluster::vardir
@@ -58,6 +59,7 @@ class gluster::simple(
 
 	class { '::gluster::server':
 		vip => "${vip}",
+		repo => $repo,
 		#zone => 'net',	# defaults to net
 		shorewall => $shorewall,
 	}

@@ -18,6 +18,7 @@
 class gluster::server(
 	$vip = '',	# vip of the cluster (optional but recommended)
 	$nfs = false,								# TODO
+	$repo = true,	# true/false/or pick a specific version (true)
 	$shorewall = false,
 	$zone = 'net',								# TODO: allow a list of zones
 	$ips = false,	# an optional list of ip's for each in hosts[]
@@ -25,9 +26,23 @@ class gluster::server(
 ) {
 	$FW = '$FW'			# make using $FW in shorewall easier
 
-	# TODO: ensure these are from our 'gluster' repo
+	# ensure these are from a gluster repo
+	if $repo {
+		$version = $repo ? {
+			true => '',	# latest
+			default => "${repo}",
+		}
+		class { '::gluster::repo':
+			version => "${version}",
+		}
+	}
+
 	package { 'glusterfs-server':
 		ensure => present,
+		require => $repo ? {
+			false => undef,
+			default => Class['::gluster::repo'],
+		},
 	}
 
 	# NOTE: not that we necessarily manage anything in here at the moment...
