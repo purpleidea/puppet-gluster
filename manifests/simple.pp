@@ -64,6 +64,10 @@ class gluster::simple(
 		shorewall => $shorewall,
 	}
 
+	if "${::fqdn}" == '' {
+		fail('Your $fqdn is empty. Please check your DNS settings.')
+	}
+
 	@@gluster::host { "${::fqdn}":
 	}
 	Gluster::Host <<||>>
