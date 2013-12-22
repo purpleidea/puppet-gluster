@@ -29,13 +29,22 @@ class gluster::repo(
 		# latest
 		$base_v = "${base}LATEST/"
 	} else {
-		if "${version}" =~ /^(\d+)\.(\d+)$/ {			# x.y
-			#$base_v = "${base}${1}.${2}/LATEST/"		# same!
-			$base_v = "${base}${version}/LATEST/"
+		notice("GlusterFS version: '${version}' was chosen.")
 
-		} elsif "${version}" =~ /^(\d+)\.(\d+)\.(\d+)$/ {	# x.y.z
+		# parse out the -release if it exists. example: 3.4.2-13.el6
+		# \1 is the major/minor version, eg: 3.4.2
+		# \2 is the release with a leading dash, eg: -13.el6
+		# \3 is the first part of the release, eg: 13
+		# \4 is the second part of the release, eg: el6
+		$real_v = regsubst("${version}", '^([\d\.]*)(\-([\d]{1,})\.([a-zA-Z\d]{1,}))?$', '\1')
+
+		if "${real_v}" =~ /^(\d+)\.(\d+)$/ {			# x.y
+			#$base_v = "${base}${1}.${2}/LATEST/"		# same!
+			$base_v = "${base}${real_v}/LATEST/"
+
+		} elsif "${real_v}" =~ /^(\d+)\.(\d+)\.(\d+)$/ {	# x.y.z
 			#$base_v = "${base}${1}.${2}/${1}.${2}.${3}/"	# same!
-			$base_v = "${base}${1}.${2}/${version}/"
+			$base_v = "${base}${1}.${2}/${real_v}/"
 		} else {
 			fail('The version string is invalid.')
 		}

@@ -18,7 +18,8 @@
 class gluster::server(
 	$vip = '',	# vip of the cluster (optional but recommended)
 	$nfs = false,								# TODO
-	$repo = true,	# true/false/or pick a specific version (true)
+	$repo = true,	# add a repo automatically? true or false
+	$version = '',	# pick a specific version (defaults to latest)
 	$shorewall = false,
 	$zone = 'net',								# TODO: allow a list of zones
 	$ips = false,	# an optional list of ip's for each in hosts[]
@@ -26,19 +27,37 @@ class gluster::server(
 ) {
 	$FW = '$FW'			# make using $FW in shorewall easier
 
+	# $gluster_package_version is a fact; commonly set by vagrant
+	if "${version}" == '' and "${gluster_package_version}" == '' {
+		$valid_version = ''
+	} else {
+		if "${version}" != '' and "${gluster_package_version}" != '' {
+			warning('Requested GlusterFS version specified twice!')
+			if "${version}" != "${gluster_package_version}" {
+				fail('Requested GlusterFS version mismatch!')
+			}
+			$valid_version = "${version}"
+		} elsif "${version}" != '' {
+			$valid_version = "${version}"
+		} elsif "${gluster_package_version}" != '' {
+			$valid_version = "${gluster_package_version}"
+		} else {
+			fail('Programming error!')
+		}
+	}
+
 	# ensure these are from a gluster repo
 	if $repo {
-		$version = $repo ? {
-			true => '',	# latest
-			default => "${repo}",
-		}
 		class { '::gluster::repo':
-			version => "${version}",
+			version => "${valid_version}",
 		}
 	}
 
 	package { 'glusterfs-server':
-		ensure => present,
+		ensure => "${valid_version}" ? {
+			'' => present,
+			default => "${valid_version}",
+		},
 		require => $repo ? {
 			false => undef,
 			default => Class['::gluster::repo'],
