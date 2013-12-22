@@ -76,7 +76,7 @@ class gluster::repo(
 		fail("Architecture: '${architecture}' not yet supported.")
 	}
 
-	$base_arch = "${base_os}/epel-${operatingsystemrelease}/"
+	$base_arch = "${base_os}epel-${operatingsystemrelease}/"
 
 	$gpgkey = "${base_os}pub.key"
 
@@ -84,7 +84,7 @@ class gluster::repo(
 
 	#yum::repos::repo { "gluster-${arch}":
 	yum::repos::repo { 'gluster':
-		baseurl => "${base_arch}/${arch}/",
+		baseurl => "${base_arch}${arch}/",
 		enabled => true,
 		gpgcheck => true,
 		# XXX: this should not be an http:// link, it should be a file!
@@ -95,7 +95,7 @@ class gluster::repo(
 
 	# TODO: technically, i don't think this is needed yet...
 	#yum::repos::repo { 'gluster-noarch':
-	#	baseurl => "${base_arch}/noarch/",
+	#	baseurl => "${base_arch}noarch/",
 	#	enabled => true,
 	#	gpgcheck => true,
 	#	# XXX: this should not be an http:// link, it should be a file!
