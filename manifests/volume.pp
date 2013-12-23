@@ -27,6 +27,7 @@ define gluster::volume(
 	$start = undef		# start volume ? true, false (stop it) or undef
 ) {
 	include gluster::xml
+	include gluster::again
 	include gluster::vardir
 	include gluster::volume::base
 	if $ping {
@@ -35,6 +36,8 @@ define gluster::volume(
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
+
+	$shorewall = $::gluster::server::shorewall
 
 	$settle_count = 3		# three is a reasonable default!
 	$maxlength = 3
@@ -221,6 +224,10 @@ define gluster::volume(
 			group => root,
 			mode => 755,
 			ensure => present,
+			# this notify is the first to kick off the 2nd step! it
+			# was put here after a process of elimination, and this
+			# location makes a lot of sense: on change exec[again]!
+			notify => Common::Again::Delta['gluster-exec-again'],
 			require => File["${vardir}/volume/"],
 		}
 
@@ -259,6 +266,10 @@ define gluster::volume(
 				logoutput => on_failure,
 				onlyif => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",
 				unless => "/usr/sbin/gluster volume status ${name}",	# returns false if stopped
+				notify => $shorewall ? {
+					false => undef,
+					default => Common::Again::Delta['gluster-exec-again'],
+				},
 				require => $settled ? {	# require if type exists
 					false => undef,
 					default => Exec["gluster-volume-create-${name}"],
@@ -286,7 +297,6 @@ define gluster::volume(
 		}
 	}
 
-	$shorewall = $::gluster::server::shorewall
 	if $shorewall {
 		$zone = $::gluster::server::zone	# firewall zone
 
@@ -367,6 +377,7 @@ define gluster::volume(
 			# difference to record, or the sequence hasn't settled
 			# we also check that we have our minimum settle count!
 			onlyif => "/usr/bin/test ! -e '${watchfile}' || ${diff} || /usr/bin/test '1' != '${one}' || /usr/bin/test ${watch_trim_size} -lt ${settle_count}",
+			notify => Common::Again::Delta['gluster-exec-again'],
 			require => [
 				File["${vardir}/volume/fsm/${name}/"],
 				# easy way to ensure the transition types don't need to
