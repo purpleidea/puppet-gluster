@@ -7,19 +7,21 @@ Patches are welcome, but please be patient. They are best received by email.
 Please ping me if you have big changes in mind, before you write a giant patch.
 
 Module specific notes:
+* This is _the_ puppet module for gluster. Accept no imitations!
 * All the participating nodes, need to have an identical puppet-gluster config.
-* There is an experimental gluster::wrapper class, for easier deployment.
+* Using gluster::simple is probably the best way to try this out.
 * You can use less of the available resources, if you only want to manage some.
 * You can get CentOS and RHEL rpms from:
 	* http://download.gluster.org/pub/gluster/glusterfs/LATEST/CentOS/ or:
 	* http://repos.fedorapeople.org/repos/kkeithle/glusterfs/epel-6/x86_64/
-* Documentation is now available! Please report bugs including grammar and spelling.
+* Documentation is now available! Please report grammar and spelling bugs.
 
 Dependencies:
 * puppetlabs-stdlib (required)
 * my puppet-common module (optional)
 * my puppet-shorewall module (optional)
 * my puppet-puppet module (optional)
+* my puppet-yum module (optional)
 * gluster packages (see above notes)
 * pandoc (for building a pdf of the documentation)
 
