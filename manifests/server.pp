@@ -53,6 +53,11 @@ class gluster::server(
 		}
 	}
 
+	package { 'moreutils':		# for scripts needing: 'sponge'
+		ensure => present,
+		before => Package['glusterfs-server'],
+	}
+
 	package { 'glusterfs-server':
 		ensure => "${valid_version}" ? {
 			'' => present,
