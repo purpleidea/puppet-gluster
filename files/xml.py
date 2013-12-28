@@ -97,8 +97,11 @@ if args.mode == 'connected':
 	store = {}
 	peers = args.peers
 
-	for i in root.findall('.//peerStatus'):
-		p = i.find('peer')
+	l = root.findall('.//peerStatus')
+	if len(l) != 1:
+		sys.exit(3)
+
+	for p in l[0].findall('.//peer'):
 		h = p.find('hostname').text
 		c = (str(p.find('connected').text) == '1')	# connected...?
 		s = (str(p.find('state').text) in VALID_PEERED)	# valid peering
