@@ -20,6 +20,7 @@ Dependencies:
 * puppetlabs-stdlib (required)
 * my puppet-common module (optional)
 * my puppet-shorewall module (optional)
+* my puppet-keepalived module (optional)
 * my puppet-puppet module (optional)
 * my puppet-yum module (optional)
 * gluster packages (see above notes)

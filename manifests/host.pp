@@ -21,7 +21,8 @@
 
 define gluster::host(
 	$ip = $::ipaddress,	# specify which ip address to use (if multiple)
-	$uuid = ''	# if empty, puppet will attempt to use the gluster fact
+	$uuid = '',	# if empty, puppet will attempt to use the gluster fact
+	$password = ''	# if empty, puppet will attempt to choose one magically
 ) {
 	include gluster::vardir
 
@@ -201,6 +202,94 @@ define gluster::host(
 					File['/var/lib/glusterd/peers/'],
 					Service['glusterd'],	# ensure reload
 				],
+			}
+		}
+	}
+
+	# vrrp...
+	$vrrp = $::gluster::server::vrrp
+	if ( "${fqdn}" == "${name}" ) and $vrrp {
+
+		$vip = $::gluster::server::vip
+		if ! ($vip =~ /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/) {
+			fail('You must specify a valid VIP to use with VRRP.')
+		}
+
+		file { "${vardir}/vrrp/":
+			ensure => directory,	# make sure this is a directory
+			recurse => true,	# recurse into directory
+			purge => true,		# purge unmanaged files
+			force => true,		# purge subdirs and links
+			require => File["${vardir}/"],
+		}
+
+		# store so that a fact can figure out the interface and cidr...
+		file { "${vardir}/vrrp/ip":
+			content => "${ip}\n",
+			owner => root,
+			group => root,
+			mode => 600,	# might as well...
+			ensure => present,
+			require => File["${vardir}/vrrp/"],
+		}
+
+		# NOTE: this is a tag to protect the pass file...
+		file { "${vardir}/vrrp/vrrp":
+			content => "${password}" ? {
+				'' => undef,
+				default => "${password}",
+			},
+			owner => root,
+			group => root,
+			mode => 600,	# might as well...
+			ensure => present,
+			require => File["${vardir}/vrrp/"],
+		}
+
+		# NOTE: $name here should probably be the fqdn...
+		@@file { "${vardir}/vrrp/vrrp_${name}":
+			content => "${::gluster_vrrp}\n",
+			tag => 'gluster_vrrp',
+			owner => root,
+			group => root,
+			mode => 600,
+			ensure => present,
+		}
+
+		File <<| tag == 'gluster_vrrp' |>> {	# collect to make facts
+		}
+
+		# this figures out the interface from the $ip value
+		$if = "${::gluster_vrrp_interface}"		# a smart fact!
+		$cidr = "${::gluster_vrrp_cidr}"		# even smarter!
+		$p = "${::gluster::server::password}" ? {	# shh secret...
+			'' => "${::gluster_vrrp_password}",	# combined fact
+			default => "${::gluster::server::password}",
+		}
+		# this fact is sorted, which is very, very important...!
+		$fqdns_fact = "${::gluster_vrrp_fqdns}"		# fact !
+		$fqdns = split($fqdns_fact, ',')		# list !
+
+		if "${if}" != '' and "${cidr}" != '' and "${p}" != '' {
+
+			keepalived::vrrp { 'VI_GLUSTER':	# TODO: groups!
+				state => "${fqdns[0]}" ? {	# first in list
+					'' => 'MASTER',		# list is empty
+					"${fqdn}" => 'MASTER',	# we are first!
+					default => 'BACKUP',	# other in list
+				},
+				interface => "${if}",
+				mcastsrc => "${ip}",
+				# TODO: support configuring the label index!
+				# label ethX:1 for first VIP ethX:2 for second...
+				ipaddress => "${vip}/${cidr} dev ${if} label ${if}:1",
+				# FIXME: this limits puppet-gluster to 256 hosts maximum
+				priority => inline_template("<%= 255 - (@fqdns.index('${fqdn}') or 0) %>"),
+				routerid => 42,	# TODO: support configuring it!
+				advertint => 3,	# TODO: support configuring it!
+				password => "${p}",
+				#group => 'gluster',	# TODO: groups!
+				watchip => "${vip}",
 			}
 		}
 	}

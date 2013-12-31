@@ -20,6 +20,8 @@ class gluster::server(
 	$nfs = false,								# TODO
 	$repo = true,	# add a repo automatically? true or false
 	$version = '',	# pick a specific version (defaults to latest)
+	$vrrp = false,
+	$password = '',	# global vrrp password to use
 	$shorewall = false,
 	$zone = 'net',								# TODO: allow a list of zones
 	$ips = false,	# an optional list of ip's for each in hosts[]
@@ -113,6 +115,13 @@ class gluster::server(
 		mode => 644,
 		notify => Service['glusterd'],
 		require => File['/var/lib/glusterd/'],
+	}
+
+	if $vrrp {
+		class { '::keepalived':
+			start => true,
+			shorewall => $shorewall,
+		}
 	}
 
 	if $shorewall {

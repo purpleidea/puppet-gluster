@@ -23,6 +23,8 @@ class gluster::simple(
 	$vip = '',		# strongly recommended
 	$repo = true,
 	$version = '',
+	$vrrp = false,
+	$password = '',	# global vrrp password to use
 	$shorewall = true
 ) {
 	include gluster::vardir
@@ -62,6 +64,8 @@ class gluster::simple(
 		vip => "${vip}",
 		repo => $repo,
 		version => "${version}",
+		vrrp => $vrrp,
+		password => "${password}",
 		#zone => 'net',	# defaults to net
 		shorewall => $shorewall,
 	}
