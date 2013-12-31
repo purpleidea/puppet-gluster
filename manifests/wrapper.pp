@@ -29,8 +29,8 @@ class gluster::wrapper(
 	#	build gluster::server
 	#
 
-	$hosts = split(inline_template("<%= nodetree.keys.join(',') %>"), ',')
-	$ips = split(inline_template('<%= nodetree.map{ |host,value| \'#{value["ip"]}\' }.join(",") %>'), ',')
+	$hosts = split(inline_template("<%= @nodetree.keys.join(',') %>"), ',')
+	$ips = split(inline_template('<%= @nodetree.map{ |host,value| \'#{value["ip"]}\' }.join(",") %>'), ',')
 
 	class { 'gluster::server':
 		hosts => $hosts,
@@ -54,8 +54,8 @@ class gluster::wrapper(
 
 	# filter the nodetree so that only host elements with uuid's are left
 	# XXX: each_with_object doesn't exist in rhel6 ruby, so use inject
-	#$hosttree = inline_template('<%= nodetree.each_with_object({}) {|(x,y), h| h[x] = y.select{ |key,value| ["uuid"].include?(key) } }.to_yaml %>')
-	$hosttree = inline_template('<%= nodetree.inject({}) {|h, (x,y)| h[x] = y.select{ |key,value| ["uuid"].include?(key) }; h }.to_yaml %>')
+	#$hosttree = inline_template('<%= @nodetree.each_with_object({}) {|(x,y), h| h[x] = y.select{ |key,value| ["uuid"].include?(key) } }.to_yaml %>')
+	$hosttree = inline_template('<%= @nodetree.inject({}) {|h, (x,y)| h[x] = y.select{ |key,value| ["uuid"].include?(key) }; h }.to_yaml %>')
 	# newhash = oldhash.inject({}) { |h,(k,v)| h[k] = some_operation(v); h }	# XXX: does this form work ?
 	$yaml_host = parseyaml($hosttree)
 	create_resources('gluster::host', $yaml_host)
@@ -76,9 +76,9 @@ class gluster::wrapper(
 	#}
 
 	# filter the nodetree and build out each brick element from the hosts
-	$bricktree = inline_template('<%= r = {}; nodetree.each {|x,y| y["bricks"].each {|k,v| r[x+":"+k] = v} }; r.to_yaml %>')
+	$bricktree = inline_template('<%= r = {}; @nodetree.each {|x,y| y["bricks"].each {|k,v| r[x+":"+k] = v} }; r.to_yaml %>')
 	# this version removes any invalid keys from the brick specifications
-	#$bricktree = inline_template('<%= r = {}; nodetree.each {|x,y| y["bricks"].each {|k,v| r[x+":"+k] = v.select{ |key,value| ["dev", "labeltype", "fstype", "fsuuid", "..."].include?(key) } } }; r.to_yaml %>')
+	#$bricktree = inline_template('<%= r = {}; @nodetree.each {|x,y| y["bricks"].each {|k,v| r[x+":"+k] = v.select{ |key,value| ["dev", "labeltype", "fstype", "fsuuid", "..."].include?(key) } } }; r.to_yaml %>')
 	$yaml_brick = parseyaml($bricktree)
 	create_resources('gluster::brick', $yaml_brick)
 
@@ -94,7 +94,7 @@ class gluster::wrapper(
 	#}
 
 	# to be used as default gluster::volume brick list
-	$bricklist = split(inline_template("<%= bricktree.keys.join(',') %>"), ',')
+	$bricklist = split(inline_template("<%= @bricktree.keys.join(',') %>"), ',')
 
 	# semi ok method:
 	#$volumetree_defaults_all = {
@@ -105,7 +105,7 @@ class gluster::wrapper(
 	#	"vip" => $vip,
 	#	"start" => undef,	# ?
 	#}
-	#$semi_ok = inline_template('<%= volumetree.each_with_object({}) {|(x,y), h| h[x] = volumetree_defaults_all.each_with_object({}) {|(xx,yy), hh| hh[xx] = y.fetch(xx, volumetree_defaults_all[xx])} }.to_yaml %>')
+	#$semi_ok = inline_template('<%= @volumetree.each_with_object({}) {|(x,y), h| h[x] = @volumetree_defaults_all.each_with_object({}) {|(xx,yy), hh| hh[xx] = y.fetch(xx, @volumetree_defaults_all[xx])} }.to_yaml %>')
 
 	# good method
 	$volumetree_defaults = {
@@ -113,7 +113,7 @@ class gluster::wrapper(
 		'vip' => $vip,
 	}
 	# loop through volumetree... if special defaults are missing, then add!
-	$volumetree_updated = inline_template('<%= volumetree.each_with_object({}) {|(x,y), h| h[x] = y; volumetree_defaults.each {|k,v| h[k] = h.fetch(k, v)} }.to_yaml %>')
+	$volumetree_updated = inline_template('<%= @volumetree.each_with_object({}) {|(x,y), h| h[x] = y; @volumetree_defaults.each {|k,v| h[k] = h.fetch(k, v)} }.to_yaml %>')
 	$yaml_volume = parseyaml($volumetree_updated)
 	create_resources('gluster::volume', $yaml_volume)
 
@@ -126,8 +126,8 @@ class gluster::wrapper(
 	#	value => '192.0.2.13,198.51.100.42,203.0.113.69',
 	#}
 
-	#$simplewrongname = inline_template('<%= volumetree.each_with_object({}) {|(x,y), h| h[x+"#auth.allow"] = y.select{ |key,value| ["clients"].include?(key) } }.to_yaml %>')
-	$propertytree = inline_template('<%= volumetree.each_with_object({}) {|(x,y), h| h[x+"#auth.allow"] = { "value" => y.fetch("clients", []) } }.to_yaml %>')
+	#$simplewrongname = inline_template('<%= @volumetree.each_with_object({}) {|(x,y), h| h[x+"#auth.allow"] = y.select{ |key,value| ["clients"].include?(key) } }.to_yaml %>')
+	$propertytree = inline_template('<%= @volumetree.each_with_object({}) {|(x,y), h| h[x+"#auth.allow"] = { "value" => y.fetch("clients", []) } }.to_yaml %>')
 	$yaml_volume_property = parseyaml($propertytree)
 	create_resources('gluster::volume::property', $yaml_volume_property)
 }

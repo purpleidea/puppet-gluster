@@ -91,7 +91,7 @@ class gluster::simple(
 		# the gluster_fqdns fact is alphabetical, but not complete till
 		# at least a puppet run of each node has occured. watch out for
 		# partial clusters missing some of the nodes with bad ordering!
-		#bricks => split(inline_template("<%= gluster_fqdns.split(',').collect {|x| x+':${valid_path}' }.join(',') %>"), ','),
+		#bricks => split(inline_template("<%= @gluster_fqdns.split(',').collect {|x| x+':${valid_path}' }.join(',') %>"), ','),
 		# the only semi-safe way is the new built in automatic collect:
 		bricks => true,			# automatic brick collection...
 		start => true,

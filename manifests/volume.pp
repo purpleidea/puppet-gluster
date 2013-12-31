@@ -86,7 +86,7 @@ define gluster::volume(
 	}
 
 	# helpful debugging!
-	notice(inline_template('valid_bricks: <%= valid_bricks.inspect %>'))
+	notice(inline_template('valid_bricks: <%= @valid_bricks.inspect %>'))
 
 	# NOTE: we're using the valid_bricks value here, and not the collected
 	# value. while we only need the $collected value for settle detection,
@@ -111,21 +111,21 @@ define gluster::volume(
 	$stack_full = split("${stack_fact}", ',')
 	$stack_trim = "${maxlength}" ? {
 		'-1' => $stack_full,	# unlimited
-		#default => split(inline_template('<%= stack_full[0,maxlength.to_i.abs].join(",") %>'), ','),
-		default => split(inline_template('<%= stack_full[[stack_full.size-maxlength.to_i.abs,0].max,maxlength.to_i.abs].join(",") %>'), ','),
+		#default => split(inline_template('<%= @stack_full[0,@maxlength.to_i.abs].join(",") %>'), ','),
+		default => split(inline_template('<%= @stack_full[[@stack_full.size-@maxlength.to_i.abs,0].max,@maxlength.to_i.abs].join(",") %>'), ','),
 	}
 
 	$watch_fact = getvar("gluster_volume_fsm_watch_${name}")	# fact !
 	$watch_full = split("${watch_fact}", ',')
 	$watch_trim = "${maxlength}" ? {
 		'-1' => $watch_full,	# unlimited
-		#default => split(inline_template('<%= watch_full[0,maxlength.to_i.abs].join(",") %>'), ','),
-		default => split(inline_template('<%= watch_full[[watch_full.size-maxlength.to_i.abs,0].max,maxlength.to_i.abs].join(",") %>'), ','),
+		#default => split(inline_template('<%= @watch_full[0,@maxlength.to_i.abs].join(",") %>'), ','),
+		default => split(inline_template('<%= @watch_full[[@watch_full.size-@maxlength.to_i.abs,0].max,@maxlength.to_i.abs].join(",") %>'), ','),
 	}
 
 	# if the last $settle_count elements are the same, the template
 	# should reduce down to the value '1'. check this and the size.
-	$one = inline_template('<%= watch_trim[[watch_trim.size-settle_count.to_i,0].max,settle_count.to_i].uniq.size %>')
+	$one = inline_template('<%= @watch_trim[[@watch_trim.size-@settle_count.to_i,0].max,@settle_count.to_i].uniq.size %>')
 	$watch_trim_size = size($watch_trim)
 	$settled = ((! $settle_count_check) or ((size($watch_trim) >= $settle_count) and "${one}" == '1'))
 
@@ -152,7 +152,7 @@ define gluster::volume(
 	}
 
 	# returns interface name that has vip, or '' if none are found.
-	$vipif = inline_template("<%= interfaces.split(',').find_all {|x| '${valid_vip}' == scope.lookupvar('ipaddress_'+x) }[0,1].join('') %>")
+	$vipif = inline_template("<%= @interfaces.split(',').find_all {|x| '${valid_vip}' == scope.lookupvar('ipaddress_'+x) }[0,1].join('') %>")
 
 	#Gluster::Brick[$valid_bricks] -> Gluster::Volume[$name]	# volume requires bricks
 
@@ -160,7 +160,7 @@ define gluster::volume(
 	# return only these paths, which can be used to build the volume dirs.
 	# NOTE: gluster v3.4 won't create a volume if this dir already exists.
 	# TODO: is this needed when bricks are devices and not on filesystem ?
-	#$volume_dirs = split(inline_template("<%= valid_bricks.find_all{|x| x.split(':')[0] == '${fqdn}' }.collect {|y| y.split(':')[1].chomp('/')+'/${name}' }.join(' ') %>"), ' ')
+	#$volume_dirs = split(inline_template("<%= @valid_bricks.find_all{|x| x.split(':')[0] == '${fqdn}' }.collect {|y| y.split(':')[1].chomp('/')+'/${name}' }.join(' ') %>"), ' ')
 	#file { $volume_dirs:
 	#	ensure => directory,		# make sure this is a directory
 	#	recurse => false,		# don't recurse into directory
@@ -171,7 +171,7 @@ define gluster::volume(
 	#}
 
 	# add /${name} to the end of each: brick:/path entry
-	$brick_spec = inline_template("<%= valid_bricks.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
+	$brick_spec = inline_template("<%= @valid_bricks.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
 
 	# if volume creation fails for a stupid reason, in many cases, glusterd
 	# already did some of the work and left us with volume name directories
@@ -180,10 +180,10 @@ define gluster::volume(
 	# we error we should rmdir any empty volume dirs to keep it pristine...
 	# TODO: this should be a gluster bug... we must hope it doesn't happen!
 	# maybe related to: https://bugzilla.redhat.com/show_bug.cgi?id=835494
-	$rmdir_volume_dirs = sprintf("/bin/rmdir '%s'", inline_template("<%= valid_bricks.find_all{|x| x.split(':')[0] == '${fqdn}' }.collect {|y| y.split(':')[1].chomp('/')+'/${name}/' }.join('\' \'') %>"))
+	$rmdir_volume_dirs = sprintf("/bin/rmdir '%s'", inline_template("<%= @valid_bricks.find_all{|x| x.split(':')[0] == '${fqdn}' }.collect {|y| y.split(':')[1].chomp('/')+'/${name}/' }.join('\' \'') %>"))
 
 	# get the list of bricks fqdn's that don't have our fqdn
-	$others = inline_template("<%= valid_bricks.find_all{|x| x.split(':')[0] != '${fqdn}' }.collect {|y| y.split(':')[0] }.join(' ') %>")
+	$others = inline_template("<%= @valid_bricks.find_all{|x| x.split(':')[0] != '${fqdn}' }.collect {|y| y.split(':')[0] }.join(' ') %>")
 
 	$fping = sprintf("/usr/sbin/fping -q %s", $others)
 	$status = sprintf("/usr/sbin/gluster peer status --xml | ${vardir}/xml.py connected %s", $others)
@@ -303,7 +303,7 @@ define gluster::volume(
 		$ips = $::gluster::server::ips		# override host ip list
 		$ip = $::gluster::host::data::ip	# ip of brick's host...
 		$source_ips = type($ips) ? {
-			'array' => inline_template("<%= (ips+[]).uniq.delete_if {|x| x.empty? }.join(',') %>"),
+			'array' => inline_template("<%= (@ips+[]).uniq.delete_if {|x| x.empty? }.join(',') %>"),
 			default => ["${ip}"],
 		}
 
@@ -338,13 +338,13 @@ define gluster::volume(
 	$diff = "/usr/bin/test '${valid_input}' != '${valid_last}'"
 	$stack_truncate = "${maxlength}" ? {
 		'-1' => '',	# unlimited
-		#default => sprintf("&& /bin/sed -i '%d,$ d' ${stackfile}", inline_template('<%= maxlength.to_i.abs+1 %>')),
-		default => sprintf(" && (/bin/grep -v '^$' ${stackfile} | /usr/bin/tail -n %d | /usr/bin/sponge ${stackfile})", inline_template('<%= maxlength.to_i.abs %>')),
+		#default => sprintf("&& /bin/sed -i '%d,$ d' ${stackfile}", inline_template('<%= @maxlength.to_i.abs+1 %>')),
+		default => sprintf(" && (/bin/grep -v '^$' ${stackfile} | /usr/bin/tail -n %d | /usr/bin/sponge ${stackfile})", inline_template('<%= @maxlength.to_i.abs %>')),
 	}
 	$watch_truncate = "${maxlength}" ? {
 		'-1' => '',	# unlimited
-		#default => sprintf("&& /bin/sed -i '%d,$ d' ${watchfile}", inline_template('<%= maxlength.to_i.abs+1 %>')),
-		default => sprintf(" && (/bin/grep -v '^$' ${watchfile} | /usr/bin/tail -n %d | /usr/bin/sponge ${watchfile})", inline_template('<%= maxlength.to_i.abs %>')),
+		#default => sprintf("&& /bin/sed -i '%d,$ d' ${watchfile}", inline_template('<%= @maxlength.to_i.abs+1 %>')),
+		default => sprintf(" && (/bin/grep -v '^$' ${watchfile} | /usr/bin/tail -n %d | /usr/bin/sponge ${watchfile})", inline_template('<%= @maxlength.to_i.abs %>')),
 	}
 
 	if $are_bricks_collected and ("${valid_input}" != '') {	# ready or not?
