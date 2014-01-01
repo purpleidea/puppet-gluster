@@ -212,24 +212,24 @@ define gluster::volume(
 		],
 	}
 
+	# store command in a separate file to run as bash...
+	# NOTE: we sleep for 5 seconds to give glusterd a chance to
+	# settle down first if we're doing a hot (clean) puppet run
+	file { "${vardir}/volume/create-${name}.sh":
+		content => inline_template("#!/bin/bash\n/bin/sleep 5s && /usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} > >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
+		owner => root,
+		group => root,
+		mode => 755,
+		ensure => present,
+		# this notify is the first to kick off the 2nd step! it
+		# was put here after a process of elimination, and this
+		# location makes a lot of sense: on change exec[again]!
+		notify => Common::Again::Delta['gluster-exec-again'],
+		require => File["${vardir}/volume/"],
+	}
+
 	# run if vip not defined (bypass mode) or if vip exists on this machine
 	if ("${valid_vip}" == '' or "${vipif}" != '') {
-
-		# store command in a separate file to run as bash...
-		# NOTE: we sleep for 5 seconds to give glusterd a chance to
-		# settle down first if we're doing a hot (clean) puppet run
-		file { "${vardir}/volume/create-${name}.sh":
-			content => inline_template("#!/bin/bash\n/bin/sleep 5s && /usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} > >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
-			owner => root,
-			group => root,
-			mode => 755,
-			ensure => present,
-			# this notify is the first to kick off the 2nd step! it
-			# was put here after a process of elimination, and this
-			# location makes a lot of sense: on change exec[again]!
-			notify => Common::Again::Delta['gluster-exec-again'],
-			require => File["${vardir}/volume/"],
-		}
 
 		# NOTE: This should only happen on one host!
 		# NOTE: There's maybe a theoretical race condition if this runs
@@ -256,10 +256,7 @@ define gluster::volume(
 				alias => "gluster-volume-create-${name}",
 			}
 		}
-	}
 
-	# run if vip not defined (by pass mode) or vip exists on this machine
-	if ("${valid_vip}" == '' or "${vipif}" != '') {
 		if $start == true {
 			# try to start volume if stopped
 			exec { "/usr/sbin/gluster volume start ${name}":
