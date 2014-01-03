@@ -20,7 +20,7 @@
 # only the host holding the vip is allowed to execute cluster peer operations.
 
 define gluster::host(
-	$ip = $::ipaddress,	# specify which ip address to use (if multiple)
+	$ip = '',	# you can specify which ip address to use (if multiple)
 	$uuid = '',	# if empty, puppet will attempt to use the gluster fact
 	$password = ''	# if empty, puppet will attempt to choose one magically
 ) {
@@ -38,10 +38,21 @@ define gluster::host(
 	# if we're on itself
 	if "${fqdn}" == "${name}" {
 
+		$valid_ip = "${ip}" ? {
+			'' => "${::gluster_host_ip}" ? {	# smart fact...
+				'' => "${::ipaddress}",		# puppet picks!
+				default => "${::gluster_host_ip}",	# smart
+			},
+			default => "${ip}",			# user selected
+		}
+		if "${valid_ip}" == '' {
+			fail('No valid IP exists!')
+		}
+
 		# store the ip here so that it can be accessed by bricks...
 		class { '::gluster::host::data':
 			#name => $name,
-			ip => "${ip}",
+			ip => "${valid_ip}",
 			fqdn => "${fqdn}",
 		}
 
@@ -225,7 +236,7 @@ define gluster::host(
 
 		# store so that a fact can figure out the interface and cidr...
 		file { "${vardir}/vrrp/ip":
-			content => "${ip}\n",
+			content => "${valid_ip}\n",
 			owner => root,
 			group => root,
 			mode => 600,	# might as well...
@@ -259,7 +270,7 @@ define gluster::host(
 		File <<| tag == 'gluster_vrrp' |>> {	# collect to make facts
 		}
 
-		# this figures out the interface from the $ip value
+		# this figures out the interface from the $valid_ip value
 		$if = "${::gluster_vrrp_interface}"		# a smart fact!
 		$cidr = "${::gluster_vrrp_cidr}"		# even smarter!
 		$p = "${::gluster::server::password}" ? {	# shh secret...
@@ -279,7 +290,7 @@ define gluster::host(
 					default => 'BACKUP',	# other in list
 				},
 				interface => "${if}",
-				mcastsrc => "${ip}",
+				mcastsrc => "${valid_ip}",
 				# TODO: support configuring the label index!
 				# label ethX:1 for first VIP ethX:2 for second...
 				ipaddress => "${vip}/${cidr} dev ${if} label ${if}:1",
@@ -304,7 +315,7 @@ define gluster::host(
 		#$all_ips = inline_template("<%= (ips+[vip]+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
 		$source_ips = type($ips) ? {
 			'array' => inline_template("<%= (ips+[]).uniq.delete_if {|x| x.empty? }.join(',') %>"),
-			default => ["${ip}"],
+			default => ["${valid_ip}"],
 		}
 
 		@@shorewall::rule { "glusterd-management-${name}":
