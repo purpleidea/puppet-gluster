@@ -301,6 +301,8 @@ define gluster::host(
 				password => "${p}",
 				#group => 'gluster',	# TODO: groups!
 				watchip => "${vip}",
+				shorewall_zone => "${::gluster::server::zone}",
+				shorewall_ipaddress => "${valid_ip}",
 			}
 		}
 	}
