@@ -10,6 +10,7 @@ Module specific notes:
 * This is _the_ puppet module for gluster. Accept no imitations!
 * All the participating nodes, need to have an identical puppet-gluster config.
 * Using gluster::simple is probably the best way to try this out.
+* This is easily deployed with vagrant. See the vagrant/ directory!
 * You can use less of the available resources, if you only want to manage some.
 * You can get CentOS and RHEL rpms from:
 	* http://download.gluster.org/pub/gluster/glusterfs/LATEST/CentOS/ or:

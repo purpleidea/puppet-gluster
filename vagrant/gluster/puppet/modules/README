@@ -1,0 +1,22 @@
+This directory contains the puppet (git) module dependencies for Puppet-Gluster. They are included as git submodules for convenience and version compatibility. The Puppet-Gluster module itself is cloned in by a Makefile on provisioning.
+
+The one problem is Puppet-Gluster itself, since it is the parent repository to this sub-directory. There were a few options:
+
+1) Maintain the vagrant/ directory as a separate git project.
+This would make a lot of sense, but I wanted to keep the vagrant portions bundled with Puppet-Gluster since they are so closely connected and for ease of distribution. In this situation, the vagrant/puppet/modules/ directory would include the Puppet-Gluster submodule along with all the other puppet (git) modules.
+
+2) Fill the vagrant/puppet/modules/ directory with git submodules.
+This would make a lot of sense because you can reference specific commits, and it's easy to recursively clone all of the necessary code for a vagrant run. The problem is that recursively referencing the Puppet-Gluster might be a little awkward for some hackers to understand. One inconvenience, is that to update the modules/ directory, you'd have to first push your code changes to the server, get the sha1 commit hash, and then in a secondary commit change the submodules pointer. This would apparently cause a cascase of extra cloning each new commit.
+
+3) Fill the vagrant/puppet/modules/ directory with git submodules & 1 symlink.
+This option seems to be the best solution. As in #2, we use git submodules. For the tricky Puppet-Gluster recursion scenario, we symlink the correct parent directory so that the relevant puppet code is present for the puppet::deploy. This only works if the provisioner follows the symlinks. For vagrant-libvirt, rsync needs the --copy-dirlinks option added.
+
+4) Maintain a Makefile and sync in Puppet-Gluster as needed.
+This is what I've adopted for now. It works, and is mostly straightforward. If you can find a better solution, please let me know!
+
+Hope this gives you some helpful background, and thanks to #git for consulting.
+
+Happy hacking,
+
+James
+

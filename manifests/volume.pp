@@ -202,6 +202,7 @@ define gluster::volume(
 			File["${vardir}/volume/create-${name}.sh"],
 			File["${vardir}/xml.py"],	# status check
 			Gluster::Brick[$valid_bricks],
+			Exec["gluster-volume-stuck-${name}"],
 		],
 		default => [
 			Service['glusterd'],
@@ -209,14 +210,33 @@ define gluster::volume(
 			Package['fping'],
 			File["${vardir}/xml.py"],	# status check
 			Gluster::Brick[$valid_bricks],
+			Exec["gluster-volume-stuck-${name}"],
+		],
+	}
+
+	# work around stuck connection state (4) of: 'Accepted peer request'...
+	exec { "gluster-volume-stuck-${name}":
+		command => '/sbin/service glusterd reload',
+		logoutput => on_failure,
+		unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# reconnect if it doesn't exist
+		onlyif => sprintf("/usr/sbin/gluster peer status --xml | ${vardir}/xml.py stuck %s", $others),
+		notify => Common::Again::Delta['gluster-exec-again'],
+		require => [
+			Service['glusterd'],
+			File["${vardir}/xml.py"],	# stuck check
+			Gluster::Brick[$valid_bricks],
 		],
 	}
 
 	# store command in a separate file to run as bash...
 	# NOTE: we sleep for 5 seconds to give glusterd a chance to
 	# settle down first if we're doing a hot (clean) puppet run
+	# NOTE: force is needed for now because of the following error:
+	# volume create: puppet: failed: The brick annex1.example.com:/var/lib/puppet/tmp/gluster/data/puppet is is being created in the root partition. It is recommended that you don't use the system's root partition for storage backend. Or use 'force' at the end of the command if you want to override this behavior.
+	# FIXME: it would be create to have an --allow-root-storage type option
+	# instead, so that we don't inadvertently force some other bad thing...
 	file { "${vardir}/volume/create-${name}.sh":
-		content => inline_template("#!/bin/bash\n/bin/sleep 5s && /usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} > >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
+		content => inline_template("#!/bin/bash\n/bin/sleep 5s && /usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} force > >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
 		owner => root,
 		group => root,
 		mode => 755,

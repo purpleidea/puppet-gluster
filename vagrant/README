@@ -1,0 +1,27 @@
+This is Puppet-Gluster+Vagrant! (https://ttboj.wordpress.com/)
+
+You'll first need to get vagrant working. Here are some background articles:
+
+* https://ttboj.wordpress.com/2013/12/09/vagrant-on-fedora-with-libvirt/
+* https://ttboj.wordpress.com/2013/12/21/vagrant-vsftp-and-other-tricks/
+* https://ttboj.wordpress.com/2014/01/02/vagrant-clustered-ssh-and-screen/
+
+I've written a detailed article about all of this, which is available here:
+
+* https://ttboj.wordpress.com/2014/01/08/automatically-deploying-glusterfs-with-puppet-gluster-vagrant
+
+This will not work perfectly on Fedora 19. You must use Fedora 20 or greater.
+
+Once you're comfortable that vagrant is working properly, run this command:
+
+	vagrant up puppet && sudo -v && vagrant up
+
+Sit back and watch, or go have a beverage...
+The first run can take a while because it has to download/install a base image.
+
+When the above command completes, puppet will still be provisioning your hosts. Once the cluster state settles, puppet will then create a gluster volume.
+
+Happy hacking,
+
+James
+

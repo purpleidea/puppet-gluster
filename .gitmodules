@@ -1,0 +1,21 @@
+[submodule "vagrant/gluster/puppet/modules/stdlib"]
+	path = vagrant/gluster/puppet/modules/stdlib
+	url = https://github.com/purpleidea/puppetlabs-stdlib.git
+[submodule "vagrant/gluster/puppet/modules/apt"]
+	path = vagrant/gluster/puppet/modules/apt
+	url = https://github.com/purpleidea/puppetlabs-apt.git
+[submodule "vagrant/gluster/puppet/modules/common"]
+	path = vagrant/gluster/puppet/modules/common
+	url = https://github.com/purpleidea/puppet-common.git
+[submodule "vagrant/gluster/puppet/modules/keepalived"]
+	path = vagrant/gluster/puppet/modules/keepalived
+	url = https://github.com/purpleidea/puppet-keepalived.git
+[submodule "vagrant/gluster/puppet/modules/puppet"]
+	path = vagrant/gluster/puppet/modules/puppet
+	url = https://github.com/purpleidea/puppet-puppet.git
+[submodule "vagrant/gluster/puppet/modules/shorewall"]
+	path = vagrant/gluster/puppet/modules/shorewall
+	url = https://github.com/purpleidea/puppet-shorewall.git
+[submodule "vagrant/gluster/puppet/modules/yum"]
+	path = vagrant/gluster/puppet/modules/yum
+	url = https://github.com/purpleidea/puppet-yum.git

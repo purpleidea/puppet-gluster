@@ -22,8 +22,7 @@ class gluster::repo(
 	# if you leave this blank, we assume you want the latest version...
 	$version = ''
 ) {
-	# XXX: this should be https !
-	$base = 'http://download.gluster.org/pub/gluster/glusterfs/'
+	$base = 'https://download.gluster.org/pub/gluster/glusterfs/'
 
 	if "${version}" == '' {
 		# latest
@@ -87,8 +86,7 @@ class gluster::repo(
 		baseurl => "${base_arch}${arch}/",
 		enabled => true,
 		gpgcheck => true,
-		# XXX: this should not be an http:// link, it should be a file!
-		# XXX: it's not even https! how can you even prevent a mitm...!
+		# XXX: this should not be an https:// link, it should be a file
 		gpgkeys => ["${gpgkey}"],
 		ensure => present,
 	}
@@ -98,8 +96,7 @@ class gluster::repo(
 	#	baseurl => "${base_arch}noarch/",
 	#	enabled => true,
 	#	gpgcheck => true,
-	#	# XXX: this should not be an http:// link, it should be a file!
-	#	# XXX: it's not even https! how can you even prevent a mitm...!
+	#	# XXX: this should not be an https:// link, it should be a file
 	#	gpgkeys => ["${gpgkey}"],
 	#	ensure => present,
 	#}

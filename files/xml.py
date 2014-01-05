@@ -21,6 +21,10 @@
 #	<BOOL>
 
 # 	EXAMPLE:
+#	$ gluster peer status --xml | ./xml.py stuck <PEER1> <PEER2> <PEERn>
+#	<BOOL>
+
+# 	EXAMPLE:
 #	$ gluster volume info --xml <VOLNAME> | ./xml.py property --key <KEY>
 #	<VALUE>
 
@@ -53,6 +57,7 @@ import lxml.etree as etree
 #		"Invalid State"					# 11
 #	};
 VALID_PEERED = ['3']
+VALID_STUCK = ['4']
 
 parser = argparse.ArgumentParser(description='gluster xml parsing tools')
 #parser.add_argument('--debug', dest='debug', action='store_true', default=False)
@@ -63,6 +68,12 @@ subparsers = parser.add_subparsers(dest='mode')
 #
 parser_connected = subparsers.add_parser('connected')
 parser_connected.add_argument('peers', type=str, nargs='*', action='store')
+
+#
+#	'stuck' parser
+#
+parser_stuck = subparsers.add_parser('stuck')
+parser_stuck.add_argument('peers', type=str, nargs='*', action='store')
 
 #
 #	'property' parser
@@ -122,6 +133,37 @@ if args.mode == 'connected':
 
 	# must be good!
 	sys.exit(0)
+
+# are any hosts 'stuck' ?
+elif args.mode == 'stuck':
+	store = {}
+	peers = args.peers
+
+	l = root.findall('.//peerStatus')
+	if len(l) != 1:
+		sys.exit(3)
+
+	for p in l[0].findall('.//peer'):
+		h = p.find('hostname').text
+		c = (str(p.find('connected').text) == '1')	# connected...?
+		s = (str(p.find('state').text) in VALID_STUCK)	# is it stuck ?
+		store[h] = c and s	# save for later...
+
+	# if no peers specified, assume we should check all...
+	if len(peers) == 0:
+		peers = store.keys()
+
+	for i in peers:
+		if i in store.keys():
+			if store[i]:
+				# someone is stuck
+				sys.exit(0)
+		else:
+			# we're looking for a peer that isn't peered yet
+			sys.exit(2)
+
+	# nobody is stuck
+	sys.exit(1)
 
 elif args.mode == 'property':
 	store = []

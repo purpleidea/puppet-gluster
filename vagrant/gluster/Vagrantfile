@@ -1,0 +1,351 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile for GlusterFS using Puppet-Gluster
+# Copyright (C) 2010-2013+ James Shubin
+# Written by James Shubin <james@shubin.ca>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# NOTE: vagrant-libvirt needs to run in series (not in parallel) to avoid trying
+# to create the network twice, eg: 'vagrant up --no-parallel'. alternatively you
+# can build the first host (puppet server) manually, and then the hosts next eg:
+# 'vagrant up puppet && vagrant up' which ensures the puppet server is up first!
+# NOTE: https://github.com/pradels/vagrant-libvirt/issues/104 is the open bug...
+
+# README: https://ttboj.wordpress.com/2013/12/09/vagrant-on-fedora-with-libvirt/
+# README: https://ttboj.wordpress.com/2013/12/21/vagrant-vsftp-and-other-tricks/
+# ALSO: https://ttboj.wordpress.com/2014/01/02/vagrant-clustered-ssh-and-screen/
+# README: https://ttboj.wordpress.com/2014/01/08/automatically-deploying-glusterfs-with-puppet-gluster-vagrant
+
+# NOTE: this will not work properly on Fedora 19 or anything that does not have
+# the libvirt broadcast patch included. You can check which libvirt version you
+# have and see if that version tag is in the libvirt git or in your distro. eg:
+# git tag --contains 51e184e9821c3740ac9b52055860d683f27b0ab6 | grep <version#>
+# this is because old libvirt broke the vrrp broadcast packets from keepalived!
+
+# TODO: the /etc/hosts DNS setup is less than ideal, but I didn't implement
+# anything better yet. Please feel free to suggest something else!
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = '2'
+
+require 'ipaddr'
+require 'yaml'
+
+#
+#	globals
+#
+domain = 'example.com'
+network = IPAddr.new '192.168.142.0/24'
+range = network.to_range.to_a
+cidr = (32-(Math.log(range.length)/Math.log(2))).to_i
+offset = 100		# start gluster hosts after here
+#puts range[0].to_s	# network
+#puts range[1].to_s	# router (reserved)
+#puts range[2].to_s	# puppetmaster
+#puts range[3].to_s	# vip
+
+# mutable by ARGV and settings file
+count = 4		# default number of gluster hosts to build
+version = ''		# default gluster version (empty string means latest!)
+
+#
+#	ARGV parsing
+#
+projectdir = File.expand_path File.dirname(__FILE__)	# vagrant project dir!!
+f = File.join(projectdir, 'puppet-gluster.yaml')
+
+# load settings
+if File.exist?(f)
+	settings = YAML::load_file f
+	count = settings[:count]
+	version = settings[:version]
+end
+
+# ARGV parser
+skip = 0
+while skip < ARGV.length
+	#puts "#{skip}, #{ARGV[skip]}"	# debug
+	if ARGV[skip].start_with?(arg='--gluster-count=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+		#puts "#{arg}, #{v}"	# debug
+
+		count = v.to_i		# set gluster host count
+
+	elsif ARGV[skip].start_with?(arg='--gluster-version=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		version = v.to_s	# set gluster version
+
+	else	# skip over "official" vagrant args
+		skip = skip + 1
+	end
+end
+
+# save settings (ARGV overrides)
+settings = {:count => count, :version => version}
+File.open(f, 'w') do |file|
+	file.write settings.to_yaml
+end
+
+#puts "ARGV: #{ARGV}"	# debug
+
+# erase host information from puppet so that the user can do partial rebuilds
+snoop = ARGV.select { |x| !x.start_with?('-') }
+if snoop.length > 1 and snoop[0] == 'destroy'
+	snoop.shift	# left over array snoop should be list of hosts
+	if snoop.include?('puppet')	# doesn't matter then...
+		snoop = []
+	end
+else
+	# important! clear snoop because we're not using 'destroy'
+	snoop = []
+end
+
+# figure out which hosts are getting destroyed
+destroy = ARGV.select { |x| !x.start_with?('-') }
+if destroy.length > 0 and destroy[0] == 'destroy'
+	destroy.shift	# left over array destroy should be list of hosts or []
+	if destroy.length == 0
+		destroy = true	# destroy everything
+	end
+else
+	destroy = false		# destroy nothing
+end
+
+# figure out which hosts are getting provisioned
+provision = ARGV.select { |x| !x.start_with?('-') }
+if provision.length > 0 and ['up', 'provision'].include?(provision[0])
+	provision.shift	# left over array provision should be list of hosts or []
+	if provision.length == 0
+		provision = true	# provision everything
+	end
+else
+	provision = false		# provision nothing
+end
+
+# XXX: workaround for: https://github.com/mitchellh/vagrant/issues/2447
+# only run on 'vagrant init' or if it's the first time running vagrant
+if (ARGV.length > 0 and ARGV[0] == 'init') or not(File.exist?(f))
+	`sudo systemctl restart nfs-server`
+	`firewall-cmd --permanent --zone public --add-service mountd`
+	`firewall-cmd --permanent --zone public --add-service rpc-bind`
+	`firewall-cmd --permanent --zone public --add-service nfs`
+	`firewall-cmd --reload`
+end
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+	#config.landrush.enable	# TODO ?
+
+	#
+	#	box (pre-built base image)
+	#
+	config.vm.box = 'centos-6'		# i built it
+
+	# box source url
+	# TODO: this box should be GPG signed
+	config.vm.box_url = 'https://download.gluster.org/pub/gluster/purpleidea/vagrant/centos-6.box'
+
+	#
+	#	cache
+	#
+	# TODO: this doesn't cache metadata, full offline operation not possible
+	config.cache.auto_detect = true
+	config.cache.enable :yum
+	#config.cache.enable :apt
+	if not ARGV.include?('--no-parallel')	# when running in parallel,
+		config.cache.scope = :machine	# use the per machine cache
+	end
+	config.cache.enable_nfs = true	# sets nfs => true on the synced_folder
+	# the nolock option is required, otherwise the NFSv3 client will try to
+	# access the NLM sideband protocol to lock files needed for /var/cache/
+	# all of this can be avoided by using NFSv4 everywhere. die NFSv3, die!
+	config.cache.mount_options = ['rw', 'vers=3', 'tcp', 'nolock']
+
+	#
+	#	vip
+	#
+	vip_ip = range[3].to_s
+	vip_hostname = 'annex'
+
+	#
+	#	puppetmaster
+	#
+	puppet_ip = range[2].to_s
+	puppet_hostname = 'puppet'
+	fv = File.join(projectdir, '.vagrant', "#{puppet_hostname}-hosts.done")
+	if destroy.is_a?(TrueClass) or (destroy.is_a?(Array) and destroy.include?(puppet_hostname))
+		if File.exists?(fv)	# safety
+			puts "Unlocking shell provisioning for: #{puppet_hostname}..."
+			File.delete(fv)	# delete hosts token
+		end
+	end
+
+	#puppet_fqdn = "#{puppet_hostname}.#{domain}"
+	config.vm.define :puppet, :primary => true do |vm|
+		vm.vm.hostname = puppet_hostname
+		# red herring network so that management happens here...
+		vm.vm.network :private_network,
+		:ip => "10.10.10.10",
+		#:libvirt__dhcp_enabled => false,	# XXX: not allowed here
+		:libvirt__network_name => 'default'
+
+		# this is the real network that we'll use...
+		vm.vm.network :private_network,
+		:ip => puppet_ip,
+		:libvirt__dhcp_enabled => false,
+		:libvirt__network_name => 'gluster'
+
+		#vm.landrush.host puppet_hostname, puppet_ip	# TODO ?
+
+		# ensure the gluster module is present for provisioning...
+		if provision.is_a?(TrueClass) or (provision.is_a?(Array) and provision.include?(puppet_hostname))
+			cwd = `pwd`
+			mod = File.join(projectdir, 'puppet', 'modules')
+			`cd #{mod} && make gluster &> /dev/null && cd #{cwd}`
+		end
+
+		#
+		#	shell
+		#
+		if not File.exists?(fv)	# only modify /etc/hosts once
+			if provision.is_a?(TrueClass) or (provision.is_a?(Array) and provision.include?(puppet_hostname))
+				File.open(fv, 'w') {}	# touch
+			end
+			vm.vm.provision 'shell', inline: 'puppet resource host localhost.localdomain ip=127.0.0.1 host_aliases=localhost'
+			vm.vm.provision 'shell', inline: "puppet resource host #{puppet_hostname} ensure=absent"	# so that fqdn works
+
+			vm.vm.provision 'shell', inline: "puppet resource host #{vip_hostname}.#{domain} ip=#{vip_ip} host_aliases=#{vip_hostname} ensure=present"
+			vm.vm.provision 'shell', inline: "puppet resource host #{puppet_hostname}.#{domain} ip=#{puppet_ip} host_aliases=#{puppet_hostname} ensure=present"
+			(1..count).each do |i|
+				h = "annex#{i}"
+				ip = range[offset+i].to_s
+				vm.vm.provision 'shell', inline: "puppet resource host #{h}.#{domain} ip=#{ip} host_aliases=#{h} ensure=present"
+			end
+		end
+		#
+		#	puppet (apply)
+		#
+		vm.vm.provision :puppet do |puppet|
+			puppet.module_path = 'puppet/modules'
+			puppet.manifests_path = 'puppet/manifests'
+			puppet.manifest_file = 'site.pp'
+			# custom fact
+			puppet.facter = {
+				'vagrant' => '1',
+				#'vagrant_puppet_allow' => "#{network.to_s}/#{cidr}",	# TODO ?
+			}
+		end
+	end
+
+	#
+	#	annex
+	#
+	(1..count).each do |i|
+		h = "annex#{i}"
+		ip = range[offset+i].to_s	# eg: "192.168.142.#{100+i}"
+		#fqdn = "annex#{i}.#{domain}"
+		fvx = File.join(projectdir, '.vagrant', "#{h}-hosts.done")
+		if destroy.is_a?(TrueClass) or (destroy.is_a?(Array) and destroy.include?(h))
+			if File.exists?(fvx)	# safety
+				puts "Unlocking shell provisioning for: #{h}..."
+				File.delete(fvx)	# delete hosts token
+			end
+		end
+
+		if snoop.include?(h)		# should we clean this machine?
+			cmd = "puppet cert clean #{h}.#{domain}"
+			puts "Running 'puppet cert clean' for: #{h}..."
+			`vagrant ssh #{puppet_hostname} -c 'sudo #{cmd}'`
+			cmd = "puppet node deactivate #{h}.#{domain}"
+			puts "Running 'puppet node deactivate' for: #{h}..."
+			`vagrant ssh #{puppet_hostname} -c 'sudo #{cmd}'`
+		end
+
+		config.vm.define h.to_sym do |vm|
+			vm.vm.hostname = h
+			# red herring network so that management happens here...
+			vm.vm.network :private_network,
+			:ip => "10.10.10.1#{i}",
+			:libvirt__network_name => 'default'
+
+			# this is the real network that we'll use...
+			vm.vm.network :private_network,
+			:ip => ip,
+			:libvirt__dhcp_enabled => false,
+			:libvirt__network_name => 'gluster'
+
+			#vm.landrush.host h, ip	# TODO ?
+
+			#
+			#	shell
+			#
+			if not File.exists?(fvx)	# only modify /etc/hosts once
+				if provision.is_a?(TrueClass) or (provision.is_a?(Array) and provision.include?(puppet_hostname))
+					File.open(fvx, 'w') {}	# touch
+				end
+				vm.vm.provision 'shell', inline: 'puppet resource host localhost.localdomain ip=127.0.0.1 host_aliases=localhost'
+				vm.vm.provision 'shell', inline: "puppet resource host #{h} ensure=absent"	# so that fqdn works
+
+				vm.vm.provision 'shell', inline: "puppet resource host #{vip_hostname}.#{domain} ip=#{vip_ip} host_aliases=#{vip_hostname} ensure=present"
+				vm.vm.provision 'shell', inline: "puppet resource host #{puppet_hostname}.#{domain} ip=#{puppet_ip} host_aliases=#{puppet_hostname} ensure=present"
+				#vm.vm.provision 'shell', inline: "[ ! -e /root/puppet-cert-is-clean ] && ssh -o 'StrictHostKeyChecking=no' #{puppet_hostname} puppet cert clean #{h}.#{domain} ; touch /root/puppet-cert-is-clean"
+				(1..count).each do |j|	# hosts entries for all hosts
+					oh = "annex#{j}"
+					oip = range[offset+j].to_s	# eg: "192.168.142.#{100+i}"
+					vm.vm.provision 'shell', inline: "puppet resource host #{oh}.#{domain} ip=#{oip} host_aliases=#{oh} ensure=present"
+				end
+			end
+			#
+			#	puppet (agent)
+			#
+			vm.vm.provision :puppet_server do |puppet|
+				#puppet.puppet_node = "#{h}"	# redundant
+				#puppet.puppet_server = "#{puppet_hostname}.#{domain}"
+				puppet.puppet_server = puppet_hostname
+				#puppet.options = '--verbose --debug'
+				puppet.options = '--test'	# see the output
+				puppet.facter = {
+					'vagrant' => '1',
+					'vagrant_gluster_vip' => vip_ip,
+					'gluster_package_version' => version,
+				}
+			end
+		end
+	end
+
+	#
+	#	misc
+	#
+	#config.vm.synced_folder "hacking/", "/vagrant_hacking", :nfs => true, :mount_options => ['rw', 'vers=3', 'tcp']
+
+	#
+	#	libvirt
+	#
+	config.vm.provider :libvirt do |libvirt|
+		libvirt.driver = 'qemu'
+		# leave out to connect directly with qemu:///system
+		#libvirt.host = 'localhost'
+		libvirt.connect_via_ssh = false
+		libvirt.username = 'root'
+		libvirt.storage_pool_name = 'default'
+		#libvirt.default_network = 'default'	# XXX: this does nothing
+	end
+
+end
+
