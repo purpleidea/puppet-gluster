@@ -191,7 +191,7 @@ Using a virtual IP (VIP) is strongly recommended as a distributed lock manager
 (DLM) and also to provide a highly-available (HA) IP address for your clients
 to connect to. For a more detailed explanation of the reasoning please see:
 
-[https://ttboj.wordpress.com/2012/08/23/how-to-avoid-cluster-race-conditions-or-how-to-implement-a-distributed-lock-manager-in-puppet/](https://ttboj.wordpress.com/2012/08/23/how-to-avoid-cluster-race-conditions-or-how-to-implement-a-distributed-lock-manager-in-puppet/)
+[How to avoid cluster race conditions or: How to implement a distributed lock manager in puppet](https://ttboj.wordpress.com/2012/08/23/how-to-avoid-cluster-race-conditions-or-how-to-implement-a-distributed-lock-manager-in-puppet/)
 
 Remember that even if you're using a hosted solution (such as AWS) that doesn't
 provide an additional IP address, or you want to avoid using an additional IP,
@@ -215,8 +215,19 @@ configuration, or because there is a bug in Puppet-Gluster.
 
 ###Can you integrate this with vagrant?
 
-Not until vagrant properly supports libvirt/KVM. I have no desire to use
-VirtualBox for fun.
+Yes, see the
+[vagrant/](https://github.com/purpleidea/puppet-gluster/tree/master/vagrant)
+directory. This has been tested on Fedora 20, with vagrant-libvirt, as I have
+no desire to use VirtualBox for fun. I have written an article about this:
+
+[Automatically deploying GlusterFS with Puppet-Gluster + Vagrant!](https://ttboj.wordpress.com/2014/01/08/automatically-deploying-glusterfs-with-puppet-gluster-vagrant/)
+
+You'll probably first need to read my three earlier articles to learn some
+vagrant tricks, and to get the needed dependencies installed:
+
+* [Vagrant on Fedora with libvirt](https://ttboj.wordpress.com/2013/12/09/vagrant-on-fedora-with-libvirt/)
+* [Vagrant vsftp and other tricks](https://ttboj.wordpress.com/2013/12/21/vagrant-vsftp-and-other-tricks/)
+* [Vagrant clustered SSH and ‘screen’](https://ttboj.wordpress.com/2014/01/02/vagrant-clustered-ssh-and-screen/)
 
 ###Awesome work, but it's missing support for a feature and/or platform!
 
@@ -467,7 +478,7 @@ This module has been tested against open source Puppet 3.2.4 and higher.
 
 The module has been tested on:
 
-* CentOS 6.4
+* CentOS 6.4/6.5
 
 It will probably work without incident or without major modification on:
 
