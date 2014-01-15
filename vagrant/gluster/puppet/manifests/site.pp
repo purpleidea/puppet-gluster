@@ -9,6 +9,12 @@ node default {
 # puppetmaster
 node puppet inherits default {
 
+	if "${::vagrant_gluster_firewall}" != 'false' {
+		include firewall
+	}
+
+	$allow = split("${::vagrant_gluster_allow}", ',')	# ip list fact
+
 	class { '::puppet::server':
 		pluginsync => true,	# do we want to enable pluginsync?
 		storeconfigs => true,	# do we want to enable storeconfigs?
@@ -17,9 +23,12 @@ node puppet inherits default {
 			#"*.${domain}",	# FIXME: this is a temporary solution
 		],
 		#allow_duplicate_certs => true,	# redeploy without cert clean
-		#allow => XXX,		# also used in fileserver.conf
+		allow => $allow,	# also used in fileserver.conf
 		repo => true,		# automatic repos
-		shorewall => false,	# XXX: for now...
+		shorewall => "${::vagrant_gluster_firewall}" ? {
+			'false' => false,
+			default => true,
+		},
 		start => true,
 	}
 
@@ -31,7 +40,9 @@ node puppet inherits default {
 
 node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 
-	#include firewall	# XXX: for now...
+	if "${::vagrant_gluster_firewall}" != 'false' {
+		include firewall
+	}
 
 	class { '::puppet::client':
 		#start => true,
@@ -42,7 +53,10 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 	class { '::gluster::simple':
 		vip => "${::vagrant_gluster_vip}",	# from vagrant
 		vrrp => true,
-		shorewall => false,	# XXX: for now...
+		shorewall => "${::vagrant_gluster_firewall}" ? {
+			'false' => false,
+			default => true,
+		},
 	}
 }
 
@@ -54,7 +68,11 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 #	}
 #
 #	class { '::gluster::client':
-#		shorewall => false,	# XXX: for now...
+#		shorewall => "${::vagrant_gluster_firewall}" ? {
+#			'false' => false,
+#			default => true,
+#		},
+#
 #	}
 #}
 
