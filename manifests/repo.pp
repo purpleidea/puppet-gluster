@@ -37,13 +37,27 @@ class gluster::repo(
 		# \4 is the second part of the release, eg: el6
 		$real_v = regsubst("${version}", '^([\d\.]*)(\-([\d]{1,})\.([a-zA-Z\d]{1,}))?$', '\1')
 
-		if "${real_v}" =~ /^(\d+)\.(\d+)$/ {			# x.y
+		# search for qa style releases
+		$qa_pattern = '^([\d\.]*)(\-(0\.[\d]{1,}\.((alpha|beta|qa|rc)[\d]{1,}))\.([a-zA-Z\d]{1,}))?$'
+		$qa_type = regsubst("${version}", "${qa_pattern}", '\5')
+		$qa = "${qa_type}" ? {
+			/(alpha|beta|qa|rc)/ => true,
+			default => false,
+		}
+
+		if $qa {
+			$qa_folder = regsubst("${version}", "${qa_pattern}", '\1\4')
+			# look inside the qa-releases/ subfolder...
+			$base_v = "${base}qa-releases/${qa_folder}/"
+
+		} elsif "${real_v}" =~ /^(\d+)\.(\d+)$/ {		# x.y
 			#$base_v = "${base}${1}.${2}/LATEST/"		# same!
 			$base_v = "${base}${real_v}/LATEST/"
 
 		} elsif "${real_v}" =~ /^(\d+)\.(\d+)\.(\d+)$/ {	# x.y.z
 			#$base_v = "${base}${1}.${2}/${1}.${2}.${3}/"	# same!
 			$base_v = "${base}${1}.${2}/${real_v}/"
+
 		} else {
 			fail('The version string is invalid.')
 		}
