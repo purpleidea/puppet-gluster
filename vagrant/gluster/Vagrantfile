@@ -230,7 +230,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 		if provision.is_a?(TrueClass) or (provision.is_a?(Array) and provision.include?(puppet_hostname))
 			cwd = `pwd`
 			mod = File.join(projectdir, 'puppet', 'modules')
-			`cd #{mod} && make gluster &> /dev/null && cd #{cwd}`
+			`cd #{mod} && make gluster &> /dev/null; cd #{cwd}`
 		end
 
 		#
