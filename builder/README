@@ -1,0 +1,13 @@
+This Makefile builds vagrant base image ("boxes") for vagrant-libvirt.
+A short article describing the process can be found here:
+
+https://ttboj.wordpress.com/2014/01/20/building-base-images-for-vagrant-with-a-makefile
+
+This was built for Puppet-Gluster+Vagrant [1], but it can be used anywhere.
+
+Happy hacking,
+
+James / @purpleidea
+
+[1] https://ttboj.wordpress.com/2014/01/08/automatically-deploying-glusterfs-with-puppet-gluster-vagrant/
+
