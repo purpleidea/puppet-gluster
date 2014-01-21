@@ -62,6 +62,7 @@ clean:
 # < rwmjones> if you don't want to use selinux, then you can delete that file
 # < rwmjones> (note that only applies to Fedora/RHEL-derived images)
 # < rwmjones> ok so you can use virt-builder --delete /.autorelabel
+# README: https://www.redhat.com/archives/libguestfs/2014-January/msg00183.html
 $(OUTPUT)/builder.img: files/*
 	@echo Running virt-builder...
 	[ -d $(OUTPUT) ] || mkdir -p $(OUTPUT)/	# ensure path is present first!
