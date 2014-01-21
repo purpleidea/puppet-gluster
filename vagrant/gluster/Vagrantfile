@@ -61,6 +61,7 @@ offset = 100		# start gluster hosts after here
 count = 4		# default number of gluster hosts to build
 version = ''		# default gluster version (empty string means latest!)
 firewall = false	# default firewall enabled (FIXME: default to true when keepalived bug is fixed)
+cachier = false		# default cachier usage (FIXME: default to true when patches are upstream)
 
 #
 #	ARGV parsing
@@ -74,6 +75,7 @@ if File.exist?(f)
 	count = settings[:count]
 	version = settings[:version]
 	firewall = settings[:firewall]
+	cachier = settings[:cachier]
 end
 
 # ARGV parser
@@ -104,13 +106,24 @@ while skip < ARGV.length
 			firewall = true
 		end
 
+	elsif ARGV[skip].start_with?(arg='--gluster-cachier=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		cachier = v.to_s	# set cachier flag
+		if ['false', 'no'].include?(cachier.downcase)
+			cachier = false
+		else
+			cachier = true
+		end
+
 	else	# skip over "official" vagrant args
 		skip = skip + 1
 	end
 end
 
 # save settings (ARGV overrides)
-settings = {:count => count, :version => version, :firewall => firewall}
+settings = {:count => count, :version => version, :firewall => firewall, :cachier => cachier}
 File.open(f, 'w') do |file|
 	file.write settings.to_yaml
 end
@@ -177,18 +190,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	#
 	#	cache
 	#
-	# TODO: this doesn't cache metadata, full offline operation not possible
-	config.cache.auto_detect = true
-	config.cache.enable :yum
-	#config.cache.enable :apt
-	if not ARGV.include?('--no-parallel')	# when running in parallel,
-		config.cache.scope = :machine	# use the per machine cache
+	if cachier
+		# TODO: this doesn't cache metadata, full offline operation not possible
+		config.cache.auto_detect = true
+		config.cache.enable :yum
+		#config.cache.enable :apt
+		if not ARGV.include?('--no-parallel')	# when running in parallel,
+			config.cache.scope = :machine	# use the per machine cache
+		end
+		config.cache.enable_nfs = true	# sets nfs => true on the synced_folder
+		# the nolock option is required, otherwise the NFSv3 client will try to
+		# access the NLM sideband protocol to lock files needed for /var/cache/
+		# all of this can be avoided by using NFSv4 everywhere. die NFSv3, die!
+		config.cache.mount_options = ['rw', 'vers=3', 'tcp', 'nolock']
 	end
-	config.cache.enable_nfs = true	# sets nfs => true on the synced_folder
-	# the nolock option is required, otherwise the NFSv3 client will try to
-	# access the NLM sideband protocol to lock files needed for /var/cache/
-	# all of this can be avoided by using NFSv4 everywhere. die NFSv3, die!
-	config.cache.mount_options = ['rw', 'vers=3', 'tcp', 'nolock']
 
 	#
 	#	vip
