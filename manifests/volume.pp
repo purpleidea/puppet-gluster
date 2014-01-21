@@ -346,6 +346,13 @@ define gluster::volume(
 			source => "${zone}",	# use our source zone
 			before => Service['glusterd'],
 		}
+
+		Gluster::Rulewrapper <<| tag == 'gluster_firewall_volume' and match == "${name}" |>> {
+		#Shorewall::Rule <<| tag == 'gluster_firewall_volume' and match == "${name}" |>> {
+			source => "${zone}",	# use our source zone
+			port => "${port}",	# comma separated string or list
+			before => Service['glusterd'],
+		}
 	}
 
 	# fsm variables and boilerplate

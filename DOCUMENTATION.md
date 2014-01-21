@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	* [Simple setup](#simple-setup)
 	* [Elastic setup](#elastic-setup)
 	* [Advanced setup](#advanced-setup)
+	* [Client setup](#client-setup)
 4. [Usage/FAQ - Notes on management and frequently asked questions](#usage-and-frequently-asked-questions)
 5. [Reference - Class and type reference](#reference)
 	* [gluster::simple](#glustersimple)
@@ -42,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	* [gluster::brick](#glusterbrick)
 	* [gluster::volume](#glustervolume)
 	* [gluster::volume::property](#glustervolumeproperty)
+	* [gluster::mount](#glustermount)
 6. [Examples - Example configurations](#examples)
 7. [Limitations - Puppet versions, OS compatibility, etc...](#limitations)
 8. [Development - Background on module development](#development)
@@ -168,6 +170,24 @@ gluster::volume::property { 'examplevol#auth.reject':
 }
 ```
 
+###Client setup
+
+Mounting a GlusterFS volume on a client is fairly straightforward. Simply use
+the 'gluster::mount' type.
+
+```puppet
+	gluster::mount { '/mnt/gluster/puppet/':
+		server => 'annex.example.com:/puppet',
+		rw => true,
+		shorewall => false,
+	}
+```
+
+In this example, 'annex.example.com' points to the VIP of the GlusterFS
+cluster. Using the VIP for mounting increases the chance that you'll get an
+available server when you try to mount. This generally works better than RRDNS
+or similar schemes.
+
 ##Usage and frequently asked questions
 
 All management should be done by manipulating the arguments on the appropriate
@@ -257,6 +277,7 @@ If you feel that a well used option needs documenting here, please contact me.
 * [gluster::brick](#glusterbrick): Brick type for each defined brick, per host.
 * [gluster::volume](#glustervolume): Volume type for each defined volume.
 * [gluster::volume::property](#glustervolumeproperty): Manages properties for each volume.
+* [gluster::mount](#glustermount): Client volume mount point management.
 
 ###gluster::simple
 This is gluster::simple. It should probably take care of 80% of all use cases.
@@ -461,6 +482,34 @@ you don't use all the others.
 
 ####`value`
 The value to be used for this volume property.
+
+###gluster::mount
+Main type to use to mount GlusterFS volumes. This type offers special features,
+like shorewall integration, and repo support.
+
+####`server`
+Server specification to use when mounting. Format is _<server>:/volume_. You
+may use an _FQDN_ or an _IP address_ to specify the server.
+
+####`rw`
+Mount read-write or read-only. Defaults to read-only. Specify _true_ for
+read-write.
+
+####`mounted`
+Mounted argument from standard mount type. Defaults to _true_ (_mounted_).
+
+####`repo`
+Boolean to select if you want automatic repository (package) management or not.
+
+####`version`
+Specify which GlusterFS version you'd like to use.
+
+####`ip`
+IP address of this client. This is usually auto-detected, but you can choose
+your own value manually in case there are multiple options available.
+
+####`shorewall`
+Boolean to specify whether puppet-shorewall integration should be used or not.
 
 ##Examples
 For example configurations, please consult the [examples/](https://github.com/purpleidea/puppet-gluster/tree/master/examples) directory in the git

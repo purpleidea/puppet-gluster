@@ -15,10 +15,36 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class gluster::client::base {
-	# TODO: ensure these are from our 'gluster' repo
+class gluster::mount::base(
+	$repo = true,		# add a repo automatically? true or false
+	$version = ''		# pick a specific version (defaults to latest)
+) {
+	include gluster::vardir
+	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
+	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
+
+	# if we use ::mount and ::server on the same machine, this could clash,
+	# so we use the ensure_resource function to allow identical duplicates!
+	$rname = "${version}" ? {
+		'' => 'gluster',
+		default => "gluster-${version}",
+	}
+	if $repo {
+		$params = {
+			'version' => "${version}",
+		}
+		ensure_resource('gluster::repo', "${rname}", $params)
+	}
+
 	package { ['glusterfs', 'glusterfs-fuse']:
-		ensure => present,
+		ensure => "${version}" ? {
+			'' => present,
+			default => "${version}",
+		},
+		require => $repo ? {
+			false => undef,
+			default => Gluster::Repo["${rname}"],
+		},
 	}
 
 	# FIXME: choose a reliable and correct way to ensure fuse is loaded

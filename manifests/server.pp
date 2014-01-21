@@ -29,30 +29,17 @@ class gluster::server(
 ) {
 	$FW = '$FW'			# make using $FW in shorewall easier
 
-	# $gluster_package_version is a fact; commonly set by vagrant
-	if "${version}" == '' and "${gluster_package_version}" == '' {
-		$valid_version = ''
-	} else {
-		if "${version}" != '' and "${gluster_package_version}" != '' {
-			warning('Requested GlusterFS version specified twice!')
-			if "${version}" != "${gluster_package_version}" {
-				fail('Requested GlusterFS version mismatch!')
-			}
-			$valid_version = "${version}"
-		} elsif "${version}" != '' {
-			$valid_version = "${version}"
-		} elsif "${gluster_package_version}" != '' {
-			$valid_version = "${gluster_package_version}"
-		} else {
-			fail('Programming error!')
-		}
+	# if we use ::mount and ::server on the same machine, this could clash,
+	# so we use the ensure_resource function to allow identical duplicates!
+	$rname = "${version}" ? {
+		'' => 'gluster',
+		default => "gluster-${version}",
 	}
-
-	# ensure these are from a gluster repo
 	if $repo {
-		class { '::gluster::repo':
-			version => "${valid_version}",
+		$params = {
+			'version' => "${version}",
 		}
+		ensure_resource('gluster::repo', "${rname}", $params)
 	}
 
 	package { 'moreutils':		# for scripts needing: 'sponge'
@@ -61,13 +48,13 @@ class gluster::server(
 	}
 
 	package { 'glusterfs-server':
-		ensure => "${valid_version}" ? {
+		ensure => "${version}" ? {
 			'' => present,
-			default => "${valid_version}",
+			default => "${version}",
 		},
 		require => $repo ? {
 			false => undef,
-			default => Class['::gluster::repo'],
+			default => Gluster::Repo["${rname}"],
 		},
 	}
 

@@ -1,9 +1,9 @@
-# gluster::client example using puppet-nfs and puppet-ipa to serve up your data
+# gluster::mount example using puppet-nfs and puppet-ipa to serve up your data!
 # NOTE: you'll need to consult puppet-ipa/examples/ to setup the freeipa server
 
 # mount a share on your nfs server, at the moment that nfs server is a SPOF :-(
 $gvip = '203.0.113.42'
-gluster::client { '/export/homes':
+gluster::mount { '/export/homes':
 	server => "${gvip}:/homes",
 	rw => true,
 	mounted => true,
@@ -31,7 +31,7 @@ nfs::server::export { '/homes/':	# name is the client mountpoint
 	tagas => 'homes',
 	safety => false,	# be super clever (see the module docs)
 	comment => 'Export home directories for ws*',
-	require => Gluster::Client['/export/homes/'],
+	require => Gluster::Mount['/export/homes/'],
 }
 
 # and here is how you can collect / mount ~automatically on the client:

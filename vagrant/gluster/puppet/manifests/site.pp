@@ -51,7 +51,9 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 
 	# this is a simple way to setup gluster
 	class { '::gluster::simple':
+		volume => 'puppet',
 		vip => "${::vagrant_gluster_vip}",	# from vagrant
+		version => "${::vagrant_gluster_version}",
 		vrrp => true,
 		shorewall => "${::vagrant_gluster_firewall}" ? {
 			'false' => false,
@@ -60,21 +62,32 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 	}
 }
 
-#node /^client\d+$/ inherits default {	# annex{1,2,..N}
-#
-#	class { '::puppet::client':
-#		#start => true,
-#		start => false,	# useful for testing manually...
-#	}
-#
-#	class { '::gluster::client':
-#		shorewall => "${::vagrant_gluster_firewall}" ? {
-#			'false' => false,
-#			default => true,
-#		},
-#
-#	}
-#}
+node /^client\d+$/ inherits default {	# client{1,2,..N}
+
+	if "${::vagrant_gluster_firewall}" != 'false' {
+		include firewall
+	}
+
+	class { '::puppet::client':
+		#start => true,
+		start => false,	# useful for testing manually...
+	}
+
+	$host = "${::vagrant_gluster_vip_fqdn}" ? {
+		'' => "${::vagrant_gluster_vip}",
+		default => "${::vagrant_gluster_vip_fqdn}",
+	}
+
+	gluster::mount { '/mnt/gluster/puppet/':
+		server => "${host}:/puppet",
+		rw => true,
+		version => "${::vagrant_gluster_version}",
+		shorewall => "${::vagrant_gluster_firewall}" ? {
+			'false' => false,
+			default => true,
+		},
+	}
+}
 
 class firewall {
 

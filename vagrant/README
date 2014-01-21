@@ -14,12 +14,16 @@ This will not work perfectly on Fedora 19. You must use Fedora 20 or greater.
 
 Once you're comfortable that vagrant is working properly, run this command:
 
-	vagrant up puppet && sudo -v && vagrant up
+	vagrant up puppet && sudo -v && vagrant up annex{1..4} --no-parallel
 
 Sit back and watch, or go have a beverage...
 The first run can take a while because it has to download/install a base image.
 
-When the above command completes, puppet will still be provisioning your hosts. Once the cluster state settles, puppet will then create a gluster volume.
+When the above command completes, puppet will still be provisioning your hosts.
+Once the cluster state settles, puppet will create and start a gluster volume.
+Once your volume is started, you can build a few clients:
+
+	vagrant up client{1..2} --gluster-clients=2
 
 Happy hacking,
 

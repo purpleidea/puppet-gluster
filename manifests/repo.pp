@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class gluster::repo(
+define gluster::repo(
 	# if you specify 'x.y', it will find the latest x.y.*
 	# if you specify 'x.y.z', it will stick to that version
 	# anything omitted is taken to mean "latest"
@@ -96,7 +96,7 @@ class gluster::repo(
 	include ::yum
 
 	#yum::repos::repo { "gluster-${arch}":
-	yum::repos::repo { 'gluster':
+	yum::repos::repo { "${name}":
 		baseurl => "${base_arch}${arch}/",
 		enabled => true,
 		gpgcheck => true,
