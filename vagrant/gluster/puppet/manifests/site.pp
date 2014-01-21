@@ -52,6 +52,7 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 	# this is a simple way to setup gluster
 	class { '::gluster::simple':
 		volume => 'puppet',
+		replica => "${::vagrant_gluster_replica}",
 		vip => "${::vagrant_gluster_vip}",	# from vagrant
 		version => "${::vagrant_gluster_version}",
 		vrrp => true,
