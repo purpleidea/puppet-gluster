@@ -18,7 +18,7 @@
 # NOTE: if you change any of the values in this file (such as SIZE or --install
 # arguments) make won't notice the change, you'll have to manually clean first.
 
-.PHONY: all local box upload clean
+.PHONY: all builder convert box local upload clean
 .SILENT:
 
 # TODO: build base image for virt-builder from iso instead of using templates
@@ -35,8 +35,12 @@ REMOTE_PATH = 'purpleidea/vagrant'
 
 all: box
 
+#
+#	aliases
+#
+builder: $(OUTPUT)/builder.img
+convert: $(OUTPUT)/box.img
 box: $(OUTPUT)/$(BOX)
-
 local: $(OUTPUT)/SHA256SUMS.asc
 
 #
@@ -54,15 +58,6 @@ clean:
 # build image with virt-builder
 # NOTE: some of this system prep is based on the vagrant-libvirt scripts
 # TODO: install: ruby ruby-devel make gcc rubygems ?
-# FIXME: unfortunately, an selinux relabelling happens on the "first boot".
-# FIXME: as a result, i had to disable selinux. what is the correct solution ?
-# FIXME: we don't want vagrant to take the extra 30sec+ on first boot...
-# < rwmjones> this happens because the image contains a /.autorelabel file
-# < rwmjones> so that selinux gets relabelled (which requires a reboot)
-# < rwmjones> if you don't want to use selinux, then you can delete that file
-# < rwmjones> (note that only applies to Fedora/RHEL-derived images)
-# < rwmjones> ok so you can use virt-builder --delete /.autorelabel
-# README: https://www.redhat.com/archives/libguestfs/2014-January/msg00183.html
 $(OUTPUT)/builder.img: files/*
 	@echo Running virt-builder...
 	[ -d $(OUTPUT) ] || mkdir -p $(OUTPUT)/	# ensure path is present first!
@@ -83,9 +78,13 @@ $(OUTPUT)/builder.img: files/*
 	--run files/user.sh \
 	--run files/ssh.sh \
 	--run files/network.sh \
-	--run files/cleanup.sh \
-	--upload files/selinux:/etc/selinux/config \
-	--delete /.autorelabel	# disable "firstboot" selinux relabelling (workaround)
+	--run files/cleanup.sh
+
+	# boot machine once to run the selinux relabelling, see:
+	# https://www.redhat.com/archives/libguestfs/2014-January/msg00183.html
+	# https://github.com/libguestfs/libguestfs/commit/20a4bfde9628cfeb8bea441cab7dcc94843b34e3
+	qemu-system-x86_64 -machine accel=kvm:tcg -cpu host -m 512 -drive file=$(OUTPUT)/builder.img,format=qcow2,if=virtio -no-reboot -serial stdio -nographic || (rm $(OUTPUT)/builder.img; false)
+	reset	# TODO: qemu-system-x86_64 borks the terminal :(
 
 #
 #	convert
