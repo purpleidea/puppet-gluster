@@ -463,14 +463,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 					vm.vm.provision 'shell', inline: "puppet resource host #{oh}.#{domain} ip=#{oip} host_aliases=#{oh} ensure=present"
 				end
 
-				# NOTE: we don't add ip's of other clients
-				# because it's probably not needed...
 				# hosts entries for all clients
-				#(1..clients).each do |j|
-				#	oh = "client#{j}"
-				#	oip = range[offset+count+j].to_s
-				#	vm.vm.provision 'shell', inline: "puppet resource host #{oh}.#{domain} ip=#{oip} host_aliases=#{oh} ensure=present"
-				#end
+				(1..clients).each do |j|
+					oh = "client#{j}"
+					oip = range[offset+count+j].to_s
+					vm.vm.provision 'shell', inline: "puppet resource host #{oh}.#{domain} ip=#{oip} host_aliases=#{oh} ensure=present"
+				end
 			end
 			#
 			#	puppet (agent)
