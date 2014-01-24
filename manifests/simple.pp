@@ -26,6 +26,7 @@ class gluster::simple(
 	$vrrp = false,
 	$password = '',	# global vrrp password to use
 	$baseport = '',	# specify base port option as used in glusterd.vol file
+	$rpcauthallowinsecure = false,	# needed in some setups in glusterd.vol
 	$shorewall = true
 ) {
 	include gluster::vardir
@@ -68,6 +69,7 @@ class gluster::simple(
 		vrrp => $vrrp,
 		password => "${password}",
 		baseport => $baseport,
+		rpcauthallowinsecure => $rpcauthallowinsecure,
 		#zone => 'net',	# defaults to net
 		shorewall => $shorewall,
 	}

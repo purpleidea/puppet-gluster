@@ -23,6 +23,7 @@ class gluster::server(
 	$vrrp = false,
 	$password = '',	# global vrrp password to use
 	$baseport = '',	# specify base port option as used in glusterd.vol file
+	$rpcauthallowinsecure = false,	# needed in some setups in glusterd.vol
 	$shorewall = false,
 	$zone = 'net',								# TODO: allow a list of zones
 	$ips = false,	# an optional list of ip's for each in hosts[]
@@ -75,6 +76,11 @@ class gluster::server(
 	# NOTE: this option can be useful for users of libvirt migration as in:
 	# https://bugzilla.redhat.com/show_bug.cgi?id=987555
 	$valid_baseport = inline_template('<%= [Fixnum, String].include?(@baseport.class) ? @baseport.to_i : 0 %>')
+
+	$valid_rpcauthallowinsecure = $rpcauthallowinsecure ? {
+		true => true,
+		default => false,
+	}
 
 	file { '/etc/glusterfs/glusterd.vol':
 		content => template('gluster/glusterd.vol.erb'),
