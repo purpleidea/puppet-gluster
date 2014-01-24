@@ -56,6 +56,52 @@ define gluster::volume::property(
 		}
 		$safe_value = shellquote($value)	# TODO: is this the safe thing?
 
+	# if it's a special offon type and of an acceptable value
+	} elsif ($etype == 'offon') {	# default is off
+		if type($value) == 'boolean' {
+			$safe_value = $value ? {
+				true => 'on',
+				default => 'off',
+			}
+
+		} elsif type($value) == 'string' {
+			$downcase_value = inline_template('<%= @value.downcase %>')
+			$safe_value = $downcase_value ? {
+				'on' => 'on',
+				#'off' => 'off',
+				default => 'off',
+			}
+
+		} else {
+			fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
+		}
+
+	# if it's a special onoff type and of an acceptable value
+	} elsif ($etype == 'onoff') {	# default is on
+		if type($value) == 'boolean' {
+			$safe_value = $value ? {
+				false => 'off',
+				default => 'on',
+			}
+
+		} elsif type($value) == 'string' {
+			$downcase_value = inline_template('<%= @value.downcase %>')
+			$safe_value = $downcase_value ? {
+				'off' => 'off',
+				#'on' => 'on',
+				default => 'on',
+			}
+
+		} else {
+			fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
+		}
+	} elsif $etype == 'integer' {
+		# TODO: we could also add range and/or set validation
+		$safe_value = inline_template('<%= [Fixnum, String].include?(@value.class) ? @value.to_i : "null" %>')
+		if "${safe_value}" == 'null' {	# value was of an invalid type!
+			fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
+		}
+
 	# if it's not a string and it's not the expected type, fail
 	} elsif ( type($value) != $etype ) {	# type() from puppetlabs-stdlib
 		fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")

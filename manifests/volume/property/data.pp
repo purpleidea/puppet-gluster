@@ -34,34 +34,34 @@ class gluster::volume::property::data() {
 		'cluster.choose-local' => '',	# default: true
 
 		# Data fops like write/truncate will not perform pre/post fop changelog operations in afr transaction if this option is disabled
-		'cluster.data-change-log' => '',	# default: on
+		'cluster.data-change-log' => 'onoff',	# default: on
 
 		# Using this option we can enable/disable data self-heal on the file. "open" means data self-heal action will only be triggered by file open operations.
-		'cluster.data-self-heal' => '',	# default: on
+		'cluster.data-self-heal' => 'onoff',	# default: on
 
 		# Select between "full", "diff". The "full" algorithm copies the entire file from source to sink. The "diff" algorithm copies to sink only those blocks whose checksums don't match with those of source. If no option is configured the option is chosen dynamically as follows: If the file does not exist on one of the sinks or empty file exists or if the source file size is about the same as page size the entire file will be read and written i.e "full" algo, otherwise "diff" algo is chosen.
 		'cluster.data-self-heal-algorithm' => '',	# default: (null)
 
 		# Lock phase of a transaction has two sub-phases. First is an attempt to acquire locks in parallel by broadcasting non-blocking lock requests. If lock acquisition fails on any server, then the held locks are unlocked and revert to a blocking locked mode sequentially on one server after another. If this option is enabled the initial broadcasting lock request attempt to acquire lock on the entire file. If this fails, we revert back to the sequential "regional" blocking lock as before. In the case where such an "eager" lock is granted in the non-blocking phase, it gives rise to an opportunity for optimization. i.e, if the next write transaction on the same FD arrives before the unlock phase of the first transaction, it "takes over" the full file lock. Similarly if yet another data transaction arrives before the unlock phase of the "optimized" transaction, that in turn "takes over" the lock as well. The actual unlock now happens at the end of the last "optimized" transaction.
-		'cluster.eager-lock' => '',	# default: on
+		'cluster.eager-lock' => 'onoff',	# default: on
 
 		# Entry fops like create/unlink will not perform pre/post fop changelog operations in afr transaction if this option is disabled
-		'cluster.entry-change-log' => '',	# default: on
+		'cluster.entry-change-log' => 'onoff',	# default: on
 
 		# Using this option we can enable/disable entry self-heal on the directory.
-		'cluster.entry-self-heal' => '',	# default: on
+		'cluster.entry-self-heal' => 'onoff',	# default: on
 
 		# time interval for checking the need to self-heal in self-heal-daemon
-		'cluster.heal-timeout' => '',	# default: 600
+		'cluster.heal-timeout' => 'integer',	# default: 600
 
 		# This option if set to ON, does a lookup through all the sub-volumes, in case a lookup didn't return any result from the hash subvolume. If set to OFF, it does not do a lookup on the remaining subvolumes.
-		'cluster.lookup-unhashed' => '',	# default: on
+		'cluster.lookup-unhashed' => 'onoff',	# default: on
 
 		# Metadata fops like setattr/setxattr will not perform pre/post fop changelog operations in afr transaction if this option is disabled
-		'cluster.metadata-change-log' => '',	# default: on
+		'cluster.metadata-change-log' => 'onoff',	# default: on
 
 		# Using this option we can enable/disable metadata i.e. Permissions, ownerships, xattrs self-heal on the file/directory.
-		'cluster.metadata-self-heal' => '',	# default: on
+		'cluster.metadata-self-heal' => 'onoff',	# default: on
 
 		# Percentage/Size of disk space, after which the process starts balancing out the cluster, and logs will appear in log files
 		'cluster.min-free-disk' => '',	# default: 10%
@@ -76,10 +76,10 @@ class gluster::volume::property::data() {
 		'cluster.quorum-type' => '',	# default: none
 
 		# readdir(p) will not failover if this option is off
-		'cluster.readdir-failover' => '',	# default: on
+		'cluster.readdir-failover' => 'onoff',	# default: on
 
 		# This option if set to ON enables the optimization that allows DHT to requests non-first subvolumes to filter out directory entries.
-		'cluster.readdir-optimize' => '',	# default: off
+		'cluster.readdir-optimize' => 'offon',	# default: off
 
 		# inode-read fops happen only on one of the bricks in replicate. AFR will prefer the one computed using the method specified using this option0 = first responder, 1 = hash by GFID of file (all clients use same subvolume), 2 = hash by GFID of file and client PID
 		'cluster.read-hash-mode' => '',	# default: 0
@@ -91,16 +91,16 @@ class gluster::volume::property::data() {
 		'cluster.read-subvolume-index' => '',	# default: -1
 
 		# This option if set to ON displays and logs the time taken for migration of each file, during the rebalance process. If set to OFF, the rebalance logs will only display the time spent in each directory.
-		'cluster.rebalance-stats' => '',	# default: off
+		'cluster.rebalance-stats' => 'offon',	# default: off
 
 		# This option applies to only self-heal-daemon. Index directory crawl and automatic healing of files will not be performed if this option is turned off.
-		'cluster.self-heal-daemon' => '',	# default: off
+		'cluster.self-heal-daemon' => 'offon',	# default: off
 
 		# readdirp size for performing entry self-heal
 		'cluster.self-heal-readdir-size' => '',	# default: 1KB
 
 		# Maximum number blocks per file for which self-heal process would be applied simultaneously.
-		'cluster.self-heal-window-size' => '',	# default: 1
+		'cluster.self-heal-window-size' => 'integer',	# default: 1
 
 		# Sets the quorum percentage for the trusted storage pool.
 		'cluster.server-quorum-ratio' => '',	# default: (null)
@@ -130,28 +130,28 @@ class gluster::volume::property::data() {
 		'diagnostics.client-sys-log-level' => '',	# default: CRITICAL
 
 		# If on stats related to file-operations would be tracked inside GlusterFS data-structures.
-		'diagnostics.dump-fd-stats' => '',	# default: off
+		'diagnostics.dump-fd-stats' => 'offon',	# default: off
 
 		# If on stats related to the latency of each operation would be tracked inside GlusterFS data-structures. 
-		'diagnostics.latency-measurement' => '',	# default: off
+		'diagnostics.latency-measurement' => 'offon',	# default: off
 
 		# Sets the grace-timeout value. Valid range 10-1800.
-		'features.grace-timeout' => '',	# default: (null)
+		'features.grace-timeout' => 'integer',	# default: (null)
 
 		# Enables or disables the lock heal.
-		'features.lock-heal' => '',	# default: off
+		'features.lock-heal' => 'offon',	# default: off
 
 		# quota caches the directory sizes on client. Timeout indicates the timeout for the cache to be revalidated.
-		'features.quota-timeout' => '',	# default: 0
+		'features.quota-timeout' => 'integer',	# default: 0
 
 		# Time frame after which the (file) operation would be declared as dead, if the server does not respond for a particular (file) operation.
-		'network.frame-timeout' => '',	# default: 1800
+		'network.frame-timeout' => 'integer',	# default: 1800
 
 		# Specifies the maximum megabytes of memory to be used in the inode cache.
-		'network.inode-lru-limit' => '',	# default: 16384
+		'network.inode-lru-limit' => 'integer',	# default: 16384
 
 		# Time duration for which the client waits to check if the server is responsive.
-		'network.ping-timeout' => '',	# default: 42
+		'network.ping-timeout' => 'integer',	# default: 42
 
 		# If enabled, in open() and creat() calls, O_DIRECT flag will be filtered at the client protocol level so server will still continue to cache the file. This works similar to NFS's behavior of O_DIRECT
 		'network.remote-dio' => '',	# default: disable
@@ -233,7 +233,7 @@ class gluster::volume::property::data() {
 		'performance.cache-priority' => '',	# default: 
 
 		# The cached data for a file will be retained till 'cache-refresh-timeout' seconds, after which data re-validation is performed.
-		'performance.cache-refresh-timeout' => '',	# default: 1
+		'performance.cache-refresh-timeout' => 'integer',	# default: 1
 
 		# XXX: this appears twice, with different defaults !
 		# Size of the read cache.
@@ -243,76 +243,80 @@ class gluster::volume::property::data() {
 		'performance.cache-size' => '',	# default: 128MB
 
 		# enable/disable io-threads translator in the client graph of volume.
-		'performance.client-io-threads' => '',	# default: off
+		'performance.client-io-threads' => 'offon',	# default: off
 
 		# Enable/Disable least priority
-		'performance.enable-least-priority' => '',	# default: on
+		'performance.enable-least-priority' => 'onoff',	# default: on
 
 		# If this option is set ON, instructs write-behind translator to perform flush in background, by returning success (or any errors, if any of previous writes were failed) to application even before flush FOP is sent to backend filesystem. 
-		'performance.flush-behind' => '',	# default: on
+		'performance.flush-behind' => 'onoff',	# default: on
 
 		# Convert all readdir requests to readdirplus to collect stat info on each entry.
 		'performance.force-readdirp' => '',	# default: true
 
 		# Max number of threads in IO threads translator which perform high priority IO operations at a given time
-		'performance.high-prio-threads' => '',	# default: 16
+		'performance.high-prio-threads' => 'integer',	# default: 16
 
 		# enable/disable io-cache translator in the volume.
-		'performance.io-cache' => '',	# default: on
+		'performance.io-cache' => 'onoff',	# default: on
 
 		# Number of threads in IO threads translator which perform concurrent IO operations
-		'performance.io-thread-count' => '',	# default: 16
+		'performance.io-thread-count' => 'integer',	# default: 16
 
 		# Max number of threads in IO threads translator which perform least priority IO operations at a given time
-		'performance.least-prio-threads' => '',	# default: 1
+		'performance.least-prio-threads' => 'integer',	# default: 1
 
 		# Max number of least priority operations to handle per-second
-		'performance.least-rate-limit' => '',	# default: 0
+		'performance.least-rate-limit' => 'integer',	# default: 0
 
 		# Max number of threads in IO threads translator which perform low priority IO operations at a given time
-		'performance.low-prio-threads' => '',	# default: 16
+		'performance.low-prio-threads' => 'integer',	# default: 16
 
 		# Time period after which cache has to be refreshed
-		'performance.md-cache-timeout' => '',	# default: 1
+		'performance.md-cache-timeout' => 'integer',	# default: 1
 
 		# Max number of threads in IO threads translator which perform normal priority IO operations at a given time
-		'performance.normal-prio-threads' => '',	# default: 16
+		'performance.normal-prio-threads' => 'integer',	# default: 16
 
 		# enable/disable open-behind translator in the volume.
-		'performance.open-behind' => '',	# default: on
+		'performance.open-behind' => 'onoff',	# default: on
 
 		# enable/disable quick-read translator in the volume.
-		'performance.quick-read' => '',	# default: on
+		'performance.quick-read' => 'onoff',	# default: on
 
 		# enable/disable read-ahead translator in the volume.
-		'performance.read-ahead' => '',	# default: on
+		'performance.read-ahead' => 'onoff',	# default: on
 
 		# Number of pages that will be pre-fetched
-		'performance.read-ahead-page-count' => '',	# default: 4
+		'performance.read-ahead-page-count' => 'integer',	# default: 4
 
 		# enable/disable meta-data caching translator in the volume.
-		'performance.stat-prefetch' => '',	# default: on
+		'performance.stat-prefetch' => 'onoff',	# default: on
 
 		# This option when set to off, ignores the O_DIRECT flag.
-		'performance.strict-o-direct' => '',	# default: off
+		'performance.strict-o-direct' => 'offon',	# default: off
 
 		# Do not let later writes overtake earlier writes even if they do not overlap
-		'performance.strict-write-ordering' => '',	# default: off
+		'performance.strict-write-ordering' => 'offon',	# default: off
 
 		# enable/disable write-behind translator in the volume.
-		'performance.write-behind' => '',	# default: on
+		'performance.write-behind' => 'onoff',	# default: on
 
 		# Size of the write-behind buffer for a single file (inode).
 		'performance.write-behind-window-size' => '',	# default: 1MB
 
+		# NOTE: this option taken from gluster documentation
+		# Allow client connections from unprivileged ports. By default only privileged ports are allowed. This is a global setting in case insecure ports are to be enabled for all exports using a single option.
+		'server.allow-insecure' => 'offon',	# XXX: description and manual differ in their mention of what the correct default is, so which is it?
+
 		# Map requests from uid/gid 0 to the anonymous uid/gid. Note that this does not apply to any other uids or gids that might be equally sensitive, such as user bin or group staff.
-		'server.root-squash' => '',	# default: off
+		'server.root-squash' => 'offon',	# default: off
 
 		# Specifies directory in which gluster should save its statedumps. By default it is the /tmp directory
 		'server.statedump-path' => '',	# default: /var/run/gluster
 
 		# Support for native Linux AIO
-		'storage.linux-aio' => '',	# default: off
+		'storage.linux-aio' => 'offon',	# default: off
 
 		# Support for setting gid of brick's owner
 		'storage.owner-gid' => '',	# default: (null)
