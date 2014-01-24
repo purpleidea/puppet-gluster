@@ -22,6 +22,7 @@ class gluster::server(
 	$version = '',	# pick a specific version (defaults to latest)
 	$vrrp = false,
 	$password = '',	# global vrrp password to use
+	$baseport = '',	# specify base port option as used in glusterd.vol file
 	$shorewall = false,
 	$zone = 'net',								# TODO: allow a list of zones
 	$ips = false,	# an optional list of ip's for each in hosts[]
@@ -71,8 +72,12 @@ class gluster::server(
 		require => Package['glusterfs-server'],
 	}
 
+	# NOTE: this option can be useful for users of libvirt migration as in:
+	# https://bugzilla.redhat.com/show_bug.cgi?id=987555
+	$valid_baseport = inline_template('<%= [Fixnum, String].include?(@baseport.class) ? @baseport.to_i : 0 %>')
+
 	file { '/etc/glusterfs/glusterd.vol':
-		content => template('gluster/glusterd.vol.erb'),	# NOTE: currently no templating is being done
+		content => template('gluster/glusterd.vol.erb'),
 		owner => root,
 		group => root,
 		mode => 644,			# u=rw,go=r
