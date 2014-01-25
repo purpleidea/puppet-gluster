@@ -188,6 +188,12 @@ elif args.mode == 'port':
 			v = str(j.find('volName').text)
 			#print v
 			for k in j.findall('.//node'):
+                                if k.find('node') is not None:
+					# this is a node in a node
+					# the NFS Server entry is doing
+					# doing this and might be a bug
+					continue
+
 				h = str(k.find('hostname').text)
 				p = str(k.find('path').text)
 				#print h, p
@@ -218,6 +224,12 @@ elif args.mode == 'ports':
 			# if no volume is specified, we use all of them...
 			if args.volume is None or args.volume == v:
 				for k in j.findall('.//node'):
+                                        if k.find('node') is not None:
+						# this is a node in a node
+						# the NFS Server entry is doing
+						# doing this and might be a bug
+						continue
+
 					h = str(k.find('hostname').text)
 					p = str(k.find('path').text)
 					#print h, p

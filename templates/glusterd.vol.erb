@@ -8,7 +8,7 @@ volume management
 <% if @valid_rpcauthallowinsecure -%>
     option rpc-auth-allow-insecure on
 <% end -%>
-<% if @valid_baseport > 0 -%>
+<% if @valid_baseport.to_i > 0 -%>
     option base-port <%= @valid_baseport %>
 <% else -%>
 #   option base-port 49152
