@@ -24,14 +24,17 @@ define gluster::volume(
 	$vip = '',		# vip of the cluster (optional but recommended)
 	$ping = true,		# do we want to include fping checks ?
 	$settle = true,		# do we want to run settle checks ?
+	$execagain = true,
 	$start = undef		# start volume ? true, false (stop it) or undef
 ) {
 	include gluster::xml
-	include gluster::again
 	include gluster::vardir
 	include gluster::volume::base
 	if $ping {
 		include gluster::volume::ping
+	}
+	if $execagain {
+		include gluster::again
 	}
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
@@ -220,7 +223,10 @@ define gluster::volume(
 		logoutput => on_failure,
 		unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# reconnect if it doesn't exist
 		onlyif => sprintf("/usr/sbin/gluster peer status --xml | ${vardir}/xml.py stuck %s", $others),
-		notify => Common::Again::Delta['gluster-exec-again'],
+		notify => $execagain ? {
+			false => undef,
+			default => Common::Again::Delta['gluster-exec-again'],
+		},
 		require => [
 			Service['glusterd'],
 			File["${vardir}/xml.py"],	# stuck check
@@ -244,7 +250,10 @@ define gluster::volume(
 		# this notify is the first to kick off the 2nd step! it
 		# was put here after a process of elimination, and this
 		# location makes a lot of sense: on change exec[again]!
-		notify => Common::Again::Delta['gluster-exec-again'],
+		notify => $execagain ? {
+			false => undef,
+			default => Common::Again::Delta['gluster-exec-again'],
+		},
 		require => File["${vardir}/volume/"],
 	}
 
@@ -285,7 +294,10 @@ define gluster::volume(
 				unless => "/usr/sbin/gluster volume status ${name}",	# returns false if stopped
 				notify => $shorewall ? {
 					false => undef,
-					default => Common::Again::Delta['gluster-exec-again'],
+					default => $execagain ? {
+						false => undef,
+						default => Common::Again::Delta['gluster-exec-again'],
+					},
 				},
 				require => $settled ? {	# require if type exists
 					false => undef,
@@ -401,7 +413,10 @@ define gluster::volume(
 			# difference to record, or the sequence hasn't settled
 			# we also check that we have our minimum settle count!
 			onlyif => "/usr/bin/test ! -e '${watchfile}' || ${diff} || /usr/bin/test '1' != '${one}' || /usr/bin/test ${watch_trim_size} -lt ${settle_count}",
-			notify => Common::Again::Delta['gluster-exec-again'],
+			notify => $execagain ? {
+				false => undef,
+				default => Common::Again::Delta['gluster-exec-again'],
+			},
 			require => [
 				File["${vardir}/volume/fsm/${name}/"],
 				# easy way to ensure the transition types don't need to

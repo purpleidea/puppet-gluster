@@ -299,6 +299,9 @@ a different path per host, then Gluster::Simple will not meet your needs.
 ####`vip`
 The virtual IP address to be used for the cluster distributed lock manager.
 
+####`execagain`
+Whether or not to use the Exec['again'] infrastructure. Defaults to true.
+
 ####`shorewall`
 Boolean to specify whether puppet-shorewall integration should be used or not.
 

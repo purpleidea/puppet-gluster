@@ -25,6 +25,7 @@ class gluster::simple(
 	$password = '',	# global vrrp password to use
 	$version = '',
 	$repo = true,
+	$execagain = true,
 	$baseport = '',	# specify base port option as used in glusterd.vol file
 	$rpcauthallowinsecure = false,	# needed in some setups in glusterd.vol
 	$shorewall = true
@@ -99,6 +100,7 @@ class gluster::simple(
 		# the only semi-safe way is the new built in automatic collect:
 		bricks => true,			# automatic brick collection...
 		start => true,
+		execagain => $execagain,
 	}
 	Gluster::Volume <<||>>
 }

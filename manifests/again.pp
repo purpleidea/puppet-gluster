@@ -25,8 +25,6 @@
 
 class gluster::again {
 
-	# TODO: we could include an option to disable this exec again and
-	# replace it with a "dummy" noop if someone doesn't want to use it.
 	include common::again
 
 	# when notified, this will run puppet again, delta sec after it ends!
