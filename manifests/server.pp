@@ -16,12 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::server(
-	$vip = '',	# vip of the cluster (optional but recommended)
 	$nfs = false,								# TODO
-	$repo = true,	# add a repo automatically? true or false
-	$version = '',	# pick a specific version (defaults to latest)
+	$vip = '',	# vip of the cluster (optional but recommended)
 	$vrrp = false,
 	$password = '',	# global vrrp password to use
+	$version = '',	# pick a specific version (defaults to latest)
+	$repo = true,	# add a repo automatically? true or false
 	$baseport = '',	# specify base port option as used in glusterd.vol file
 	$rpcauthallowinsecure = false,	# needed in some setups in glusterd.vol
 	$shorewall = false,
