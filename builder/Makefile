@@ -76,6 +76,7 @@ $(OUTPUT)/builder.img: files/*
 	--run-command 'yum install -y /root/puppetlabs-release-el-6.noarch.rpm && rm -f /root/puppetlabs-release-el-6.noarch.rpm' \
 	--run-command 'yum install -y puppet' \
 	--run-command 'yum update -y' \
+	--run-command 'service sshd start' \
 	--run files/user.sh \
 	--run files/ssh.sh \
 	--run files/network.sh \
