@@ -67,6 +67,7 @@ $(OUTPUT)/builder.img: files/*
 	--size $(SIZE)G \
 	--install rsync,nfs-utils,sudo,openssh-server,openssh-clients \
 	--install screen,vim-enhanced,git,wget,file,man,tree,nmap,tcpdump,htop,lsof,telnet,mlocate,bind-utils,koan,iftop,yum-utils,nc \
+	--install libselinux-python \
 	--root-password file:files/password \
 	--upload files/epel-release-6-8.noarch.rpm:/root/epel-release-6-8.noarch.rpm \
 	--upload files/puppetlabs-release-el-6.noarch.rpm:/root/puppetlabs-release-el-6.noarch.rpm \
