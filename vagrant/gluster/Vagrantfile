@@ -314,6 +314,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 				'vagrant_gluster_allow' => (1..count).map{|z| range[offset+z].to_s}.join(','),
 			}
 		end
+
+		vm.vm.provider :libvirt do |libvirt|
+			libvirt.cpus = 2
+			libvirt.memory = 1024
+		end
 	end
 
 	#
