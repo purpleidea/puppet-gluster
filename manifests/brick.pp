@@ -19,12 +19,21 @@ define gluster::brick(
 	$group = 'default',		# grouping for multiple puppet-glusters
 	# if dev is false, path in $name is used directly after a mkdir -p
 	$dev = false,			# /dev/sdc, /dev/disk/by-id/scsi-36003048007e14f0014ca2743150a5471
-	$fsuuid = '',			# set a uuid for this fs (uuidgen)
+
+	$raid_su = '',			# used by mkfs.xfs and lvm, eg: 256 (K)
+	$raid_sw = '',			# used by mkfs.xfs and lvm, eg: 10
+
+	$partition = true,		# partition, or build on the block dev?
 	$labeltype = '',		# gpt
+
+	$lvm = true,			# use lvm or not ?
+
+	$fsuuid = '',			# set a uuid for this fs (uuidgen)
 	$fstype = '',			# xfs
+	$ro = false,			# use for emergencies only- you want your fs rw
+
 	$xfs_inode64 = false,
 	$xfs_nobarrier = false,
-	$ro = false,			# use for emergencies only- you want your fs rw
 	$force = false,			# if true, this will overwrite any xfs fs it sees, useful for rebuilding gluster and wiping data. NOTE: there are other safeties in place to stop this.
 	$areyousure = false		# do you allow puppet to do dangerous things ?
 ) {
@@ -62,14 +71,73 @@ define gluster::brick(
 		require => File["${vardir}/brick/"],
 	}
 
-	$ro_bool = $ro ? {		# this has been added as a convenience
-		true => 'ro',
-		default => 'rw',
+	#
+	#	raid...
+	#
+	# TODO: check inputs for sanity and auto-detect if one is empty
+	# TODO: maybe we can detect these altogether from the raid set!
+	if "${raid_su}" == '' and "${raid_sw}" == '' {
+		if $lvm or "${fstype}" == 'xfs' {
+			warning('Setting $raid_su and $raid_sw is recommended.')
+		}
+	} elsif "${raid_su}" != '' and "${raid_sw}" != '' {
+		# ensure both are positive int's !
+		validate_re("${raid_su}", '^\d+$')
+		validate_re("${raid_sw}", '^\d+$')
+
+	} else {
+		fail('You must set both $raid_su and $raid_sw or neither.')
 	}
 
+	#
+	#	partitioning...
+	#
 	$valid_labeltype = $labeltype ? {
 		#'msdos' => 'msdos',	# TODO
 		default => 'gpt',
+	}
+
+	# get the raw /dev/vdx device, and append the partition number
+	$dev0 = "`/bin/readlink -e ${dev}`"	# resolve to /dev/<device>
+
+	$part_mklabel = "/sbin/parted -s -m -a optimal ${dev} mklabel ${valid_labeltype}"
+	$part_mkpart = "/sbin/parted -s -m -a optimal ${dev} mkpart primary 0% 100%"
+
+	#
+	$dev1 = $partition ? {
+		false => "${dev0}",	# block device without partition
+		default => "${dev0}1",	# partition one (eg: /dev/sda1)
+	}
+
+	#
+	#	lvm...
+	#
+	if $lvm {
+		# NOTE: this is need for thin-provisioning, and RHS compliance!
+		$lvm_vgname = "vg_${safename}"
+		$lvm_lvname = "lv_${safename}"
+
+		$lvm_dataalignment = inline_template('<%= raid_su.to_i*raid_sw.to_i %>')
+
+		$lvm_pvcreate = "/sbin/pvcreate --dataalignment ${lvm_dataalignment}K ${dev1}"
+
+		$lvm_vgcreate = "/sbin/vgcreate ${lvm_vgname} ${dev1}"
+
+		# creates dev /dev/vgname/lvname
+		$lvm_lvcreate = "/sbin/lvcreate -n ${lvm_lvname} ${lvm_vgname}"
+
+		$dev2 = "/dev/${lvm_vgname}/${lvm_lvname}"
+
+	} else {
+		$dev2 = "${dev1}",	# pass through, because not using lvm
+	}
+
+	#
+	#	mkfs...
+	#
+	$ro_bool = $ro ? {		# this has been added as a convenience
+		true => 'ro',
+		default => 'rw',
 	}
 
 	# if $dev is false, we assume we're using a path backing store on brick
@@ -84,11 +152,6 @@ define gluster::brick(
 		},
 	}
 
-	$force_flag = $force ? {
-		true => 'f',
-		default => '',
-	}
-
 	if ( $valid_fstype == 'path' ) {
 
 		# do a mkdir -p in the execution section below...
@@ -101,10 +164,53 @@ define gluster::brick(
 		include gluster::brick::xfs
 		$exec_requires = [Package['xfsprogs']]
 
-		# mkfs w/ uuid command
+		$xfs_arg00 = "/sbin/mkfs.${valid_fstype}"
+
+		$xfs_arg01 = '-q'	# shh!
+
 		# NOTE: the -f forces creation when it sees an old xfs part
+		$xfs_arg02 = $force ? {
+			true => '-f',
+			default => '',
+		}
+
+		# Due to extensive use of extended attributes, RHS recommends
+		# XFS inode size set to 512 bytes from the defaults 256 Bytes.
+		$xfs_arg03 = '-i size=512'
+
+		# An XFS file system allows you to select a logical block size
+		# for the file-system directory that is greater than the
+		# logical block size of the file-system. Increasing the logical
+		# block size for the directories from the default of 4K,
+		# decreases the directory IO, which improves the performance of
+		# directory operations. See:
+		# http://xfs.org/index.php/XFS_FAQ#Q:_Performance:_mkfs.xfs_-n_size.3D64k_option
+		$xfs_arg04 = '-n size=8192'
+
+		# To align the IO at the file system layer it is important that
+		# we set the correct stripe unit (stripe element size) and
+		# stripe width (number of data disks) while formatting the file
+		# system. These options are sometimes auto-detected but manual
+		# configuration is needed with many of the hardware RAID
+		# volumes.
+		$xfs_arg05 = "-d su=${raid_su}K,sw=${raid_sw}"
+
+		$xfs_cmdlist = [
+			"${xfs_arg00}",
+			"${xfs_arg01}",
+			"${xfs_arg02}",
+			"${xfs_arg03}",
+			"${xfs_arg04}",
+			"${xfs_arg05}",
+			"${dev2}"
+		]
+		$xfs_cmd = join(delete($xfs_cmdlist, ''), ' ')
+
 		# TODO: xfs_admin doesn't have a --quiet flag. silence it...
-		$exec_mkfs = "/sbin/mkfs.${valid_fstype} -q${force_flag} `/bin/readlink -e ${dev}`1 && /usr/sbin/xfs_admin -U '${fsuuid}' `/bin/readlink -e ${dev}`1"
+		$xfs_admin = "/usr/sbin/xfs_admin -U '${fsuuid}' ${dev2}"
+
+		# mkfs w/ uuid command
+		$mkfs_exec = "${xfs_cmd} && ${xfs_admin}"
 
 		# By default, XFS allocates inodes to reflect their on-disk
 		# location. However, because some 32-bit userspace applications
@@ -140,7 +246,7 @@ define gluster::brick(
 		$exec_requires = [Package['e2fsprogs']]
 
 		# mkfs w/ uuid command
-		$exec_mkfs = "/sbin/mkfs.${valid_fstype} -U '${fsuuid}' `/bin/readlink -e ${dev}`1"
+		$mkfs_exec = "/sbin/mkfs.${valid_fstype} -U '${fsuuid}' ${dev2}"
 
 		# mount options
 		$options_list = []	# TODO
@@ -161,29 +267,96 @@ define gluster::brick(
 	# if we're on itself, and we have a real device to work with
 	if (type($dev) != 'boolean') and ("${fqdn}" == "${host}") {
 
-		# first get the device ready
+		# partitioning...
+		if $partition {
+			if $exec_noop {
+				notify { "noop for partitioning: ${name}":
+					message => "${part_mklabel} && ${part_mkpart}",
+				}
+			}
 
-		# the scary parted command to run...
-		$exec_mklabel = "/sbin/parted -s -m -a optimal ${dev} mklabel ${valid_labeltype}"
-		$exec_mkpart = "/sbin/parted -s -m -a optimal ${dev} mkpart primary 0% 100%"
-		$scary_exec = "${exec_mklabel} && ${exec_mkpart} && ${exec_mkfs}"	# the command
-		if $exec_noop {
-			notify { "noop for ${name}":
-				message => "${scary_exec}",
+			exec { "${part_mklabel} && ${part_mkpart}":
+				logoutput => on_failure,
+				unless => [		# if one element is true, this *doesn't* run
+					"/usr/bin/test -e ${dev1}",	# does the partition 1 exist ?
+					'/bin/false',	# TODO: add more criteria
+				],
+				require => $exec_requires,
+				timeout => 3600,	# TODO
+				noop => $exec_noop,
+				before => $lvm ? {	# if no lvm, skip to mkfs
+					false => Exec["gluster-brick-mkfs-${name}"],
+					default => Exec["gluster-brick-lvm-pvcreate-${name}"],
+				},
+				alias => "gluster-brick-partition-${name}",
 			}
 		}
 
-		exec { "${scary_exec}":
+		# lvm...
+		if $lvm {
+			if $exec_noop {
+				notify { "noop for lvm: ${name}":
+					message => "${lvm_pvcreate} && ${lvm_vgcreate} && ${lvm_lvcreate}",
+				}
+			}
+
+			exec { "${lvm_pvcreate}":
+				logoutput => on_failure,
+				unless => [		# if one element is true, this *doesn't* run
+					"/sbin/pvdisplay ${dev1}",
+					'/bin/false',	# TODO: add more criteria
+				],
+				require => $exec_requires,
+				timeout => 3600,	# set to something very long
+				noop => $exec_noop,
+				before => Exec["gluster-brick-lvm-vgcreate-${name}"],
+				alias => "gluster-brick-lvm-pvcreate-${name}",
+			}
+
+			exec { "${lvm_vgcreate}":
+				logoutput => on_failure,
+				unless => [		# if one element is true, this *doesn't* run
+					"/sbin/vgdisplay ${lvm_vgname}",
+					'/bin/false',	# TODO: add more criteria
+				],
+				require => $exec_requires,
+				timeout => 3600,	# set to something very long
+				noop => $exec_noop,
+				before => Exec["gluster-brick-lvm-lvcreate-${name}"],
+				alias => "gluster-brick-lvm-vgcreate-${name}",
+			}
+
+			exec { "${lvm_lvcreate}":
+				logoutput => on_failure,
+				unless => [		# if one element is true, this *doesn't* run
+					"/sbin/lvdisplay ${lvm_lvname}",
+					'/bin/false',	# TODO: add more criteria
+				],
+				require => $exec_requires,
+				timeout => 3600,	# set to something very long
+				noop => $exec_noop,
+				before => Exec["gluster-brick-mkfs-${name}"],
+				alias => "gluster-brick-lvm-vgcreate-${name}",
+			}
+		}
+
+		if $exec_noop {
+			notify { "noop for mkfs: ${name}":
+				message => "${mkfs_exec}",
+			}
+		}
+
+		# mkfs...
+		exec { "${mkfs_exec}":
 			logoutput => on_failure,
 			unless => [		# if one element is true, this *doesn't* run
-				"/usr/bin/test -e `/bin/readlink -e ${dev}`1",	# does partition 1 exist ?
 				"/usr/bin/test -e /dev/disk/by-uuid/${fsuuid}",
 				'/bin/false',	# TODO: add more criteria
 			],
 			require => $exec_requires,
 			timeout => 3600,	# set to something very long
 			noop => $exec_noop,
-			alias => "gluster-brick-make-${name}",
+			alias => "gluster-brick-mkfs-${name}",
 		}
 
 		# make an empty directory for the mount point
@@ -192,7 +365,7 @@ define gluster::brick(
 			recurse => false,	# don't recurse into directory
 			purge => false,		# don't purge unmanaged files
 			force => false,		# don't purge subdirs and links
-			require => Exec["gluster-brick-make-${name}"],
+			require => Exec["gluster-brick-mkfs-${name}"],
 		}
 
 		# mount points don't seem to like trailing slashes...
