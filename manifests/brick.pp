@@ -35,7 +35,8 @@ define gluster::brick(
 	$xfs_inode64 = false,
 	$xfs_nobarrier = false,
 	$force = false,			# if true, this will overwrite any xfs fs it sees, useful for rebuilding gluster and wiping data. NOTE: there are other safeties in place to stop this.
-	$areyousure = false		# do you allow puppet to do dangerous things ?
+	$areyousure = false,		# do you allow puppet to do dangerous things ?
+	$comment = ''
 ) {
 	include gluster::brick::base
 	include gluster::vardir
@@ -136,7 +137,7 @@ define gluster::brick(
 		$dev2 = "/dev/${lvm_vgname}/${lvm_lvname}"
 
 	} else {
-		$dev2 = "${dev1}",	# pass through, because not using lvm
+		$dev2 = "${dev1}"	# pass through, because not using lvm
 	}
 
 	#

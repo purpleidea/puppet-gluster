@@ -25,6 +25,24 @@ class gluster::simple(
 	$password = '',	# global vrrp password to use
 	$version = '',
 	$repo = true,
+	$count = 0,	# 0 means build 1 brick, unless $brick_params exists...
+	$brick_params = {},	# this sets the brick count when $count is 0...
+	# usage notes: the $brick_params parameter might look like:
+	#	{
+	#		fqdn1 => [
+	#			{dev => '/dev/disk/by-uuid/505e0286-8e21-49b4-a9b2-894777c69962'},
+	#			{dev => '/dev/sde', partition => false},
+	#		],
+	#		fqdn2 => [{dev => '/dev/disk/by-path/pci-0000:02:00.0-scsi-0:1:0:0', raid_su => 256, raid_sw => 10}],
+	#		fqdnN => [...],
+	#	}
+	$brick_param_defaults = {},	# these always get used to build bricks
+	# usage notes: the $brick_param_defaults might look like:
+	#	{
+	#		lvm => false,
+	#		xfs_inode64 => true,
+	#		force => true,
+	#	}
 	$baseport = '',	# specify base port option as used in glusterd.vol file
 	$rpcauthallowinsecure = false,	# needed in some setups in glusterd.vol
 	$shorewall = true
@@ -50,6 +68,15 @@ class gluster::simple(
 	}
 
 	$valid_path = sprintf("%s/", regsubst($chosen_path, '\/$', ''))
+
+	validate_hash($brick_param_defaults)
+	# in someone explicitly added this value, then don't overwrite it...
+	if has_key($brick_param_defaults, 'areyousure') {
+		$valid_brick_param_defaults = $brick_param_defaults
+	} else {
+		$areyousure = {areyousure => true}
+		$valid_brick_param_defaults = merge($brick_param_defaults, $areyousure)
+	}
 
 	notify { 'gluster::simple':
 		message => 'You are using gluster::simple !',
@@ -82,10 +109,42 @@ class gluster::simple(
 	}
 	Gluster::Host <<||>>
 
-	@@gluster::brick { "${::fqdn}:${valid_path}":
-		areyousure => true,
+	# the idea here is to build a list of bricks from a list of parameters,
+	# with each element in the list, corresponding to a hash of key=>values
+	# each element in the list is a different brick. the key for the master
+	# hash is the fqdn of the host that those bricks correspond to. you can
+	# also specify a list of defaults for when you have common brick values
+	# such as $xfs_inode64=>true, or raid_* if your cluster is symmetrical!
+	# if you set the $count variable, then that brick count will be forced.
+	validate_re("${count}", '^\d+$')	# ensure this is a positive int
+	if has_key($brick_params, "${::fqdn}") {
+		# here some wizardry happens...
+		$valid_count = $count ? {
+			0 => inline_template('<%= brick_params_list.length %>'),
+			default => $count,
+		}
+		$brick_params_list = $brick_params["${::fqdn}"]
+		validate_array($brick_params_list)
+		$yaml = inline_template("<%= (0..valid_count.to_i-1).inject(Hash.new) { |h,i| {'${::fqdn}:${valid_path}brick' + (i+1).to_s.rjust(7, '0') + '/' => ((i < brick_params_list.length) ? brick_params_list[i] : {})}.merge(h) }.to_yaml %>")
+	} else {
+		# here we base our brick list on the $count variable alone...
+		$valid_count = $count ? {
+			0 => 1,		# 0 means undefined, so use the default
+			default => $count,
+		}
+		$brick_params_list = $valid_count ? {
+			# TODO: should we use the same pattern for 1 or many ?
+			1 => ["${::fqdn}:${valid_path}"],
+			default => split(inline_template("<%= (1..${valid_count}).collect{|i| '${::fqdn}:${valid_path}brick' + i.to_s.rjust(7, '0') + '/' }.join(',') %>"), ','),
+		}
+		$yaml = inline_template("<%= (0..valid_count.to_i-1).inject(Hash.new) { |h,i| {brick_params_list[i] => {}}.merge(h) }.to_yaml %>")
 	}
 
+	$hash = parseyaml($yaml)
+	create_resources('@@gluster::brick', $hash, $valid_brick_param_defaults)
+	#@@gluster::brick { "${::fqdn}:${valid_path}":
+	#	areyousure => true,
+	#}
 	Gluster::Brick <<||>>
 
 	gluster::volume { $volume:
