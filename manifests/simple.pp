@@ -43,6 +43,7 @@ class gluster::simple(
 	#		xfs_inode64 => true,
 	#		force => true,
 	#	}
+	$ping = true,	# use fping or not?
 	$baseport = '',	# specify base port option as used in glusterd.vol file
 	$rpcauthallowinsecure = false,	# needed in some setups in glusterd.vol
 	$shorewall = true
@@ -157,6 +158,7 @@ class gluster::simple(
 		#bricks => split(inline_template("<%= @gluster_fqdns.split(',').collect {|x| x+':${valid_path}' }.join(',') %>"), ','),
 		# the only semi-safe way is the new built in automatic collect:
 		bricks => true,			# automatic brick collection...
+		ping => $ping,
 		start => true,
 	}
 	Gluster::Volume <<||>>
