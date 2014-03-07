@@ -31,6 +31,11 @@ class gluster::server(
 ) {
 	$FW = '$FW'			# make using $FW in shorewall easier
 
+	include gluster::vardir
+
+	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
+	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
+
 	# if we use ::mount and ::server on the same machine, this could clash,
 	# so we use the ensure_resource function to allow identical duplicates!
 	$rname = "${version}" ? {
@@ -44,9 +49,16 @@ class gluster::server(
 		ensure_resource('gluster::repo', "${rname}", $params)
 	}
 
-	package { 'moreutils':		# for scripts needing: 'sponge'
+	# this is meant to be replace the excellent sponge utility by sponge.py
+	file { "${vardir}/sponge.py":		# for scripts needing: 'sponge'
+		source => 'puppet:///modules/gluster/sponge.py',
+		owner => root,
+		group => nobody,
+		mode => 700,			# u=rwx
+		backup => false,		# don't backup to filebucket
 		ensure => present,
 		before => Package['glusterfs-server'],
+		require => File["${vardir}/"],
 	}
 
 	package { 'glusterfs-server':

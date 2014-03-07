@@ -363,12 +363,12 @@ define gluster::volume(
 	$stack_truncate = "${maxlength}" ? {
 		'-1' => '',	# unlimited
 		#default => sprintf("&& /bin/sed -i '%d,$ d' ${stackfile}", inline_template('<%= @maxlength.to_i.abs+1 %>')),
-		default => sprintf(" && (/bin/grep -v '^$' ${stackfile} | /usr/bin/tail -n %d | /usr/bin/sponge ${stackfile})", inline_template('<%= @maxlength.to_i.abs %>')),
+		default => sprintf(" && (/bin/grep -v '^$' ${stackfile} | /usr/bin/tail -n %d | ${vardir}/sponge.py ${stackfile})", inline_template('<%= @maxlength.to_i.abs %>')),
 	}
 	$watch_truncate = "${maxlength}" ? {
 		'-1' => '',	# unlimited
 		#default => sprintf("&& /bin/sed -i '%d,$ d' ${watchfile}", inline_template('<%= @maxlength.to_i.abs+1 %>')),
-		default => sprintf(" && (/bin/grep -v '^$' ${watchfile} | /usr/bin/tail -n %d | /usr/bin/sponge ${watchfile})", inline_template('<%= @maxlength.to_i.abs %>')),
+		default => sprintf(" && (/bin/grep -v '^$' ${watchfile} | /usr/bin/tail -n %d | ${vardir}/sponge.py ${watchfile})", inline_template('<%= @maxlength.to_i.abs %>')),
 	}
 
 	if $are_bricks_collected and ("${valid_input}" != '') {	# ready or not?
