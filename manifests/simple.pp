@@ -43,6 +43,7 @@ class gluster::simple(
 	#		xfs_inode64 => true,
 	#		force => true,
 	#	}
+	$setgroup = '',		# pick a volume property group to set, eg: virt
 	$ping = true,	# use fping or not?
 	$baseport = '',	# specify base port option as used in glusterd.vol file
 	$rpcauthallowinsecure = false,	# needed in some setups in glusterd.vol
@@ -159,6 +160,7 @@ class gluster::simple(
 		# the only semi-safe way is the new built in automatic collect:
 		bricks => true,			# automatic brick collection...
 		ping => $ping,
+		setgroup => $setgroup,
 		start => true,
 	}
 	Gluster::Volume <<||>>

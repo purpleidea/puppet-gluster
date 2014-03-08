@@ -168,7 +168,14 @@ elif args.mode == 'stuck':
 elif args.mode == 'property':
 	store = []
 	for i in root.findall('.//option'):
-		if str(i.find('name').text) == args.key:
+
+		key = str(i.find('name').text)
+		# if the key requested has no '.' in the name, we match loosely
+		if args.key.find('.') == -1:	# no '.' have been found
+			# try and match key without a '.' in the name...
+			key = key[key.find('.')+1:]	# remove prefix!
+
+		if key == args.key:
 			store.append(i.find('value').text)
 
 	if len(store) == 1:

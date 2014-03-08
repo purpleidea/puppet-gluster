@@ -10,6 +10,7 @@ node /^annex\d+$/ {	# annex{1,2,..N}
 	# NOTE: this is mostly intended for fast gluster testing. for more
 	# complex setups, you might want to look at the other examples.
 	class { '::gluster::simple':
+		setgroup => 'virt',	# or: 'small-file-perf', or others too!
 	}
 
 }

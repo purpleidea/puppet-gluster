@@ -20,6 +20,7 @@ class gluster::volume::property::data() {
 	# expected type
 	$etypes = {
 		# FIXME: the empty '' strings need to be filled in...
+		# FIXME: some of the 'string' values could probably be booleans
 
 		# Allow a comma separated list of addresses and/or hostnames to connect to the server. By default, all connections are allowed.
 		'auth.allow' => 'array',	# default: (null)
@@ -73,7 +74,7 @@ class gluster::volume::property::data() {
 		'cluster.quorum-count' => '',	# default: (null)
 
 		# If value is "fixed" only allow writes if quorum-count bricks are present. If value is "auto" only allow writes if more than half of bricks, or exactly half including the first, are present.
-		'cluster.quorum-type' => '',	# default: none
+		'cluster.quorum-type' => 'string',	# default: none
 
 		# readdir(p) will not failover if this option is off
 		'cluster.readdir-failover' => 'onoff',	# default: on
@@ -106,7 +107,7 @@ class gluster::volume::property::data() {
 		'cluster.server-quorum-ratio' => '',	# default: (null)
 
 		# If set to server, enables the specified volume to participate in quorum.
-		'cluster.server-quorum-type' => '',	# default: (null)
+		'cluster.server-quorum-type' => 'string',	# default: (null)
 
 		# Size of the stripe unit that would be read from or written to the striped servers.
 		'cluster.stripe-block-size' => '',	# default: 128KB
@@ -154,7 +155,7 @@ class gluster::volume::property::data() {
 		'network.ping-timeout' => 'integer',	# default: 42
 
 		# If enabled, in open() and creat() calls, O_DIRECT flag will be filtered at the client protocol level so server will still continue to cache the file. This works similar to NFS's behavior of O_DIRECT
-		'network.remote-dio' => '',	# default: disable
+		'network.remote-dio' => 'string',	# default: disable
 
 		# XXX: this appears twice
 		# Specifies the window size for tcp socket.

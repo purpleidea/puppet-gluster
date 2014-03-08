@@ -40,11 +40,30 @@ define gluster::volume::property(
 	$etypes = $::gluster::volume::property::data::etypes
 	$jchars = $::gluster::volume::property::data::jchars
 
+	# transform our etypes into short etypes (missing the prefix)
+	# TODO: we should see if there are duplicates (collisions)
+	# if there are collisions, and a gluster volume set group type contains
+	# one of these keys, then it's ambiguous and it's clearly a gluster bug
+	$short_etypes_yaml = inline_template('<%= @etypes.inject({}) {|h, (x,y)| h[ (x.index(".").nil?? x : x[x.index(".")+1..-1]) ] = y; h }.to_yaml %>')
+	$short_jchars_yaml = inline_template('<%= @jchars.inject({}) {|h, (x,y)| h[ (x.index(".").nil?? x : x[x.index(".")+1..-1]) ] = y; h }.to_yaml %>')
+	$short_etypes = parseyaml($short_etypes_yaml)
+	$short_jchars = parseyaml($short_jchars_yaml)
+
+	# FIXME: a short key should lookup the equivalent in the normal table,
+	# and vice-versa, and set an alias so that you can't define a short
+	# key and a long key at the same time which refer to the same variable!
+
 	# expected type
 	if has_key($etypes, "${key}") {
 		$etype = $etypes["${key}"] ? {
 			'' => 'undefined',
 			default => $etypes["${key}"],
+		}
+	# the keys of these etypes are missing their prefix up to the first '.'
+	} elsif has_key($short_etypes, "${key}") {
+		$etype = $short_etypes["${key}"] ? {
+			'' => 'undefined',
+			default => $short_etypes["${key}"],
 		}
 	} else {
 		$etype = 'undefined'
@@ -102,6 +121,9 @@ define gluster::volume::property(
 			fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
 		}
 
+	} elsif $etype == 'string' {
+		$safe_value = shellquote($value)	# TODO: is this the safe thing?
+
 	# if it's not a string and it's not the expected type, fail
 	} elsif ( type($value) != $etype ) {	# type() from puppetlabs-stdlib
 		fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
@@ -116,6 +138,8 @@ define gluster::volume::property(
 			# join char
 			if has_key($jchars, "${key}") {
 				$jchar = $jchars["${key}"]
+			} elsif has_key($short_jchars, "${key}") {
+				$jchar = $short_jchars["${key}"]
 			} else {
 				$jchar = ''
 			}
