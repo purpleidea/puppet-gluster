@@ -42,6 +42,8 @@ end
 
 if var.nil?
 	# if we can't get a valid vardirtmp, then we can't continue
+	module_vardir = nil
+	vrrpdir = nil
 	vrrpfile = nil
 	ipfile = nil
 else

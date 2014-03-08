@@ -35,7 +35,7 @@ end
 
 if var.nil?
 	# if we can't get a valid vardirtmp, then we can't continue
-	uuidfile = nil
+	valid_brickdir = nil
 else
 	module_vardir = var+'gluster/'
 	valid_brickdir = module_vardir.gsub(/\/$/, '')+'/brick/'

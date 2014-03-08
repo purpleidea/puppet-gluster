@@ -39,6 +39,8 @@ end
 
 if var.nil?
 	# if we can't get a valid vardirtmp, then we can't continue
+	module_vardir = nil
+	uuiddir = nil
 	uuidfile = nil
 else
 	module_vardir = var+'gluster/'

@@ -48,7 +48,7 @@ end
 
 if var.nil?
 	# if we can't get a valid vardirtmp, then we can't collect...
-	valid_dir = nil
+	fsm_dir = nil
 else
 	module_vardir = var+'gluster/'
 	valid_dir = module_vardir.gsub(/\/$/, '')+'/'
