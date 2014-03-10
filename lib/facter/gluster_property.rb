@@ -17,29 +17,55 @@
 
 require 'facter'
 
-groupdir = '/var/lib/glusterd/groups/'
+groupdir = '/var/lib/glusterd/groups/'		# dir from the upstream package
+
+# find the module_vardir
+dir = Facter.value('puppet_vardirtmp')		# nil if missing
+if dir.nil?					# let puppet decide if present!
+	dir = Facter.value('puppet_vardir')
+	if dir.nil?
+		var = nil
+	else
+		var = dir.gsub(/\/$/, '')+'/'+'tmp/'	# ensure trailing slash
+	end
+else
+	var = dir.gsub(/\/$/, '')+'/'
+end
+
+if var.nil?
+	# if we can't get a valid vardirtmp, then we can't continue
+	valid_setgroupdir = nil
+else
+	module_vardir = var+'gluster/'
+	valid_setgroupdir = module_vardir.gsub(/\/$/, '')+'/groups/'
+end
 
 found = {}
 
-if File.directory?(groupdir)
-	Dir.glob(groupdir+'*.*').each do |f|
-		b = File.basename(f)
+# loop through each directory to avoid code duplication... later dirs override!
+[valid_setgroupdir, groupdir].each do |g|
 
-		if not found.key?(b)
-			found[b] = {}	# initialize
-		end
+	if not(g.nil?) and File.directory?(g)
+		Dir.glob(g+'*.*').each do |f|
+			b = File.basename(f)
 
-		groups = File.open(f, 'r').read		# read into str
-		groups.each_line do |line|
-			split = line.split('=')		# split key=value pairs
-			if split.length == 2
-				key = split[0]
-				value = split[1]
-				if found[b].key?(key)
-					# NOTE: error found in file...
-					print "There is a duplicate key in the '#{b}' group."
+			# a later entry overrides an earlier one...
+			#if not found.key?(b)
+			found[b] = {}	# initialize (or erase)
+			#end
+
+			groups = File.open(f, 'r').read		# read into str
+			groups.each_line do |line|
+				split = line.split('=')		# split key=value pairs
+				if split.length == 2
+					key = split[0]
+					value = split[1]
+					if found[b].key?(key)
+						# NOTE: error found in file...
+						print "There is a duplicate key in the '#{b}' group."
+					end
+					found[b][key] = value
 				end
-				found[b][key] = value
 			end
 		end
 	end
@@ -64,6 +90,14 @@ found.keys.each do |x|
 			found[x].collect{|k,v| k+'='+v}.join(',')
 		}
 	end
+end
+
+# has the custom group directory been created yet?
+Facter.add('gluster_property_groups_ready') do
+	#confine :operatingsystem => %w{CentOS, RedHat, Fedora}
+	setcode {
+		(File.directory?(valid_setgroupdir) ? 'true':'false')
+	}
 end
 
 # vim: ts=8

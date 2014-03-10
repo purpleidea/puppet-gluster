@@ -27,6 +27,7 @@ define gluster::volume::property::group(
 	include gluster::xml
 	include gluster::vardir
 	include gluster::volume::property
+	include gluster::volume::property::group::data
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
@@ -42,19 +43,29 @@ define gluster::volume::property::group(
 	$groups = split($gluster_property_groups, ',')	# fact
 
 	if ! ("${group}" in $groups) {
-		fail("The group named '${group}' is not available.")
-	}
 
-	# read the fact that comes from the data in: /var/lib/glusterd/groups/*
-	$group_data_string = getvar("gluster_property_group_${name}")	# fact!
-	# each element in this list is a key=value string
-	$group_data_list = split("${group_data_string}", ',')
-	# split into the correct hash to create all the properties
-	$group_data_yaml = inline_template("<%= @group_data_list.inject(Hash.new) { |h,i| { '${volume}#'+((i.split('=').length == 2) ? i.split('=')[0] : '') => {'value' => ((i.split('=').length == 2) ? i.split('=')[1] : '')} }.merge(h) }.to_yaml %>")
-	# build into a hash
-	$group_data_hash = parseyaml($group_data_yaml)
-	# create the properties
-	create_resources('gluster::volume::property', $group_data_hash)
+		# check a fact to see if the directory is built yet... this
+		# prevents weird corner cases where this module is added to
+		# a new machine which is already built, except doesn't have
+		# the custom group data installed yet. if we fail, we won't
+		# be able to install it, so we don't fail, we warn instead!
+		if "${gluster_property_groups_ready}" == 'true' {
+			warning("The group named '${group}' is not available.")
+		} else {
+			notice("The group '${group}' might not be built yet.")
+		}
+	} else {
+		# read the fact that comes from the data in: /var/lib/glusterd/groups/*
+		$group_data_string = getvar("gluster_property_group_${group}")	# fact!
+		# each element in this list is a key=value string
+		$group_data_list = split("${group_data_string}", ',')
+		# split into the correct hash to create all the properties
+		$group_data_yaml = inline_template("<%= @group_data_list.inject(Hash.new) { |h,i| { '${volume}#'+((i.split('=').length == 2) ? i.split('=')[0] : '') => {'value' => ((i.split('=').length == 2) ? i.split('=')[1] : '')} }.merge(h) }.to_yaml %>")
+		# build into a hash
+		$group_data_hash = parseyaml($group_data_yaml)
+		# create the properties
+		create_resources('gluster::volume::property', $group_data_hash)
+	}
 }
 
 # vim: ts=8
