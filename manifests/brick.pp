@@ -124,7 +124,7 @@ define gluster::brick(
 		$lvm_vgname = "vg_${lvm_safename}"
 		$lvm_lvname = "lv_${lvm_safename}"
 
-		$lvm_dataalignment = inline_template('<%= raid_su.to_i*raid_sw.to_i %>')
+		$lvm_dataalignment = inline_template('<%= @raid_su.to_i*@raid_sw.to_i %>')
 
 		$lvm_pvcreate = "/sbin/pvcreate --dataalignment ${lvm_dataalignment}K ${dev1}"
 
@@ -344,7 +344,7 @@ define gluster::brick(
 				timeout => 3600,	# set to something very long
 				noop => $exec_noop,
 				before => Exec["gluster-brick-mkfs-${name}"],
-				alias => "gluster-brick-lvm-vgcreate-${name}",
+				alias => "gluster-brick-lvm-lvcreate-${name}",
 			}
 		}
 
