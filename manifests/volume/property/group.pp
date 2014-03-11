@@ -26,7 +26,6 @@ define gluster::volume::property::group(
 ) {
 	include gluster::xml
 	include gluster::vardir
-	include gluster::volume::property
 	include gluster::volume::property::group::data
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash

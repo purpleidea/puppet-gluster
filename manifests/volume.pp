@@ -24,7 +24,6 @@ define gluster::volume(
 	$vip = '',		# vip of the cluster (optional but recommended)
 	$ping = true,		# do we want to include fping checks ?
 	$settle = true,		# do we want to run settle checks ?
-	$setgroup = '',		# pick a volume property group to set, eg: virt
 	$start = undef		# start volume ? true, false (stop it) or undef
 ) {
 	include gluster::xml
@@ -410,12 +409,6 @@ define gluster::volume(
 				Exec["gluster-volume-fsm-state-${name}"],
 			],
 			alias => "gluster-volume-fsm-watch-${name}",
-		}
-	}
-
-	# set a group of volume properties
-	if "${setgroup}" != '' {
-		gluster::volume::property::group { "${name}#${setgroup}":
 		}
 	}
 }

@@ -46,7 +46,7 @@ found = {}
 [valid_setgroupdir, groupdir].each do |g|
 
 	if not(g.nil?) and File.directory?(g)
-		Dir.glob(g+'*.*').each do |f|
+		Dir.glob(g+'*').each do |f|
 			b = File.basename(f)
 
 			# a later entry overrides an earlier one...
@@ -56,7 +56,7 @@ found = {}
 
 			groups = File.open(f, 'r').read		# read into str
 			groups.each_line do |line|
-				split = line.split('=')		# split key=value pairs
+				split = line.strip.split('=')	# split key=value pairs
 				if split.length == 2
 					key = split[0]
 					value = split[1]

@@ -28,11 +28,14 @@ class gluster::volume::property::group::data() {
 
 	file { "${vardir}/groups/":
 		source => 'puppet:///modules/gluster/groups/',
+		ensure => directory,
+		recurse => true,
+		purge => true,
+		force => true,
 		owner => root,
 		group => nobody,
 		mode => 644,			# u=rwx
 		backup => false,		# don't backup to filebucket
-		ensure => present,
 		require => File["${vardir}/"],
 	}
 }

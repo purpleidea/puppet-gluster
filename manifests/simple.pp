@@ -50,6 +50,7 @@ class gluster::simple(
 	$shorewall = true
 ) {
 	include gluster::vardir
+	include gluster::volume::property::group::data	# make the groups early
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
@@ -70,6 +71,11 @@ class gluster::simple(
 	}
 
 	$valid_path = sprintf("%s/", regsubst($chosen_path, '\/$', ''))
+
+	$valid_volumes = type($volume) ? {	# always an array of volumes...
+		'array' => $volume,
+		default => ["${volume}"],
+	}
 
 	validate_hash($brick_param_defaults)
 	# in someone explicitly added this value, then don't overwrite it...
@@ -149,7 +155,7 @@ class gluster::simple(
 	#}
 	Gluster::Brick <<||>>
 
-	gluster::volume { $volume:
+	gluster::volume { $valid_volumes:
 		replica => $replica,
 		stripe => $stripe,
 		# NOTE: with this method you do not choose the order of course!
@@ -160,10 +166,16 @@ class gluster::simple(
 		# the only semi-safe way is the new built in automatic collect:
 		bricks => true,			# automatic brick collection...
 		ping => $ping,
-		setgroup => $setgroup,
 		start => true,
 	}
 	Gluster::Volume <<||>>
+
+	# set a group of volume properties
+	if "${setgroup}" != '' {
+		$setgroup_yaml = inline_template("<%= @valid_volumes.inject(Hash.new) { |h,i| {i+'#'+@setgroup => {}}.merge(h) }.to_yaml %>")
+		$setgroup_hash = parseyaml($setgroup_yaml)
+		create_resources('gluster::volume::property::group', $setgroup_hash)
+	}
 }
 
 # vim: ts=8
