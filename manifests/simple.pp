@@ -20,6 +20,7 @@ class gluster::simple(
 	$volume = 'puppet',	# NOTE: this can be a list...
 	$replica = 1,
 	$stripe = 1,		# TODO: not fully implemented in puppet-gluster
+	$layout = '',		# brick layout to use (default, chained, etc...)
 	$vip = '',		# strongly recommended
 	$vrrp = false,
 	$password = '',	# global vrrp password to use
@@ -158,6 +159,7 @@ class gluster::simple(
 	gluster::volume { $valid_volumes:
 		replica => $replica,
 		stripe => $stripe,
+		layout => "${layout}",
 		# NOTE: with this method you do not choose the order of course!
 		# the gluster_fqdns fact is alphabetical, but not complete till
 		# at least a puppet run of each node has occured. watch out for

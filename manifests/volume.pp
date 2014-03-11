@@ -21,6 +21,9 @@ define gluster::volume(
 	$transport = 'tcp',
 	$replica = 1,
 	$stripe = 1,
+	# TODO: maybe this should be called 'chained' => true/false, and maybe,
+	# we can also specify an offset count for chaining, or other parameters
+	$layout = '',		# brick layout to use (default, chained, etc...)
 	$vip = '',		# vip of the cluster (optional but recommended)
 	$ping = true,		# do we want to include fping checks ?
 	$settle = true,		# do we want to run settle checks ?
@@ -76,9 +79,15 @@ define gluster::volume(
 
 	$gluster_brick_group_fact = getvar("gluster_brick_group_${group}")
 	$collected_bricks = split($gluster_brick_group_fact, ',')
+	# run the appropriate layout function here
+	$ordered_brick_layout = $layout ? {
+		'chained' => brick_layout_chained($replica, $collected_bricks),
+		default => brick_layout_simple($replica, $collected_bricks),
+	}
+
 	$valid_bricks = type($bricks) ? {
 		'boolean' => $bricks ? {
-			true => $collected_bricks,		# an array...
+			true => $ordered_brick_layout,		# an array...
 			default => [],				# invalid type
 		},
 		'list' => $bricks,
@@ -86,6 +95,7 @@ define gluster::volume(
 	}
 
 	# helpful debugging!
+	notice(inline_template('collected_bricks: <%= @collected_bricks.inspect %>'))
 	notice(inline_template('valid_bricks: <%= @valid_bricks.inspect %>'))
 
 	# NOTE: we're using the valid_bricks value here, and not the collected
