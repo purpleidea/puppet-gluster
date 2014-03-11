@@ -28,7 +28,8 @@ module Puppet::Parser::Functions
 
 		ENDHEREDOC
 
-		# signature: node, zone -> ip
+		Puppet::Parser::Functions.function('warning')	# load function
+		# signature: replica, bricks -> bricks
 		unless args.length == 2
 			raise Puppet::ParseError, "brick_layout_chained(): wrong number of arguments (#{args.length}; must be 2)"
 		end
@@ -119,8 +120,7 @@ module Puppet::Parser::Functions
 
 				path = brickstack[host].shift	# yoink
 				if path.nil?
-					# TODO: is raise okay?
-					raise Puppet::ParseError, "brick_layout_chained(): brick list is not valid"
+					function_warning(["brick_layout_chained(): brick list is not valid"])
 					next
 				end
 				final.append({'host' => host, 'path' => path})	# save

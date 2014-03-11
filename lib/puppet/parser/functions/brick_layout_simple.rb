@@ -34,7 +34,7 @@ module Puppet::Parser::Functions
 
 		ENDHEREDOC
 
-		# signature: node, zone -> ip
+		# signature: replica, bricks -> bricks
 		unless args.length == 2
 			raise Puppet::ParseError, "brick_layout_simple(): wrong number of arguments (#{args.length}; must be 2)"
 		end
