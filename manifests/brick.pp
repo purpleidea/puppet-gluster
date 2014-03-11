@@ -78,8 +78,11 @@ define gluster::brick(
 	# TODO: check inputs for sanity and auto-detect if one is empty
 	# TODO: maybe we can detect these altogether from the raid set!
 	if "${raid_su}" == '' and "${raid_sw}" == '' {
-		if $lvm or "${fstype}" == 'xfs' {
-			warning('Setting $raid_su and $raid_sw is recommended.')
+		# if we are not using a real device, we should ignore warnings!
+		if type($dev) != 'boolean' {			# real devices!
+			if $lvm or "${fstype}" == 'xfs' {
+				warning('Setting $raid_su and $raid_sw is recommended.')
+			}
 		}
 	} elsif "${raid_su}" != '' and "${raid_sw}" != '' {
 		# ensure both are positive int's !
