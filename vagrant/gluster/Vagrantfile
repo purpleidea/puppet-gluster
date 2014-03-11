@@ -63,6 +63,8 @@ version = ''		# default gluster version (empty string means latest!)
 firewall = false	# default firewall enabled (FIXME: default to true when keepalived bug is fixed)
 replica = 1		# default replica count
 clients = 1		# default number of gluster clients to build
+layout = ''		# default brick layout
+setgroup = ''		# default setgroup value
 cachier = false		# default cachier usage
 
 #
@@ -79,6 +81,8 @@ if File.exist?(f)
 	firewall = settings[:firewall]
 	replica = settings[:replica]
 	clients = settings[:clients]
+	layout = settings[:layout]
+	setgroup = settings[:setgroup]
 	cachier = settings[:cachier]
 end
 
@@ -122,6 +126,18 @@ while skip < ARGV.length
 
 		clients = v.to_i	# set gluster client count
 
+	elsif ARGV[skip].start_with?(arg='--gluster-layout=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		layout = v.to_s		# set gluster brick layout
+
+	elsif ARGV[skip].start_with?(arg='--gluster-setgroup=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		setgroup = v.to_s	# set gluster setgroup
+
 	elsif ARGV[skip].start_with?(arg='--gluster-cachier=')
 		v = ARGV.delete_at(skip).dup
 		v.slice! arg
@@ -145,6 +161,8 @@ settings = {
 	:firewall => firewall,
 	:replica => replica,
 	:clients => clients,
+	:layout => layout,
+	:setgroup => setgroup,
 	:cachier => cachier
 }
 File.open(f, 'w') do |file|
@@ -400,6 +418,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 				puppet.facter = {
 					'vagrant' => '1',
 					'vagrant_gluster_replica' => replica.to_s,
+					'vagrant_gluster_layout' => layout,
+					'vagrant_gluster_setgroup' => setgroup,
 					'vagrant_gluster_vip' => vip_ip,
 					'vagrant_gluster_vip_fqdn' => "#{vip_hostname}.#{domain}",
 					'vagrant_gluster_firewall' => firewall ? 'true' : 'false',

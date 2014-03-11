@@ -53,9 +53,11 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 	class { '::gluster::simple':
 		volume => 'puppet',
 		replica => "${::vagrant_gluster_replica}",
+		layout => "${::vagrant_gluster_layout}",
 		vip => "${::vagrant_gluster_vip}",	# from vagrant
 		version => "${::vagrant_gluster_version}",
 		vrrp => true,
+		setgroup => "${::vagrant_gluster_setgroup}",
 		shorewall => "${::vagrant_gluster_firewall}" ? {
 			'false' => false,
 			default => true,
