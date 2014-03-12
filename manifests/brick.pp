@@ -100,8 +100,8 @@ define gluster::brick(
 	# get the raw /dev/vdx device, and append the partition number
 	$dev0 = "`/bin/readlink -e ${dev}`"	# resolve to /dev/<device>
 
-	$part_mklabel = "/sbin/parted -s -m -a optimal ${dev} mklabel ${valid_labeltype}"
-	$part_mkpart = "/sbin/parted -s -m -a optimal ${dev} mkpart primary 0% 100%"
+	$part_mklabel = "/sbin/parted -s -m -a optimal ${dev0} mklabel ${valid_labeltype}"
+	$part_mkpart = "/sbin/parted -s -m -a optimal ${dev0} mkpart primary 0% 100%"
 
 	#
 	$dev1 = $partition ? {
@@ -114,8 +114,14 @@ define gluster::brick(
 	#
 	if $lvm {
 		# NOTE: this is need for thin-provisioning, and RHS compliance!
-		$lvm_vgname = "vg_${safename}"
-		$lvm_lvname = "lv_${safename}"
+
+		# NOTE: as a consequence of this type of automation, we generate
+		# really ugly vg names like: "vg_annex1.example.com+_gluster_" !
+		# TODO: in the future, it might be nice to provide an option to
+		# use simplified naming based on hostname and a brick number...
+		$lvm_safename = regsubst("${safename}", ':', '+', 'G')	# safe!
+		$lvm_vgname = "vg_${lvm_safename}"
+		$lvm_lvname = "lv_${lvm_safename}"
 
 		$lvm_dataalignment = inline_template('<%= raid_su.to_i*raid_sw.to_i %>')
 
@@ -124,7 +130,8 @@ define gluster::brick(
 		$lvm_vgcreate = "/sbin/vgcreate ${lvm_vgname} ${dev1}"
 
 		# creates dev /dev/vgname/lvname
-		$lvm_lvcreate = "/sbin/lvcreate -n ${lvm_lvname} ${lvm_vgname}"
+		# FIXME: should we use --extents or --size and what values ?
+		$lvm_lvcreate = "/sbin/lvcreate --extents 100%PVS -n ${lvm_lvname} ${lvm_vgname}"
 
 		$dev2 = "/dev/${lvm_vgname}/${lvm_lvname}"
 
