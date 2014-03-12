@@ -129,21 +129,21 @@ class gluster::simple(
 	if has_key($brick_params, "${::fqdn}") {
 		# here some wizardry happens...
 		$brick_params_list = $brick_params["${::fqdn}"]
-		$valid_count = $count ? {
-			0 => inline_template('<%= @brick_params_list.length %>'),
+		$valid_count = "${count}" ? {
+			'0' => inline_template('<%= @brick_params_list.length %>'),
 			default => $count,
 		}
 		validate_array($brick_params_list)
 		$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {'${::fqdn}:${valid_path}brick' + (i+1).to_s.rjust(7, '0') + '/' => ((i < @brick_params_list.length) ? @brick_params_list[i] : {})}.merge(h) }.to_yaml %>")
 	} else {
 		# here we base our brick list on the $count variable alone...
-		$valid_count = $count ? {
-			0 => 1,		# 0 means undefined, so use the default
+		$valid_count = "${count}" ? {
+			'0' => 1,		# 0 means undefined, so use the default
 			default => $count,
 		}
-		$brick_params_list = $valid_count ? {
+		$brick_params_list = "${valid_count}" ? {
 			# TODO: should we use the same pattern for 1 or many ?
-			1 => ["${::fqdn}:${valid_path}"],
+			'1' => ["${::fqdn}:${valid_path}"],
 			default => split(inline_template("<%= (1..@valid_count.to_i).collect{|i| '${::fqdn}:${valid_path}brick' + i.to_s.rjust(7, '0') + '/' }.join(',') %>"), ','),
 		}
 		$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {@brick_params_list[i] => {}}.merge(h) }.to_yaml %>")

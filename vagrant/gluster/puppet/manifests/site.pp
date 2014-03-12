@@ -53,6 +53,7 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 	class { '::gluster::simple':
 		volume => 'puppet',
 		replica => "${::vagrant_gluster_replica}",
+		count => "${::vagrant_gluster_bricks}",	# brick count
 		layout => "${::vagrant_gluster_layout}",
 		vip => "${::vagrant_gluster_vip}",	# from vagrant
 		version => "${::vagrant_gluster_version}",
