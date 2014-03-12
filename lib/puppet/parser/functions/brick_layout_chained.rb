@@ -102,8 +102,8 @@ module Puppet::Parser::Functions
 		parsed = brick_str_to_hash(bricks)
 		# TODO: there should probably be a proper 'sorted' function for
 		# hostnames, in case they aren't numbered sanely _WITH_ padding.
-		hosts = get_hostlist(bricks).sort
-		brickstack = get_brickstacks(bricks, sort=true)
+		hosts = get_hostlist(parsed).sort
+		brickstack = get_brickstacks(parsed, sort=true)
 
 		if bricks.length == 0; return []; end
 
@@ -123,7 +123,7 @@ module Puppet::Parser::Functions
 					function_warning(["brick_layout_chained(): brick list is not valid"])
 					next
 				end
-				final.append({'host' => host, 'path' => path})	# save
+				final.push({'host' => host, 'path' => path})	# save
 			end
 			pointer+=1
 		end
