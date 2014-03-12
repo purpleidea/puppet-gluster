@@ -19,6 +19,7 @@
 
 define gluster::volume::property(
 	$value,
+	$vip = '',		# vip of the cluster (optional but recommended)
 	$autotype = true		# set to false to disable autotyping
 ) {
 	include gluster::xml
@@ -152,18 +153,29 @@ define gluster::volume::property(
 		}
 	}
 
-	# volume set <VOLNAME> <KEY> <VALUE>
-	# set a volume property only if value doesn't match what is available
-	# FIXME: check that the value we're setting isn't the default
-	# FIXME: you can check defaults with... gluster volume set help | ...
-	exec { "/usr/sbin/gluster volume set ${volume} ${key} ${safe_value}":
-		unless => "/usr/bin/test \"`/usr/sbin/gluster volume --xml info ${volume} | ${vardir}/xml.py property --key '${key}'`\" = '${safe_value}'",
-		onlyif => "/usr/sbin/gluster volume list | /bin/grep -qxF '${volume}' -",
-		logoutput => on_failure,
-		require => [
-			Gluster::Volume[$volume],
-			File["${vardir}/xml.py"],
-		],
+	$valid_vip = "${vip}" ? {
+		'' => $::gluster::server::vip,
+		default => "${vip}",
+	}
+
+	# returns interface name that has vip, or '' if none are found.
+	$vipif = inline_template("<%= @interfaces.split(',').find_all {|x| '${valid_vip}' == scope.lookupvar('ipaddress_'+x) }[0,1].join('') %>")
+
+	# run if vip not defined (bypass mode) or if vip exists on this machine
+	if ("${valid_vip}" == '' or "${vipif}" != '') {
+		# volume set <VOLNAME> <KEY> <VALUE>
+		# set a volume property only if value doesn't match what is available
+		# FIXME: check that the value we're setting isn't the default
+		# FIXME: you can check defaults with... gluster volume set help | ...
+		exec { "/usr/sbin/gluster volume set ${volume} ${key} ${safe_value}":
+			unless => "/usr/bin/test \"`/usr/sbin/gluster volume --xml info ${volume} | ${vardir}/xml.py property --key '${key}'`\" = '${safe_value}'",
+			onlyif => "/usr/sbin/gluster volume list | /bin/grep -qxF '${volume}' -",
+			logoutput => on_failure,
+			require => [
+				Gluster::Volume[$volume],
+				File["${vardir}/xml.py"],
+			],
+		}
 	}
 }
 

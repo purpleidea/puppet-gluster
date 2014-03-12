@@ -23,6 +23,7 @@
 # NOTE: this does the equivalent of: gluster volume set <VOLNAME> group <GROUP>
 
 define gluster::volume::property::group(
+	$vip = '',		# vip of the cluster (optional but recommended)
 ) {
 	include gluster::xml
 	include gluster::vardir
@@ -62,8 +63,10 @@ define gluster::volume::property::group(
 		$group_data_yaml = inline_template("<%= @group_data_list.inject(Hash.new) { |h,i| { '${volume}#'+((i.split('=').length == 2) ? i.split('=')[0] : '') => {'value' => ((i.split('=').length == 2) ? i.split('=')[1] : '')} }.merge(h) }.to_yaml %>")
 		# build into a hash
 		$group_data_hash = parseyaml($group_data_yaml)
+		# pass through the vip
+		$group_data_defaults = {'vip' => "${vip}"}
 		# create the properties
-		create_resources('gluster::volume::property', $group_data_hash)
+		create_resources('gluster::volume::property', $group_data_hash, $group_data_defaults)
 	}
 }
 

@@ -176,7 +176,8 @@ class gluster::simple(
 	if "${setgroup}" != '' {
 		$setgroup_yaml = inline_template("<%= @valid_volumes.inject(Hash.new) { |h,i| {i+'#'+@setgroup => {}}.merge(h) }.to_yaml %>")
 		$setgroup_hash = parseyaml($setgroup_yaml)
-		create_resources('gluster::volume::property::group', $setgroup_hash)
+		$setgroup_defaults = {'vip' => "${vip}"}
+		create_resources('gluster::volume::property::group', $setgroup_hash, $setgroup_defaults)
 	}
 }
 
