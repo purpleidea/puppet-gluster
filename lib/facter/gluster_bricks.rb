@@ -74,54 +74,10 @@ if not(valid_brickdir.nil?) and File.directory?(valid_brickdir)
 	end
 end
 
-# sort the bricks in a logical manner... i think this is the optimal algorithm,
-# but i'd be happy if someone thinks they can do better! this assumes that the
-# bricks and hosts are named in a logical manner. alphanumeric sorting is used
-# to determine the default ordering...
-# TODO: maybe this should be a puppet function instead of a fact... that way,
-# if necessary, the function could also include the replica count, and other
-# data as input... is it even needed ?
-
+# transform to strings
 found.keys.each do |group|
-
-	collect = {}
-	found[group].each do |x|
-		key = x['host']
-		val = x['path']
-
-		if not collect.has_key?(key)
-			collect[key] = []	# initialize
-		end
-
-		collect[key].push(val)	# save in array
-		# TODO: ensure this array is always sorted (we could also do this after
-		# or always insert elements in the correct sorted order too :P)
-		collect[key] = collect[key].sort
-	end
-
-	# we also could do this sort here...
-	collect.keys.each do |x|
-		collect[x] = collect[x].sort
-	end
-
-	final = []	# final order...
-	# TODO: here we can probably detect if this is an asymmetrical configurations, or maybe bad naming...
-	while collect.size > 0
-		collect.keys.sort.each do |x|
-
-			# NOTE: this array should already be sorted!
-			p = collect[x].shift	# assume an array of at least 1 element
-			final.push( { 'host' => x, 'path' => p } )	# save
-
-			if collect[x].size == 0		# maybe the array is empty now
-				collect.delete(x)	# remove that empty list's key
-			end
-
-		end
-	end
-
 	# build final result
-	result[group] = final.collect {|x| x['host']+':'+x['path'] }
+	result[group] = found[group].collect {|x| x['host']+':'+x['path'] }
 end
 
 # build the correctly sorted brick list...

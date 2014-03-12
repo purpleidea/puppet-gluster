@@ -15,6 +15,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# NOTE:
+# sort the bricks in a logical manner... i think this is the optimal algorithm,
+# but i'd be happy if someone thinks they can do better! this assumes that the
+# bricks and hosts are named in a logical manner. alphanumeric sorting is used
+# to determine the default ordering...
+
 module Puppet::Parser::Functions
 	newfunction(:brick_layout_simple, :type => :rvalue, :doc => <<-'ENDHEREDOC') do |args|
 		Return the simple symmetrical brick list
