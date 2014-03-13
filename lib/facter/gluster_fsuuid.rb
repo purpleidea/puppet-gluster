@@ -59,10 +59,14 @@ if not(module_vardir.nil?) and not File.directory?(module_vardir)
 	Dir::mkdir(module_vardir)
 end
 
+if not(valid_brickdir.nil?) and not File.directory?(valid_brickdir)
+	Dir::mkdir(valid_brickdir)
+end
+
 found = {}
 
 # generate uuid and parent directory if they don't already exist...
-if not(module_vardir.nil?) and File.directory?(module_vardir)
+if not(valid_brickdir.nil?) and File.directory?(valid_brickdir)
 	if not File.directory?(uuiddir)
 		Dir::mkdir(uuiddir)
 	end
