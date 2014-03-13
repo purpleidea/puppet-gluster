@@ -39,6 +39,7 @@ define gluster::brick(
 	$comment = ''
 ) {
 	include gluster::brick::base
+	include gluster::again
 	include gluster::vardir
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
@@ -70,6 +71,42 @@ define gluster::brick(
 		mode => 644,
 		ensure => present,
 		require => File["${vardir}/brick/"],
+	}
+
+	#
+	#	fsuuid...
+	#
+	if ("${fsuuid}" != '') and "${fsuuid}" =~ /^[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12}$/ {
+		fail("The chosen fs uuid: '${fsuuid}' is not valid.")
+	}
+
+	# if we manually *pick* a uuid, then store it too, so that it
+	# sticks if we ever go back to using automatic uuids. this is
+	# useful if a user wants to initially import uuids by picking
+	# them manually, and then letting puppet take over afterwards
+	if "${fsuuid}" != '' {
+		# $group is unnecessary, but i left it in for consistency...
+		file { "${vardir}/brick/fsuuid/${safename}.${group}":
+			content => "${fsuuid}\n",
+			owner => root,
+			group => root,
+			mode => 600,	# might as well...
+			ensure => present,
+			require => File["${vardir}/brick/fsuuid/"],
+		}
+	}
+
+	# we sha1 to prevent weird characters in facter
+	$fsuuid_safename = sha1("${name}.${group}")
+	$valid_fsuuid = "${fsuuid}" ? {
+		# fact from the data generated in: ${vardir}/brick/fsuuid/*
+		'' => getvar("gluster_brick_fsuuid_${fsuuid_safename}"),	# fact!
+		default => "${fsuuid}",
+	}
+
+	# you might see this on first run if the fsuuid isn't generated yet
+	if (type($dev) != 'boolean') and ("${valid_fsuuid}" == '') {
+		warning('An $fsuuid must be specified or generated.')
 	}
 
 	#
@@ -218,7 +255,7 @@ define gluster::brick(
 		$xfs_cmd = join(delete($xfs_cmdlist, ''), ' ')
 
 		# TODO: xfs_admin doesn't have a --quiet flag. silence it...
-		$xfs_admin = "/usr/sbin/xfs_admin -U '${fsuuid}' ${dev2}"
+		$xfs_admin = "/usr/sbin/xfs_admin -U '${valid_fsuuid}' ${dev2}"
 
 		# mkfs w/ uuid command
 		$mkfs_exec = "${xfs_cmd} && ${xfs_admin}"
@@ -257,7 +294,7 @@ define gluster::brick(
 		$exec_requires = [Package['e2fsprogs']]
 
 		# mkfs w/ uuid command
-		$mkfs_exec = "/sbin/mkfs.${valid_fstype} -U '${fsuuid}' ${dev2}"
+		$mkfs_exec = "/sbin/mkfs.${valid_fstype} -U '${valid_fsuuid}' ${dev2}"
 
 		# mount options
 		$options_list = []	# TODO
@@ -340,7 +377,8 @@ define gluster::brick(
 			exec { "${lvm_lvcreate}":
 				logoutput => on_failure,
 				unless => [		# if one element is true, this *doesn't* run
-					"/sbin/lvdisplay ${lvm_lvname}",
+					#"/sbin/lvdisplay ${lvm_lvname}",	# nope!
+					"/sbin/lvs --separator ':' | /usr/bin/tr -d ' ' | /bin/awk -F ':' '{print \$1}' | /bin/grep -q '${lvm_lvname}'",
 					'/bin/false',	# TODO: add more criteria
 				],
 				require => $exec_requires,
@@ -355,13 +393,24 @@ define gluster::brick(
 			notify { "noop for mkfs: ${name}":
 				message => "${mkfs_exec}",
 			}
+		} else {
+			# if valid_fsuuid isn't ready, trigger an exec again...
+			exec { "gluster-brick-fsuuid-execagain-${name}":
+				command => '/bin/true',	# do nothing but notify
+				logoutput => on_failure,
+				onlyif => "/usr/bin/test -z '${valid_fsuuid}'",
+				notify => Common::Again::Delta['gluster-exec-again'],
+				# this (optional) require makes it more logical
+				require => File["${vardir}/brick/fsuuid/"],
+			}
 		}
 
 		# mkfs...
 		exec { "${mkfs_exec}":
 			logoutput => on_failure,
+			onlyif => "/usr/bin/test -n '${valid_fsuuid}'",
 			unless => [		# if one element is true, this *doesn't* run
-				"/usr/bin/test -e /dev/disk/by-uuid/${fsuuid}",
+				"/usr/bin/test -e /dev/disk/by-uuid/${valid_fsuuid}",
 				'/bin/false',	# TODO: add more criteria
 			],
 			require => $exec_requires,
@@ -380,22 +429,24 @@ define gluster::brick(
 		}
 
 		# mount points don't seem to like trailing slashes...
-		mount { "${short_path}":
-			atboot => true,
-			ensure => mounted,
-			device => "UUID=${fsuuid}",
-			fstype => "${valid_fstype}",
-			# noatime,nodiratime to save gluster from silly updates
-			options => "${mount_options},${ro_bool},noatime,nodiratime,noexec",	# TODO: is nodev? nosuid? noexec? a good idea?
-			dump => '0',	# fs_freq: 0 to skip file system dumps
-			# NOTE: technically this should be '2', to `fsck.xfs`
-			# after the rootfs ('1'), but fsck.xfs actually does
-			# 'nothing, successfully', so it's irrelevant, because
-			# xfs uses xfs_check and friends only when suspect.
-			pass => '2',	# fs_passno: 0 to skip fsck on boot
-			require => [
-				File["${valid_path}"],
-			],
+		if "${valid_fsuuid}" != '' {	# in case fsuuid isn't ready yet
+			mount { "${short_path}":
+				atboot => true,
+				ensure => mounted,
+				device => "UUID=${valid_fsuuid}",
+				fstype => "${valid_fstype}",
+				# noatime,nodiratime to save gluster from silly updates
+				options => "${mount_options},${ro_bool},noatime,nodiratime,noexec",	# TODO: is nodev? nosuid? noexec? a good idea?
+				dump => '0',	# fs_freq: 0 to skip file system dumps
+				# NOTE: technically this should be '2', to `fsck.xfs`
+				# after the rootfs ('1'), but fsck.xfs actually does
+				# 'nothing, successfully', so it's irrelevant, because
+				# xfs uses xfs_check and friends only when suspect.
+				pass => '2',	# fs_passno: 0 to skip fsck on boot
+				require => [
+					File["${valid_path}"],
+				],
+			}
 		}
 
 	} elsif ((type($dev) == 'boolean') and (! $dev)) and ("${fqdn}" == "${host}") {

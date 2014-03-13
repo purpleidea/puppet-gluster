@@ -28,5 +28,14 @@ class gluster::brick::base {
 		force => true,		# don't purge subdirs and links
 		require => File["${vardir}/"],
 	}
+
+	# don't purge the fsuuid file's generated within
+	file { "${vardir}/brick/fsuuid/":
+		ensure => directory,	# make sure this is a directory
+		recurse => false,	# don't recurse into directory
+		purge => false,		# don't purge unmanaged files
+		force => false,		# don't purge subdirs and links
+		require => File["${vardir}/brick/"],
+	}
 }
 # vim: ts=8
