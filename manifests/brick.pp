@@ -200,7 +200,7 @@ define gluster::brick(
 		# system. These options are sometimes auto-detected but manual
 		# configuration is needed with many of the hardware RAID
 		# volumes.
-		$xfs_arg05 = "-d su=${raid_su}K,sw=${raid_sw}"
+		$xfs_arg05 = "-d su=${raid_su}k,sw=${raid_sw}"
 
 		$xfs_cmdlist = [
 			"${xfs_arg00}",
