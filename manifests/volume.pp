@@ -90,7 +90,7 @@ define gluster::volume(
 			true => $ordered_brick_layout,		# an array...
 			default => [],				# invalid type
 		},
-		'list' => $bricks,
+		'array' => $bricks,
 		default => [],					# invalid type
 	}
 
