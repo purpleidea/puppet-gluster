@@ -320,10 +320,10 @@ class gluster::volume::property::data() {
 		'storage.linux-aio' => 'offon',	# default: off
 
 		# Support for setting gid of brick's owner
-		'storage.owner-gid' => '',	# default: (null)
+		'storage.owner-gid' => 'integer',	# default: (null)
 
 		# Support for setting uid of brick's owner
-		'storage.owner-uid' => '',	# default: (null)
+		'storage.owner-uid' => 'integer',	# default: (null)
 	}
 
 	# join char
