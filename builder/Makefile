@@ -27,11 +27,9 @@
 VERSION = centos-6
 BOX = $(VERSION).box
 SIZE = 40
-#OUTPUT = /tmp/gluster
+OUTPUT = /tmp/vagrant
 #OUTPUT := $(shell pwd)
-OUTPUT := $(shell echo ~/tmp/builder/gluster)
-SERVER = 'download.gluster.org'
-REMOTE_PATH = 'purpleidea/vagrant'
+#OUTPUT := $(shell echo ~/tmp/builder/gluster)
 
 all: box
 
@@ -67,6 +65,7 @@ $(OUTPUT)/builder.img: files/*
 	--size $(SIZE)G \
 	--install rsync,nfs-utils,sudo,openssh-server,openssh-clients \
 	--install screen,vim-enhanced,git,wget,file,man,tree,nmap,tcpdump,htop,lsof,telnet,mlocate,bind-utils,koan,iftop,yum-utils,nc \
+	--install libselinux-python \
 	--root-password file:files/password \
 	--upload files/epel-release-6-8.noarch.rpm:/root/epel-release-6-8.noarch.rpm \
 	--upload files/puppetlabs-release-el-6.noarch.rpm:/root/puppetlabs-release-el-6.noarch.rpm \
@@ -75,6 +74,7 @@ $(OUTPUT)/builder.img: files/*
 	--run-command 'yum install -y /root/puppetlabs-release-el-6.noarch.rpm && rm -f /root/puppetlabs-release-el-6.noarch.rpm' \
 	--run-command 'yum install -y puppet' \
 	--run-command 'yum update -y' \
+	--run-command 'service sshd start' \
 	--run files/user.sh \
 	--run files/ssh.sh \
 	--run files/network.sh \
@@ -127,22 +127,4 @@ $(OUTPUT)/SHA256SUMS.asc: $(OUTPUT)/SHA256SUMS
 	@echo Running gpg...
 	# the --yes forces an overwrite of the SHA256SUMS.asc if necessary
 	gpg2 --yes --clearsign $(OUTPUT)/SHA256SUMS
-
-#
-#	upload
-#
-# upload to public server
-# NOTE: user downloads while file uploads are in progress don't cause problems!
-upload: $(OUTPUT)/$(BOX) $(OUTPUT)/SHA256SUMS $(OUTPUT)/SHA256SUMS.asc
-	if [ "`cat $(OUTPUT)/SHA256SUMS`" != "`ssh $(SERVER) 'cd $(REMOTE_PATH)/ && sha256sum $(BOX)'`" ]; then \
-		echo Running upload...; \
-		scp -p $(OUTPUT)/{$(BOX),SHA256SUMS{,.asc}} $(SERVER):$(REMOTE_PATH)/; \
-	fi
-# this method works too, but always hits the server on every make call
-#upload:
-#ifeq ($(shell cat $(OUTPUT)/SHA256SUMS), $(shell ssh $(SERVER) 'cd $(REMOTE_PATH)/ && sha256sum $(BOX)'))
-#	@echo true
-#else
-#	@echo false
-#endif
 
