@@ -30,8 +30,6 @@ SIZE = 40
 OUTPUT = /tmp/vagrant
 #OUTPUT := $(shell pwd)
 #OUTPUT := $(shell echo ~/tmp/builder/gluster)
-SERVER = 'download.gluster.org'
-REMOTE_PATH = 'purpleidea/vagrant'
 
 all: box
 
@@ -129,22 +127,4 @@ $(OUTPUT)/SHA256SUMS.asc: $(OUTPUT)/SHA256SUMS
 	@echo Running gpg...
 	# the --yes forces an overwrite of the SHA256SUMS.asc if necessary
 	gpg2 --yes --clearsign $(OUTPUT)/SHA256SUMS
-
-#
-#	upload
-#
-# upload to public server
-# NOTE: user downloads while file uploads are in progress don't cause problems!
-upload: $(OUTPUT)/$(BOX) $(OUTPUT)/SHA256SUMS $(OUTPUT)/SHA256SUMS.asc
-	if [ "`cat $(OUTPUT)/SHA256SUMS`" != "`ssh $(SERVER) 'cd $(REMOTE_PATH)/ && sha256sum $(BOX)'`" ]; then \
-		echo Running upload...; \
-		scp -p $(OUTPUT)/{$(BOX),SHA256SUMS{,.asc}} $(SERVER):$(REMOTE_PATH)/; \
-	fi
-# this method works too, but always hits the server on every make call
-#upload:
-#ifeq ($(shell cat $(OUTPUT)/SHA256SUMS), $(shell ssh $(SERVER) 'cd $(REMOTE_PATH)/ && sha256sum $(BOX)'))
-#	@echo true
-#else
-#	@echo false
-#endif
 
