@@ -27,9 +27,9 @@
 VERSION = centos-6
 BOX = $(VERSION).box
 SIZE = 40
-#OUTPUT = /tmp/gluster
+OUTPUT = /tmp/vagrant
 #OUTPUT := $(shell pwd)
-OUTPUT := $(shell echo ~/tmp/builder/gluster)
+#OUTPUT := $(shell echo ~/tmp/builder/gluster)
 SERVER = 'download.gluster.org'
 REMOTE_PATH = 'purpleidea/vagrant'
 
