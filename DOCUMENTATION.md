@@ -249,6 +249,113 @@ vagrant tricks, and to get the needed dependencies installed:
 * [Vagrant vsftp and other tricks](https://ttboj.wordpress.com/2013/12/21/vagrant-vsftp-and-other-tricks/)
 * [Vagrant clustered SSH and ‘screen’](https://ttboj.wordpress.com/2014/01/02/vagrant-clustered-ssh-and-screen/)
 
+###Puppet runs fail with "Invalid relationship" errors.
+
+When running Puppet, you encounter a compilation failure like:
+
+```bash
+Error: Could not retrieve catalog from remote server:
+Error 400 on SERVER: Invalid relationship: Exec[gluster-volume-stuck-volname] {
+require => Gluster::Brick[annex2.example.com:/var/lib/puppet/tmp/gluster/data/]
+}, because Gluster::Brick[annex2.example.com:/var/lib/puppet/tmp/gluster/data/]
+doesn't seem to be in the catalog
+Warning: Not using cache on failed catalog
+Error: Could not retrieve catalog; skipping run
+```
+
+This can occur if you have changed (usually removed) the available bricks, but
+have not cleared the exported resources on the Puppet master, or if there are
+stale (incorrect) brick "tags" on the individual host. These tags can usually
+be found in the _/var/lib/puppet/tmp/gluster/brick/_ directory. In other words,
+when a multi host cluster comes up, each puppet agent tells the master about
+which bricks it has available, and each agent also pulls down this list and
+stores it in the brick directory. If there is a discrepancy, then the compile
+will fail because the individual host is using old data as part of its facts
+when it uses the stale brick data as part of its compilation.
+
+This commonly happens if you're trying to deploy a different Puppet-Gluster
+setup without having first erased the host specific exported resources on the
+Puppet master or if the machine hasn't been re-provisioned from scratch.
+
+To solve this problem, do a clean install, and make sure that you've cleaned
+the Puppet master with:
+
+```bash
+puppet node deactivate HOSTNAME
+```
+
+for each host you're using, and that you've removed all of the files from the
+brick directories on each host.
+
+###Provisioning fails with: "Can't open /dev/sdb1 exclusively."
+
+If when provisioning you get an error like:
+
+_"Can't open /dev/sdb1 exclusively.  Mounted filesystem?"_
+
+It is possible that dracut might have found an existing logical volume on the
+device, and device mapper has made it available. This is common if you are
+re-using dirty block devices that haven't run through a _dd_ first. Here is an
+example of the diagnosis and treatment of this problem:
+
+```bash
+[root@server mapper]# pwd
+/dev/mapper
+[root@server mapper]# dmesg | grep dracut
+dracut: dracut-004-336.el6_5.2
+dracut: rd_NO_LUKS: removing cryptoluks activation
+dracut: Starting plymouth daemon
+dracut: rd_NO_DM: removing DM RAID activation
+dracut: rd_NO_MD: removing MD RAID activation
+dracut: Scanning devices sda3 sdb  for LVM logical volumes myvg/rootvol
+dracut: inactive '/dev/vg_foo/lv' [4.35 TiB] inherit
+dracut: inactive '/dev/myvg/rootvol' [464.00 GiB] inherit
+dracut: Mounted root filesystem /dev/mapper/myvg-rootvol
+dracut: Loading SELinux policy
+dracut:
+dracut: Switching root
+[root@server mapper]# /sbin/pvcreate --dataalignment 2560K /dev/sdb1
+  Can't open /dev/sdb1 exclusively.  Mounted filesystem?
+[root@server mapper]# ls
+control  myvg-rootvol  vg_foo-lv
+[root@server mapper]# ls -lAh
+total 0
+crw-rw----. 1 root root 10, 58 Mar  7 16:42 control
+lrwxrwxrwx. 1 root root      7 Mar 13 09:56 myvg-rootvol -> ../dm-0
+lrwxrwxrwx. 1 root root      7 Mar 13 09:56 vg_foo-lv -> ../dm-1
+[root@server mapper]# dmsetup remove vg_foo-lv
+[root@server mapper]# ls
+control  myvg-rootvol
+[root@server mapper]# pvcreate --dataalignment 2560K /dev/sdb1
+  Physical volume "/dev/sdb1" successfully created
+[root@server mapper]# HAPPY_ADMIN='yes'
+```
+
+If you frequently start with "dirty" block devices, you may consider adding a
+_dd_ to your hardware provisioning step. The downside is that this can be very
+time consuming, and potentially dangerous if you accidentally re-provision the
+wrong machine.
+
+###I changed the hardware manually, and now my system won't boot.
+
+If you're using Puppet-Gluster to manage storage, the filesystem will be
+mounted with _UUID_ entries in _/etc/fstab_. This ensures that the correct
+filesystem will be mounted, even if the device order changes. If a filesystem
+is not available at boot time, startup will abort and offer you the chance to
+go into read-only maintenance mode. Either fix the hardware issue, or edit the
+_/etc/fstab_ file.
+
+
+###I can't edit /etc/fstab in the maintenance shell because it is read-only.
+
+In the maintenance shell, your root filesystem will be mounted read-only, to
+prevent changes. If you need to edit a file such as _/etc/fstab_, you'll first
+need to remount the root filesystem in read-write mode. You can do this with:
+
+```bash
+mount -n -o remount /
+```
+
 ###Awesome work, but it's missing support for a feature and/or platform!
 
 Since this is an Open Source / Free Software project that I also give away for
@@ -296,8 +403,99 @@ The volume name or list of volume names to create.
 The valid brick path for each host. Defaults to local file system. If you need
 a different path per host, then Gluster::Simple will not meet your needs.
 
+####`count`
+Number of bricks to build per host. This value is used unless _brick_params_ is
+being used.
+
 ####`vip`
 The virtual IP address to be used for the cluster distributed lock manager.
+This option can be used in conjunction with the _vrrp_ option, but it does not
+require it. If you don't want to provide a virtual ip, but you do want to
+enforce that certain operations only run on one host, then you can set this
+option to be the ip address of an arbitrary host in your cluster. Keep in mind
+that if that host is down, certain options won't ever occur.
+
+####`vrrp`
+Whether to automatically deploy and manage _Keepalived_ for use as a _DLM_ and
+for use in volume mounting, etc... Using this option requires the _vip_ option.
+
+####`layout`
+Which brick layout to use. The available options are: _chained_, and (default).
+To generate a default (symmetrical, balanced) layout, leave this option blank.
+If you'd like to include an algorithm that generates a different type of brick
+layout, it is easy to drop in an algorithm. Please contact me with the details!
+
+####`version`
+Which version of GlusterFS do you want to install? This is especially handy
+when testing new beta releases. You can read more about the technique at:
+[Testing GlusterFS during Glusterfest](https://ttboj.wordpress.com/2014/01/16/testing-glusterfs-during-glusterfest/).
+
+####`repo`
+Whether or not to add the necessary software repositories to install the needed
+packages. This will typically pull in GlusterFS from _download.gluster.org_ and
+should be set to false if you have your own mirrors or repositories managed as
+part of your base image.
+
+####`brick_params`
+This parameter lets you specify a hash to use when creating the individual
+bricks. This is especially useful because it lets you have the power of
+Gluster::Simple when managing a cluster of iron (physical machines) where you'd
+like to specify brick specific parameters. This sets the brick count when the
+_count_ parameter is 0. The format of this parameter might look like:
+
+```bash
+$brick_params = {
+	fqdn1 => [
+		{dev => '/dev/disk/by-uuid/01234567-89ab-cdef-0123-456789abcdef'},
+		{dev => '/dev/sdc', partition => false},
+	],
+	fqdn2 => [{
+		dev => '/dev/disk/by-path/pci-0000:02:00.0-scsi-0:1:0:0',
+		raid_su => 256, raid_sw => 10,
+	}],
+	fqdnN => [...],
+}
+```
+
+####`brick_param_defaults`
+This parameter lets you specify a hash of defaults to use when creating each
+brick with the _brick_params_ parameter. It is useful because it avoids the
+need to repeat the values that are common across all bricks in your cluster.
+Since most options work this way, this is an especially nice feature to have.
+The format of this parameter might look like:
+
+```bash
+$brick_param_defaults = {
+	lvm => false,
+	xfs_inode64 => true,
+	force => true,
+}
+```
+
+####`setgroup`
+Set a volume property group. The two most common or well-known groups are the
+_virt_ group, and the _small-file-perf_ group. This functionality is emulated
+whether you're using the RHS version of GlusterFS or if you're using the
+upstream GlusterFS project, which doesn't (currently) have the _volume set
+group_ command. As package managers update the list of available groups or
+their properties, Puppet-Gluster will automatically keep your set group
+up-to-date. It is easy to extend Puppet-Gluster to add a custom group without
+needing to patch the GlusterFS source.
+
+####`ping`
+Whether to use _fping_ or not to help with ensuring the required hosts are
+available before doing certain types of operations. Optional, but recommended.
+Boolean value.
+
+####`baseport`
+Specify the base port option as used in the glusterd.vol file. This is useful
+if the default port range of GlusterFS conflicts with the ports used for
+virtual machine migration, or if you simply like to choose the ports that
+you're using. Integer value.
+
+####`rpcauthallowinsecure`
+This is needed in some setups in the glusterd.vol file, particularly (I think)
+for some users of _libgfapi_. Boolean value.
 
 ####`shorewall`
 Boolean to specify whether puppet-shorewall integration should be used or not.
@@ -388,14 +586,50 @@ Block device, such as _/dev/sdc_ or _/dev/disk/by-id/scsi-0123456789abcdef_. By
 default, Puppet-Gluster will assume you're using a folder to store the brick
 data, if you don't specify this parameter.
 
-####`fsuuid`
-File system UUID. This ensures we can distinctly identify a file system. You
-can set this to be used with automatic file system creation, or you can specify
-the file system UUID that you'd like to use.
+####`raid_su`
+Get this information from your RAID device. This is used to do automatic
+calculations for alignment, so that the:
+
+```
+	dev -> part -> lvm -> fs
+```
+
+stack is aligned properly. Future work is possible to manage your RAID devices,
+and to read these values automatically. Specify this value as an integer number
+of kilobytes (k).
+
+####`raid_sw`
+Get this information from your RAID device. This is used to do automatic
+calculations for alignment, so that the:
+
+```
+	dev -> part -> lvm -> fs
+```
+
+stack is aligned properly. Future work is possible to manage your RAID devices,
+and to read these values automatically. Specify this value as an integer.
+
+####`partition`
+Do you want to partition the device and build the next layer on that partition,
+or do you want to build on the block device directly? The "next layer" will
+typically be lvm if you're using lvm, or your file system (such as xfs) if
+you're skipping the lvm layer.
 
 ####`labeltype`
 Only _gpt_ is supported. Other options include _msdos_, but this has never been
 used because of it's size limitations.
+
+####`lvm`
+Do you want to use lvm on the lower level device (typically a partition, or the
+device itself), or not. Using lvm might be required when using a commercially
+supported GlusterFS solution.
+
+####`fsuuid`
+File system UUID. This ensures we can distinctly identify a file system. You
+can set this to be used with automatic file system creation, or you can specify
+the file system UUID that you'd like to use. If you leave this blank, then
+Puppet-Gluster can automatically pick an fs UUID for you. This is especially
+useful if you are automatically deploying a large cluster on physical iron.
 
 ####`fstype`
 This should be _xfs_ or _ext4_. Using _xfs_ is recommended, but _ext4_ is also
@@ -420,6 +654,10 @@ place to stop this. In general, you probably don't ever want to touch this.
 ####`areyousure`
 Do you want to allow Puppet-Gluster to do dangerous things? You have to set
 this to _true_ to allow Puppet-Gluster to _fdisk_ and _mkfs_ your file system.
+
+####`comment`
+Add any comment you want. This is also occasionally used internally to do magic
+things.
 
 ###gluster::volume
 Main volume type for the cluster. This is where a lot of the magic happens.
@@ -456,6 +694,12 @@ server.
 ####`stripe`
 Stripe count. Thoroughly unsupported and untested option. Not recommended for
 use by GlusterFS.
+
+####`layout`
+Which brick layout to use. The available options are: _chained_, and (default).
+To generate a default (symmetrical, balanced) layout, leave this option blank.
+If you'd like to include an algorithm that generates a different type of brick
+layout, it is easy to drop in an algorithm. Please contact me with the details!
 
 ####`ping`
 Do we want to include ping checks with _fping_?
