@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ####Also available from:
 ####[https://forge.gluster.org/puppet-gluster/](https://forge.gluster.org/puppet-gluster/)
 
+####This documentation is available in: [Markdown](https://github.com/purpleidea/puppet-gluster/blob/master/DOCUMENTATION.md) or [PDF](https://github.com/purpleidea/puppet-gluster/raw/master/puppet-gluster-documentation.pdf) format.
+
 ####Table of Contents
 
 1. [Overview](#overview)
