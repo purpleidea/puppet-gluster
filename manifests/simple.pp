@@ -119,52 +119,42 @@ class gluster::simple(
 	# such as $xfs_inode64=>true, or raid_* if your cluster is symmetrical!
 	# if you set the $count variable, then that brick count will be forced.
 	validate_re("${count}", '^\d+$')	# ensure this is a positive int
+
+	# here some wizardry happens...
 	if has_key($brick_params, "${::fqdn}") {
-		# here some wizardry happens...
 		$brick_params_list = $brick_params["${::fqdn}"]
-		$brick_params_list_length = inline_template('<%= @brick_params_list.length %>')
-		$brick_params_defaults_length = inline_template('<%= @valid_brick_params_defaults.length %>')
-
-		$valid_count = "${count}" ? {
-			'0' => "${brick_params_list_length}" ? {
-				'0' => "${brick_params_defaults_length}" ? {
-					'0' => 1,	# if all are empty...
-					default => "${brick_params_defaults_length}",
-				},
-				default => "${brick_params_list_length}",
-			},
-			default => $count,
-		}
-		validate_array($brick_params_list)
-
-		# NOTE: I've kept this template split as two comment chunks for
-		# readability. Puppet needs to fix this issue somehow. Creating
-		# a separate template removes the logic from the code, but as a
-		# large inline template, it's hard to read/write the logic!
-		#DEFAULTS = (((i < @valid_brick_params_defaults.length) and @valid_brick_params_defaults[i].is_a?(Hash)) ? @valid_brick_params_defaults[i] : {})
-		#$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {'${::fqdn}:${valid_path}brick' + (i+1).to_s.rjust(7, '0') + '/' => DEFAULTS.merge((i < @brick_params_list.length) ? @brick_params_list[i] : {})}.merge(h) }.to_yaml %>")
-		$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {'${::fqdn}:${valid_path}brick' + (i+1).to_s.rjust(7, '0') + '/' => (((i < @valid_brick_params_defaults.length) and @valid_brick_params_defaults[i].is_a?(Hash)) ? @valid_brick_params_defaults[i] : {}).merge((i < @brick_params_list.length) ? @brick_params_list[i] : {})}.merge(h) }.to_yaml %>")
 	} else {
-		# TODO: this second branch is really just a special case of the
-		# above branch and can probably be merged without much incident
-		$brick_params_defaults_length = inline_template('<%= @valid_brick_params_defaults.length %>')
-		# here we base our brick list on the $count variable or the
-		# brick_params_defaults length if it is available...
-		$valid_count = "${count}" ? {
+		$brick_params_list = []
+	}
+
+	$brick_params_list_length = inline_template('<%= @brick_params_list.length %>')
+	$brick_params_defaults_length = inline_template('<%= @valid_brick_params_defaults.length %>')
+	$valid_count = "${count}" ? {
+		'0' => "${brick_params_list_length}" ? {
 			'0' => "${brick_params_defaults_length}" ? {
 				'0' => 1,	# 0 means undefined, so use the default
 				default => "${brick_params_defaults_length}",
 			},
-			default => $count,
-		}
-		$brick_params_list = "${valid_count}" ? {
-			# TODO: should we use the same pattern for 1 or many ?
-			'1' => ["${::fqdn}:${valid_path}"],
-			default => split(inline_template("<%= (1..@valid_count.to_i).collect{|i| '${::fqdn}:${valid_path}brick' + i.to_s.rjust(7, '0') + '/' }.join(',') %>"), ','),
-		}
-		$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {@brick_params_list[i] => (((i < @valid_brick_params_defaults.length) and @valid_brick_params_defaults[i].is_a?(Hash)) ? @valid_brick_params_defaults[i] : {})}.merge(h) }.to_yaml %>")
+			default => "${brick_params_list_length}",
+		},
+		default => $count,
 	}
 
+	$brick_params_names = "${valid_count}" ? {
+		# TODO: should we use the same pattern for 1 or many ?
+		'1' => ["${::fqdn}:${valid_path}"],
+		default => split(inline_template("<%= (1..@valid_count.to_i).collect{|i| '${::fqdn}:${valid_path}brick' + i.to_s.rjust(7, '0') + '/' }.join(',') %>"), ','),
+	}
+
+	validate_array($brick_params_list)
+
+	# NOTE: I've kept this template split as two comment chunks for
+	# readability. Puppet needs to fix this issue somehow! Creating
+	# a separate template removes the logic from the code, but as a
+	# large inline template it's very hard to read/write the logic!
+	#DEFAULTS = (((i < @valid_brick_params_defaults.length) and @valid_brick_params_defaults[i].is_a?(Hash)) ? @valid_brick_params_defaults[i] : {})
+	#$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {@brick_params_names[i] => DEFAULTS.merge((i < @brick_params_list.length) ? @brick_params_list[i] : {})}.merge(h) }.to_yaml %>")
+	$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {@brick_params_names[i] => (((i < @valid_brick_params_defaults.length) and @valid_brick_params_defaults[i].is_a?(Hash)) ? @valid_brick_params_defaults[i] : {}).merge((i < @brick_params_list.length) ? @brick_params_list[i] : {})}.merge(h) }.to_yaml %>")
 	$hash = parseyaml($yaml)
 	create_resources('@@gluster::brick', $hash, $valid_brick_param_defaults)
 	#@@gluster::brick { "${::fqdn}:${valid_path}":
