@@ -474,6 +474,29 @@ $brick_param_defaults = {
 }
 ```
 
+####`brick_params_defaults`
+This parameter lets you specify a list of defaults to use when creating each
+brick. Each element in the list represents a different brick. The value of each
+element is a hash with the actual defaults that you'd like to use for creating
+that brick. If you do not specify a brick count by any other method, then the
+number of elements in this array will be used as the brick count. This is very
+useful if you have consistent device naming across your entire cluster, because
+you can very easily specify the devices and brick counts once for all hosts. If
+for some reason a particular device requires unique values, then it can be set
+manually with the _brick_params_ parameter. Please note the spelling of this
+parameter. It is not the same as the _brick_param_defaults_ parameter which is
+a global defaults parameter which will apply to all bricks.
+The format of this parameter might look like:
+
+```bash
+$brick_params_defaults = [
+	{'dev' => '/dev/sdb'},
+	{'dev' => '/dev/sdc'},
+	{'dev' => '/dev/sdd'},
+	{'dev' => '/dev/sde'},
+]
+```
+
 ####`setgroup`
 Set a volume property group. The two most common or well-known groups are the
 _virt_ group, and the _small-file-perf_ group. This functionality is emulated

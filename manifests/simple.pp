@@ -28,22 +28,8 @@ class gluster::simple(
 	$repo = true,
 	$count = 0,	# 0 means build 1 brick, unless $brick_params exists...
 	$brick_params = {},	# this sets the brick count when $count is 0...
-	# usage notes: the $brick_params parameter might look like:
-	#	{
-	#		fqdn1 => [
-	#			{dev => '/dev/disk/by-uuid/505e0286-8e21-49b4-a9b2-894777c69962'},
-	#			{dev => '/dev/sde', partition => false},
-	#		],
-	#		fqdn2 => [{dev => '/dev/disk/by-path/pci-0000:02:00.0-scsi-0:1:0:0', raid_su => 256, raid_sw => 10}],
-	#		fqdnN => [...],
-	#	}
 	$brick_param_defaults = {},	# these always get used to build bricks
-	# usage notes: the $brick_param_defaults might look like:
-	#	{
-	#		lvm => false,
-	#		xfs_inode64 => true,
-	#		force => true,
-	#	}
+	$brick_params_defaults = [],	# array of hashes to use as brick count
 	$setgroup = '',		# pick a volume property group to set, eg: virt
 	$ping = true,	# use fping or not?
 	$baseport = '',	# specify base port option as used in glusterd.vol file
@@ -78,6 +64,7 @@ class gluster::simple(
 		default => ["${volume}"],
 	}
 
+	# if this is a hash, then it's used as the defaults for all the bricks!
 	validate_hash($brick_param_defaults)
 	# in someone explicitly added this value, then don't overwrite it...
 	if has_key($brick_param_defaults, 'areyousure') {
@@ -86,6 +73,12 @@ class gluster::simple(
 		$areyousure = {areyousure => true}
 		$valid_brick_param_defaults = merge($brick_param_defaults, $areyousure)
 	}
+
+	# if this is an array, then each element is the default for each brick!
+	# if this is an array, then the number of elements is the brick count!!
+	validate_array($brick_params_defaults)
+	# TODO: check that each element of array is a valid hash!
+	$valid_brick_params_defaults = $brick_params_defaults
 
 	notify { 'gluster::simple':
 		message => 'You are using gluster::simple !',
@@ -129,16 +122,39 @@ class gluster::simple(
 	if has_key($brick_params, "${::fqdn}") {
 		# here some wizardry happens...
 		$brick_params_list = $brick_params["${::fqdn}"]
+		$brick_params_list_length = inline_template('<%= @brick_params_list.length %>')
+		$brick_params_defaults_length = inline_template('<%= @valid_brick_params_defaults.length %>')
+
 		$valid_count = "${count}" ? {
-			'0' => inline_template('<%= @brick_params_list.length %>'),
+			'0' => "${brick_params_list_length}" ? {
+				'0' => "${brick_params_defaults_length}" ? {
+					'0' => 1,	# if all are empty...
+					default => "${brick_params_defaults_length}",
+				},
+				default => "${brick_params_list_length}",
+			},
 			default => $count,
 		}
 		validate_array($brick_params_list)
-		$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {'${::fqdn}:${valid_path}brick' + (i+1).to_s.rjust(7, '0') + '/' => ((i < @brick_params_list.length) ? @brick_params_list[i] : {})}.merge(h) }.to_yaml %>")
+
+		# NOTE: I've kept this template split as two comment chunks for
+		# readability. Puppet needs to fix this issue somehow. Creating
+		# a separate template removes the logic from the code, but as a
+		# large inline template, it's hard to read/write the logic!
+		#DEFAULTS = (((i < @valid_brick_params_defaults.length) and @valid_brick_params_defaults[i].is_a?(Hash)) ? @valid_brick_params_defaults[i] : {})
+		#$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {'${::fqdn}:${valid_path}brick' + (i+1).to_s.rjust(7, '0') + '/' => DEFAULTS.merge((i < @brick_params_list.length) ? @brick_params_list[i] : {})}.merge(h) }.to_yaml %>")
+		$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {'${::fqdn}:${valid_path}brick' + (i+1).to_s.rjust(7, '0') + '/' => (((i < @valid_brick_params_defaults.length) and @valid_brick_params_defaults[i].is_a?(Hash)) ? @valid_brick_params_defaults[i] : {}).merge((i < @brick_params_list.length) ? @brick_params_list[i] : {})}.merge(h) }.to_yaml %>")
 	} else {
-		# here we base our brick list on the $count variable alone...
+		# TODO: this second branch is really just a special case of the
+		# above branch and can probably be merged without much incident
+		$brick_params_defaults_length = inline_template('<%= @valid_brick_params_defaults.length %>')
+		# here we base our brick list on the $count variable or the
+		# brick_params_defaults length if it is available...
 		$valid_count = "${count}" ? {
-			'0' => 1,		# 0 means undefined, so use the default
+			'0' => "${brick_params_defaults_length}" ? {
+				'0' => 1,	# 0 means undefined, so use the default
+				default => "${brick_params_defaults_length}",
+			},
 			default => $count,
 		}
 		$brick_params_list = "${valid_count}" ? {
@@ -146,7 +162,7 @@ class gluster::simple(
 			'1' => ["${::fqdn}:${valid_path}"],
 			default => split(inline_template("<%= (1..@valid_count.to_i).collect{|i| '${::fqdn}:${valid_path}brick' + i.to_s.rjust(7, '0') + '/' }.join(',') %>"), ','),
 		}
-		$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {@brick_params_list[i] => {}}.merge(h) }.to_yaml %>")
+		$yaml = inline_template("<%= (0..@valid_count.to_i-1).inject(Hash.new) { |h,i| {@brick_params_list[i] => (((i < @valid_brick_params_defaults.length) and @valid_brick_params_defaults[i].is_a?(Hash)) ? @valid_brick_params_defaults[i] : {})}.merge(h) }.to_yaml %>")
 	}
 
 	$hash = parseyaml($yaml)
