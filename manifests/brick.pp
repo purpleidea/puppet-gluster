@@ -166,7 +166,10 @@ define gluster::brick(
 
 		$lvm_dataalignment = inline_template('<%= @raid_su.to_i*@raid_sw.to_i %>')
 
-		$lvm_pvcreate = "/sbin/pvcreate --dataalignment ${lvm_dataalignment}K ${dev1}"
+		$lvm_pvcreate = "${raid_su}${raid_sw}" ? {	# both empty ?
+			'' => "/sbin/pvcreate ${dev1}",
+			default => "/sbin/pvcreate --dataalignment ${lvm_dataalignment}K ${dev1}",
+		}
 
 		$lvm_vgcreate = "/sbin/vgcreate ${lvm_vgname} ${dev1}"
 
@@ -241,7 +244,10 @@ define gluster::brick(
 		# system. These options are sometimes auto-detected but manual
 		# configuration is needed with many of the hardware RAID
 		# volumes.
-		$xfs_arg05 = "-d su=${raid_su}k,sw=${raid_sw}"
+		$xfs_arg05 = "${raid_su}${raid_sw}" ? {	# both empty ?
+			'' => '',
+			default => "-d su=${raid_su}k,sw=${raid_sw}",
+		}
 
 		$xfs_cmdlist = [
 			"${xfs_arg00}",
