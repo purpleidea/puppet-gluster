@@ -29,9 +29,9 @@ BOX = $(VERSION).box
 SIZE = 40
 #OUTPUT = /tmp/gluster
 #OUTPUT := $(shell pwd)
-OUTPUT := $(shell echo ~/tmp/builder/gluster)
-SERVER = 'download.gluster.org'
-REMOTE_PATH = 'purpleidea/vagrant'
+OUTPUT := $(shell echo ~/tmp/builder/$(VERSION))
+SERVER = 'user@host.example.org'
+REMOTE_PATH = 'public_html/vagrant'
 
 all: box
 
@@ -134,9 +134,9 @@ $(OUTPUT)/SHA256SUMS.asc: $(OUTPUT)/SHA256SUMS
 # upload to public server
 # NOTE: user downloads while file uploads are in progress don't cause problems!
 upload: $(OUTPUT)/$(BOX) $(OUTPUT)/SHA256SUMS $(OUTPUT)/SHA256SUMS.asc
-	if [ "`cat $(OUTPUT)/SHA256SUMS`" != "`ssh $(SERVER) 'cd $(REMOTE_PATH)/ && sha256sum $(BOX)'`" ]; then \
+	if [ "`cat $(OUTPUT)/SHA256SUMS`" != "`ssh $(SERVER) 'cd $(REMOTE_PATH)/$(VERSION)/ && sha256sum $(BOX)'`" ]; then \
 		echo Running upload...; \
-		scp -p $(OUTPUT)/{$(BOX),SHA256SUMS{,.asc}} $(SERVER):$(REMOTE_PATH)/; \
+		scp -p $(OUTPUT)/{$(BOX),SHA256SUMS{,.asc}} $(SERVER):$(REMOTE_PATH)/$(VERSION)/; \
 	fi
 # this method works too, but always hits the server on every make call
 #upload:
