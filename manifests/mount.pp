@@ -27,6 +27,8 @@ define gluster::mount(
 	$ip = '',	# you can specify which ip address to use (if multiple)
 	$shorewall = false
 ) {
+	include gluster::params
+
 	#mount -t glusterfs brick1.example.com:/test /test
 	#include gluster::mount::base
 	#class { '::gluster::mount::base':
@@ -161,7 +163,10 @@ define gluster::mount(
 		dump => '0',		# fs_freq: 0 to skip file system dumps
 		pass => '0',		# fs_passno: 0 to skip fsck on boot
 		require => [
-			Package[['glusterfs', 'glusterfs-fuse']],
+			Package[
+				["${::gluster::params::package_glusterfs}",
+				"${::gluster::params::package_glusterfs_fuse}"]
+			],
 			File["${long_name}"],		# the mountpoint
 			Exec['gluster-fuse'],	# ensure fuse is loaded!
 		],

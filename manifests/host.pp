@@ -25,6 +25,7 @@ define gluster::host(
 	$password = ''	# if empty, puppet will attempt to choose one magically
 ) {
 	include gluster::vardir
+	include gluster::params
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
@@ -169,7 +170,7 @@ define gluster::host(
 				# NOTE: it's possible the cycle is a bug in puppet or a
 				# bug in the dependencies somewhere else in this module.
 				#require => File['/var/lib/glusterd/peers/'],
-				require => Package['glusterfs-server'],
+				require => Package["${::gluster::params::package_glusterfs_server}"],
 			}
 
 			# set state=

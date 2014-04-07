@@ -17,7 +17,10 @@
 
 class gluster::volume::ping {
 
-	package { 'fping':		# for checking other bricks are up
+	include gluster::params
+
+	# for checking other bricks are up
+	package { "${::gluster::params::package_fping}":
 		ensure => present,
 	}
 }

@@ -48,6 +48,7 @@ define gluster::brick(
 		include gluster::again
 	}
 	include gluster::vardir
+	include gluster::params
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
@@ -259,7 +260,7 @@ define gluster::brick(
 	} elsif ( $valid_fstype == 'xfs' ) {
 		# exec requires
 		include gluster::brick::xfs
-		$exec_requires = [Package['xfsprogs']]
+		$exec_requires = [Package["${::gluster::params::package_xfsprogs}"]]
 
 		$xfs_arg00 = "/sbin/mkfs.${valid_fstype}"
 
@@ -343,7 +344,7 @@ define gluster::brick(
 	} elsif ( $valid_fstype == 'ext4' ) {
 		# exec requires
 		include gluster::brick::ext4
-		$exec_requires = [Package['e2fsprogs']]
+		$exec_requires = [Package["${::gluster::params::package_e2fsprogs}"]]
 
 		# mkfs w/ uuid command
 		$mkfs_exec = "/sbin/mkfs.${valid_fstype} -U '${valid_fsuuid}' ${dev2}"

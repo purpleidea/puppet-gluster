@@ -32,6 +32,7 @@ class gluster::server(
 	$FW = '$FW'			# make using $FW in shorewall easier
 
 	include gluster::vardir
+	include gluster::params
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
@@ -57,16 +58,16 @@ class gluster::server(
 		mode => 700,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		ensure => present,
-		before => Package['glusterfs-server'],
+		before => Package["${::gluster::params::package_glusterfs_server}"],
 		require => File["${vardir}/"],
 	}
 
-	package { 'glusterfs-server':
+	package { "${::gluster::params::package_glusterfs_server}":
 		ensure => "${version}" ? {
 			'' => present,
 			default => "${version}",
 		},
-		before => Package['glusterfs-api'],
+		before => Package["${::gluster::params::package_glusterfs_api}"],
 		require => $repo ? {
 			false => undef,
 			default => Gluster::Repo["${rname}"],
@@ -89,7 +90,7 @@ class gluster::server(
 		group => root,
 		mode => 644,
 		#notify => Service['glusterd'],	# TODO: ???
-		require => Package['glusterfs-server'],
+		require => Package["${::gluster::params::package_glusterfs_server}"],
 	}
 
 	# NOTE: this option can be useful for users of libvirt migration as in:

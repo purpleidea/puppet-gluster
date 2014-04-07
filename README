@@ -19,6 +19,7 @@ Module specific notes:
 
 Dependencies:
 * puppetlabs-stdlib (required)
+* puppet-module-data (optional, puppet >= 3.0.0)
 * my puppet-common module (optional)
 * my puppet-shorewall module (optional)
 * my puppet-keepalived module (optional)

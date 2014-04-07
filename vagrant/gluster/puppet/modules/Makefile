@@ -25,6 +25,7 @@ MODULES := \
 	puppet-common \
 	puppet-gluster \
 	puppet-keepalived \
+	puppet-module-data \
 	puppet-puppet \
 	puppet-shorewall \
 	puppet-yum \
