@@ -15,27 +15,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class gluster::api(
-	$repo = true,		# are we using the automatic repo ?
-	$version = ''		# pick a specific version (defaults to latest)
+class gluster::params(
+	$package_glusterfs = 'glusterfs',
+	$package_glusterfs_fuse = 'glusterfs-fuse',
+	$package_glusterfs_server = 'glusterfs-server',
+	$package_glusterfs_api = 'glusterfs-api',
+
+	$package_e2fsprogs = 'e2fsprogs',
+	$package_xfsprogs = 'xfsprogs',
+
+	$package_python_argparse = 'python-argparse',
+	$package_python_lxml = 'python-lxml',
+	$package_fping = 'fping',
+
+	$comment = ''
 ) {
-	include gluster::params
-
-	$rname = "${version}" ? {
-		'' => 'gluster',
-		default => "gluster-${version}",
+	if "${comment}" == '' {
+		warning('Unable to load yaml data/ directory!')
 	}
 
-	package { "${::gluster::params::package_glusterfs_api}":
-		ensure => "${version}" ? {
-			'' => present,
-			default => "${version}",
-		},
-		require => $repo ? {
-			false => undef,
-			default => Gluster::Repo["${rname}"],
-		},
-	}
 }
-
 # vim: ts=8

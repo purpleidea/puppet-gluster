@@ -22,7 +22,7 @@ define gluster::repo(
 	# if you leave this blank, we assume you want the latest version...
 	$version = ''
 ) {
-	$base = 'https://download.gluster.org/pub/gluster/glusterfs/'
+	$base = hiera('gluster::repo::base')	# eg: 'https://download.gluster.org/pub/gluster/glusterfs/'
 
 	if "${version}" == '' {
 		# latest

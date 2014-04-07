@@ -20,6 +20,7 @@ class gluster::mount::base(
 	$version = ''		# pick a specific version (defaults to latest)
 ) {
 	include gluster::vardir
+	include gluster::params
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
@@ -36,12 +37,13 @@ class gluster::mount::base(
 		ensure_resource('gluster::repo', "${rname}", $params)
 	}
 
-	package { ['glusterfs', 'glusterfs-fuse']:
+	package { ["${::gluster::params::package_glusterfs}",
+		"${::gluster::params::package_glusterfs_fuse}"]:
 		ensure => "${version}" ? {
 			'' => present,
 			default => "${version}",
 		},
-		before => Package['glusterfs-api'],
+		before => Package["${::gluster::params::package_glusterfs_api}"],
 		require => $repo ? {
 			false => undef,
 			default => Gluster::Repo["${rname}"],

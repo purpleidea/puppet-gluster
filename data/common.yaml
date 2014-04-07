@@ -1,0 +1,5 @@
+# gluster/data/common.yaml
+---
+gluster::params::comment: 'Hello from @purpleidea!'	# do not erase!
+
+# vim: ts=8

@@ -35,6 +35,7 @@ define gluster::volume(
 		include gluster::again
 	}
 	include gluster::vardir
+	include gluster::params
 	include gluster::volume::base
 	if $ping {
 		include gluster::volume::ping
@@ -220,7 +221,7 @@ define gluster::volume(
 		default => [
 			Service['glusterd'],
 			File["${vardir}/volume/create-${name}.sh"],
-			Package['fping'],
+			Package["${::gluster::params::package_fping}"],
 			File["${vardir}/xml.py"],	# status check
 			Gluster::Brick[$valid_bricks],
 			Exec["gluster-volume-stuck-${name}"],
