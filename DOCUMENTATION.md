@@ -652,6 +652,22 @@ Do you want to use lvm on the lower level device (typically a partition, or the
 device itself), or not. Using lvm might be required when using a commercially
 supported GlusterFS solution.
 
+####`lvm_thinp`
+Set to _true_ to enable LVM thin provisioning. Read 'man 7 lvmthin' to
+understand what thin provisioning is all about. This is needed for one form of
+GlusterFS snapshots. Obviously this requires that you also enable _LVM_.
+
+####`lvm_virtsize`
+The value that will be passed to _--virtualsize_. By default this will pass in
+a command that will return the size of your volume group. This is usually a
+sane value, and help you to remember not to overcommit.
+
+####`lvm_chunksize`
+Value of _--chunksize_ for _lvcreate_ when using thin provisioning.
+
+####`lvm_metadatasize`
+Value of _--poolmetadatasize_ for _lvcreate_ when using thin provisioning.
+
 ####`fsuuid`
 File system UUID. This ensures we can distinctly identify a file system. You
 can set this to be used with automatic file system creation, or you can specify

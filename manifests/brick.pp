@@ -27,6 +27,10 @@ define gluster::brick(
 	$labeltype = '',		# gpt
 
 	$lvm = true,			# use lvm or not ?
+	$lvm_thinp = false,		# use lvm thin-p or not ?
+	$lvm_virtsize = '',		# defaults to 100% available.
+	$lvm_chunksize = '',		# chunk size for thin-p
+	$lvm_metadatasize = '',		# meta data size for thin-p
 
 	$fsuuid = '',			# set a uuid for this fs (uuidgen)
 	$fstype = '',			# xfs
@@ -156,8 +160,12 @@ define gluster::brick(
 	#
 	#	lvm...
 	#
+	if $lvm_thinp and ( ! $lvm ) {
+		warning('You must enable $lvm if you want to use LVM thin-p.')
+	}
+
 	if $lvm {
-		# NOTE: this is need for thin-provisioning, and RHS compliance!
+		# NOTE: this is used for thin-provisioning, and RHS compliance!
 
 		# NOTE: as a consequence of this type of automation, we generate
 		# really ugly vg names like: "vg_annex1.example.com+_gluster_" !
@@ -166,6 +174,7 @@ define gluster::brick(
 		$lvm_safename = regsubst("${safename}", ':', '+', 'G')	# safe!
 		$lvm_vgname = "vg_${lvm_safename}"
 		$lvm_lvname = "lv_${lvm_safename}"
+		$lvm_tpname = "tp_${lvm_safename}"	# thin pool (tp)
 
 		$lvm_dataalignment = inline_template('<%= @raid_su.to_i*@raid_sw.to_i %>')
 
@@ -176,14 +185,48 @@ define gluster::brick(
 
 		$lvm_vgcreate = "/sbin/vgcreate ${lvm_vgname} ${dev1}"
 
+		# match --virtualsize with 100% of available vg by default
+		$lvm_thinp_virtsize = "${lvm_virtsize}" ? {	# --virtualsize
+			'' => "`/sbin/vgs -o size --units b --noheadings ${lvm_vgname}`",
+			default => "${lvm_virtsize}",
+		}
+
+		# TODO: is 64k a good/sane default ?
+		$lvm_thinp_chunksize = "${lvm_chunksize}" ? {
+			'' => '',
+			default => "--chunksize ${lvm_chunksize}",
+		}
+
+		# TODO: is 16384 a good/sane default ?
+		$lvm_thinp_metadatasize = "${lvm_metadatasize}" ? {
+			'' => '',
+			default => "--poolmetadatasize ${lvm_metadatasize}",
+		}
+
+		# README: 'man 7 lvmthin' to understand lvm thin provisioning
+		# MIRROR: http://man7.org/linux/man-pages/man7/lvmthin.7.html
+		# TODO: is this the optimal setup for thin-p ?
+		$lvm_thinp_lvcreate_cmdlist = [
+			'/sbin/lvcreate',
+			"--thinpool ${lvm_vgname}/${lvm_tpname}",	# thinp
+			'--extents 100%FREE',	# let lvm figure out the --size
+			"--virtualsize ${lvm_thinp_virtsize}",
+			"${lvm_thinp_chunksize}",
+			"${lvm_thinp_metadatasize}",
+			" -n ${lvm_lvname}",	# name it
+		]
+		$lvm_thinp_lvcreate = join(delete($lvm_thinp_lvcreate_cmdlist, ''), ' ')
+
 		# creates dev /dev/vgname/lvname
-		# FIXME: should we use --extents or --size and what values ?
-		$lvm_lvcreate = "/sbin/lvcreate --extents 100%PVS -n ${lvm_lvname} ${lvm_vgname}"
+		$lvm_lvcreate = $lvm_thinp ? {
+			true => "${lvm_thinp_lvcreate}",
+			default => "/sbin/lvcreate --extents 100%PVS -n ${lvm_lvname} ${lvm_vgname}",
+		}
+	}
 
-		$dev2 = "/dev/${lvm_vgname}/${lvm_lvname}"
-
-	} else {
-		$dev2 = "${dev1}"	# pass through, because not using lvm
+	$dev2 = $lvm ? {
+		false => "${dev1}",	# pass through, because not using lvm
+		default => "/dev/${lvm_vgname}/${lvm_lvname}",	# thin-p too :)
 	}
 
 	#
