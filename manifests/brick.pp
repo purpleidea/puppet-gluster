@@ -208,7 +208,11 @@ define gluster::brick(
 		# MIRROR: http://man7.org/linux/man-pages/man7/lvmthin.7.html
 		# TODO: is this the optimal setup for thin-p ?
 		$lvm_thinp_lvcreate_cmdlist = [
+<<<<<<< HEAD
 			"${::gluster::params::program_lvcreate}",
+=======
+			'/sbin/lvcreate',
+>>>>>>> Support LVM thin provisioning.
 			"--thinpool ${lvm_vgname}/${lvm_tpname}",	# thinp
 			'--extents 100%FREE',	# let lvm figure out the --size
 			"--virtualsize ${lvm_thinp_virtsize}",
@@ -221,7 +225,11 @@ define gluster::brick(
 		# creates dev /dev/vgname/lvname
 		$lvm_lvcreate = $lvm_thinp ? {
 			true => "${lvm_thinp_lvcreate}",
+<<<<<<< HEAD
 			default => "${::gluster::params::program_lvcreate} --extents 100%PVS -n ${lvm_lvname} ${lvm_vgname}",
+=======
+			default => "/sbin/lvcreate --extents 100%PVS -n ${lvm_lvname} ${lvm_vgname}",
+>>>>>>> Support LVM thin provisioning.
 		}
 	}
 
