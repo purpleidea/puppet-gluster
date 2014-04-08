@@ -57,6 +57,12 @@ offset = 100		# start gluster hosts after here
 #puts range[2].to_s	# puppetmaster
 #puts range[3].to_s	# vip
 
+network2 = IPAddr.new '192.168.143.0/24'
+range2 = network2.to_range.to_a
+cidr2 = (32-(Math.log(range2.length)/Math.log(2))).to_i
+offset2 = 2
+netmask2 = IPAddr.new('255.255.255.255').mask(cidr2).to_s
+
 # mutable by ARGV and settings file
 count = 4		# default number of gluster hosts to build
 bricks = 0		# default number of bricks to build (0 defaults to 1)
@@ -282,8 +288,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 		vm.vm.hostname = puppet_hostname
 		# red herring network so that management happens here...
 		vm.vm.network :private_network,
-		:ip => "10.10.1.#{1+10}",	# FIXME: remove the +10, see: https://github.com/mitchellh/vagrant/issues/2868
-		:libvirt__netmask => '255.255.0.0',
+		:ip => range2[2].to_s,
+		:libvirt__netmask => netmask2,
 		#:libvirt__dhcp_enabled => false,	# XXX: not allowed here
 		:libvirt__network_name => 'default'
 
@@ -376,8 +382,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 			vm.vm.hostname = h
 			# red herring network so that management happens here...
 			vm.vm.network :private_network,
-			:ip => "10.10.2.#{i+10}",	# FIXME: remove the +10, see: https://github.com/mitchellh/vagrant/issues/2868
-			:libvirt__netmask => '255.255.0.0',
+			:ip => range2[offset2+i].to_s,
+			:libvirt__netmask => netmask2,
 			:libvirt__network_name => 'default'
 
 			# this is the real network that we'll use...
@@ -467,8 +473,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 			vm.vm.hostname = h
 			# red herring network so that management happens here...
 			vm.vm.network :private_network,
-			:ip => "10.10.3.#{i+10}",	# FIXME: remove the +10, see: https://github.com/mitchellh/vagrant/issues/2868
-			:libvirt__netmask => '255.255.0.0',
+			:ip => range2[offset2+count+i].to_s,
+			:libvirt__netmask => netmask2,
 			:libvirt__network_name => 'default'
 
 			# this is the real network that we'll use...
