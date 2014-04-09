@@ -66,11 +66,18 @@ class gluster::server(
 			'' => present,
 			default => "${version}",
 		},
+		before => Package['glusterfs-api'],
 		require => $repo ? {
 			false => undef,
 			default => Gluster::Repo["${rname}"],
 		},
 	}
+
+	$api_params = {
+		'repo' => $repo,
+		'version' => "${version}",
+	}
+	ensure_resource('class', 'gluster::api', $api_params)
 
 	# NOTE: not that we necessarily manage anything in here at the moment...
 	file { '/etc/glusterfs/':

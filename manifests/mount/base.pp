@@ -41,11 +41,18 @@ class gluster::mount::base(
 			'' => present,
 			default => "${version}",
 		},
+		before => Package['glusterfs-api'],
 		require => $repo ? {
 			false => undef,
 			default => Gluster::Repo["${rname}"],
 		},
 	}
+
+	$api_params = {
+		'repo' => $repo,
+		'version' => "${version}",
+	}
+	ensure_resource('class', 'gluster::api', $api_params)
 
 	# FIXME: choose a reliable and correct way to ensure fuse is loaded
 	# dmesg | grep -i fuse
