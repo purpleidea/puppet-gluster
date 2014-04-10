@@ -181,7 +181,7 @@ define gluster::volume(
 	#}
 
 	# add /${name} to the end of each: brick:/path entry
-	$brick_spec = inline_template("<%= @valid_bricks.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
+	$brick_spec = inline_template("<%= @valid_bricks.sort.collect {|x| ''+x.chomp('/')+'/${name}' }.join(' ') %>")
 
 	# if volume creation fails for a stupid reason, in many cases, glusterd
 	# already did some of the work and left us with volume name directories
