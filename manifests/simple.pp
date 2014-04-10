@@ -32,6 +32,7 @@ class gluster::simple(
 	$brick_params_defaults = [],	# array of hashes to use as brick count
 	$setgroup = '',		# pick a volume property group to set, eg: virt
 	$ping = true,	# use fping or not?
+	$again = true,	# do we want to use Exec['again'] ?
 	$baseport = '',	# specify base port option as used in glusterd.vol file
 	$rpcauthallowinsecure = false,	# needed in some setups in glusterd.vol
 	$shorewall = true
@@ -66,13 +67,10 @@ class gluster::simple(
 
 	# if this is a hash, then it's used as the defaults for all the bricks!
 	validate_hash($brick_param_defaults)
-	# in someone explicitly added this value, then don't overwrite it...
-	if has_key($brick_param_defaults, 'areyousure') {
-		$valid_brick_param_defaults = $brick_param_defaults
-	} else {
-		$areyousure = {areyousure => true}
-		$valid_brick_param_defaults = merge($brick_param_defaults, $areyousure)
-	}
+	# if someone explicitly added this value, then don't overwrite it...
+	$areyousure = {'areyousure' => true}
+	$againhash = {'again' => $again}	# pass through the $again value
+	$valid_brick_param_defaults = merge($areyousure, $againhash, $brick_param_defaults)
 
 	# if this is an array, then each element is the default for each brick!
 	# if this is an array, then the number of elements is the brick count!!
@@ -175,6 +173,7 @@ class gluster::simple(
 		bricks => true,			# automatic brick collection...
 		ping => $ping,
 		start => true,
+		again => $again,
 	}
 	Gluster::Volume <<||>>
 

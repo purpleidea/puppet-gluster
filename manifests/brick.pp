@@ -36,10 +36,13 @@ define gluster::brick(
 	$xfs_nobarrier = false,
 	$force = false,			# if true, this will overwrite any xfs fs it sees, useful for rebuilding gluster and wiping data. NOTE: there are other safeties in place to stop this.
 	$areyousure = false,		# do you allow puppet to do dangerous things ?
+	$again = true,			# do we want to use Exec['again'] ?
 	$comment = ''
 ) {
 	include gluster::brick::base
-	include gluster::again
+	if $again {
+		include gluster::again
+	}
 	include gluster::vardir
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
@@ -399,7 +402,10 @@ define gluster::brick(
 				command => '/bin/true',	# do nothing but notify
 				logoutput => on_failure,
 				onlyif => "/usr/bin/test -z '${valid_fsuuid}'",
-				notify => Common::Again::Delta['gluster-exec-again'],
+				notify => $again ? {
+					false => undef,
+					default => Common::Again::Delta['gluster-exec-again'],
+				},
 				# this (optional) require makes it more logical
 				require => File["${vardir}/brick/fsuuid/"],
 			}

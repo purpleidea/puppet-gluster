@@ -512,6 +512,9 @@ Whether to use _fping_ or not to help with ensuring the required hosts are
 available before doing certain types of operations. Optional, but recommended.
 Boolean value.
 
+####`again`
+Do you want to use _Exec['again']_ ? This helps build your cluster quickly!
+
 ####`baseport`
 Specify the base port option as used in the glusterd.vol file. This is useful
 if the default port range of GlusterFS conflicts with the ports used for
@@ -680,6 +683,9 @@ place to stop this. In general, you probably don't ever want to touch this.
 Do you want to allow Puppet-Gluster to do dangerous things? You have to set
 this to _true_ to allow Puppet-Gluster to _fdisk_ and _mkfs_ your file system.
 
+####`again`
+Do you want to use _Exec['again']_ ? This helps build your cluster quickly!
+
 ####`comment`
 Add any comment you want. This is also occasionally used internally to do magic
 things.
@@ -731,6 +737,9 @@ Do we want to include ping checks with _fping_?
 
 ####`settle`
 Do we want to run settle checks?
+
+####`again`
+Do you want to use _Exec['again']_ ? This helps build your cluster quickly!
 
 ####`start`
 Requested state for the volume. Valid values include: _true_ (start), _false_
