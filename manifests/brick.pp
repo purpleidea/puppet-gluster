@@ -166,6 +166,7 @@ define gluster::brick(
 
 	if $lvm {
 		# NOTE: this is used for thin-provisioning, and RHS compliance!
+		include gluster::brick::lvm
 
 		# NOTE: as a consequence of this type of automation, we generate
 		# really ugly vg names like: "vg_annex1.example.com+_gluster_" !
@@ -259,7 +260,14 @@ define gluster::brick(
 	} elsif ( $valid_fstype == 'xfs' ) {
 		# exec requires
 		include gluster::brick::xfs
-		$exec_requires = [Package['xfsprogs']]
+		$exec_requires = $lvm ? {
+			false => Package['xfsprogs'],
+			default => [
+				Package['xfsprogs'],
+				Package['XXX'], # lvm
+			],
+		}
+
 
 		$xfs_arg00 = "/sbin/mkfs.${valid_fstype}"
 
@@ -343,7 +351,13 @@ define gluster::brick(
 	} elsif ( $valid_fstype == 'ext4' ) {
 		# exec requires
 		include gluster::brick::ext4
-		$exec_requires = [Package['e2fsprogs']]
+		$exec_requires = $lvm ? {
+			false => Package['e2fsprogs'],
+			default => [
+				Package['e2fsprogs'],
+				Package['XXX'],	# lvm
+			],
+		}
 
 		# mkfs w/ uuid command
 		$mkfs_exec = "/sbin/mkfs.${valid_fstype} -U '${valid_fsuuid}' ${dev2}"
