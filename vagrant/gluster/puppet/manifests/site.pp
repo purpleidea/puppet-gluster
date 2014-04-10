@@ -49,6 +49,30 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 		start => false,			# useful for testing manually...
 	}
 
+	# build a list of hashes with ordered vdX devices
+	# (s='';q=i;(q, r = (q - 1).divmod(26)) && s.prepend(('a'..'z').to_a[r]) until q.zero?;'/dev/vd'+s)
+	$skip = 1	# skip over 1 disk (eg: /dev/vda from the host)
+	$disks = "${::vagrant_gluster_disks}"
+	$disks_yaml = inline_template("<%= (1+@skip.to_i..@disks.to_i+@skip.to_i).collect { |i| { 'dev' => (s='';q=i;(q, r = (q - 1).divmod(26)) && s.insert(0, ('a'..'z').to_a[r]) until q.zero?;'/dev/vd'+s) } }.to_yaml %>")
+	#$brick_params_defaults = [	# this is one possible example data set
+	#	{'dev' => '/dev/vdb'},
+	#	{'dev' => '/dev/vdc'},
+	#	{'dev' => '/dev/vdd'},
+	#	{'dev' => '/dev/vde'},
+	#]
+	$brick_params_defaults = parseyaml($disks_yaml)
+	notice(inline_template('disks: <%= YAML::load(@disks_yaml).inspect %>'))
+	#notify { 'disks':
+	#	message => inline_template('disks: <%= YAML::load(@disks_yaml).inspect %>'),
+	#}
+
+	$brick_param_defaults = {
+		# TODO: set these from vagrant variables...
+		'lvm' => false,
+		'xfs_inode64' => true,
+		'force' => true,
+	}
+
 	# this is a simple way to setup gluster
 	class { '::gluster::simple':
 		volume => 'puppet',
@@ -62,6 +86,17 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 		shorewall => "${::vagrant_gluster_firewall}" ? {
 			'false' => false,
 			default => true,
+		},
+		# NOTE: this is brick_params_defaults NOT param! param is below
+		brick_params_defaults => "${::vagrant_gluster_disks}" ? {
+			'0' => undef,
+			# NOTE: _each_ host will have N bricks with these devs!
+			default => $brick_params_defaults,
+		},
+		brick_param_defaults => "${::vagrant_gluster_disks}" ? {
+			'0' => undef,
+			# NOTE: _each_ brick will use these...
+			default => $brick_param_defaults,
 		},
 	}
 }
