@@ -65,6 +65,7 @@ netmask2 = IPAddr.new('255.255.255.255').mask(cidr2).to_s
 
 # mutable by ARGV and settings file
 count = 4		# default number of gluster hosts to build
+disks = 0		# default number of disks to attach (after the host os)
 bricks = 0		# default number of bricks to build (0 defaults to 1)
 version = ''		# default gluster version (empty string means latest!)
 firewall = false	# default firewall enabled (FIXME: default to true when keepalived bug is fixed)
@@ -85,6 +86,7 @@ f = File.join(projectdir, 'puppet-gluster.yaml')
 if File.exist?(f)
 	settings = YAML::load_file f
 	count = settings[:count]
+	disks = settings[:disks]
 	bricks = settings[:bricks]
 	version = settings[:version]
 	firewall = settings[:firewall]
@@ -106,6 +108,12 @@ while skip < ARGV.length
 		#puts "#{arg}, #{v}"	# debug
 
 		count = v.to_i		# set gluster host count
+
+	elsif ARGV[skip].start_with?(arg='--gluster-disks=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		disks = v.to_i		# set gluster disk count
 
 	elsif ARGV[skip].start_with?(arg='--gluster-bricks=')
 		v = ARGV.delete_at(skip).dup
@@ -179,6 +187,7 @@ end
 # save settings (ARGV overrides)
 settings = {
 	:count => count,
+	:disks => disks,
 	:bricks => bricks,
 	:version => version,
 	:firewall => firewall,
@@ -449,6 +458,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 				puppet.options = '--test'	# see the output
 				puppet.facter = {
 					'vagrant' => '1',
+					'vagrant_gluster_disks' => disks.to_s,
 					'vagrant_gluster_bricks' => bricks.to_s,
 					'vagrant_gluster_replica' => replica.to_s,
 					'vagrant_gluster_layout' => layout,
@@ -458,6 +468,19 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 					'vagrant_gluster_firewall' => firewall ? 'true' : 'false',
 					'vagrant_gluster_version' => version,
 				}
+			end
+
+			vm.vm.provider :libvirt do |libvirt|
+				# add additional disks to the os
+				(1..disks).each do |j|	# if disks is 0, this passes :)
+					#print "disk: #{j}"
+					libvirt.storage :file,
+						#:path => '',		# auto!
+						#:device => 'vdb',	# auto!
+						#:size => '10G',	# auto!
+						:type => 'qcow2'
+
+				end
 			end
 		end
 	end
