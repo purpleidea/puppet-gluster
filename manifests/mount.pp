@@ -39,7 +39,7 @@ define gluster::mount(
 	}
 	# because multiple gluster::mount types are allowed on the same server,
 	# we include with the ensure_resource function to avoid identical calls
-	ensure_resource('class', '::gluster::mount::base', $params)
+	ensure_resource('class', 'gluster::mount::base', $params)
 
 	# eg: vip:/volume
 	$split = split($server, ':')	# do some $server parsing
