@@ -466,6 +466,7 @@ define gluster::brick(
 			onlyif => "/usr/bin/test -n '${valid_fsuuid}'",
 			unless => [		# if one element is true, this *doesn't* run
 				"/usr/bin/test -e /dev/disk/by-uuid/${valid_fsuuid}",
+				"/bin/mount | grep $(echo ${valid_path} | sed 's/\/$//')",
 				'/bin/false',	# TODO: add more criteria
 			],
 			require => $exec_requires,
