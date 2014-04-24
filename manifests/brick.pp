@@ -31,6 +31,7 @@ define gluster::brick(
 	$lvm_virtsize = '',		# defaults to 100% available.
 	$lvm_chunksize = '',		# chunk size for thin-p
 	$lvm_metadatasize = '',		# meta data size for thin-p
+	$lvm_fstrim = true,		# include an fstrim cron job for thin-p
 
 	$fsuuid = '',			# set a uuid for this fs (uuidgen)
 	$fstype = '',			# xfs
@@ -515,6 +516,21 @@ define gluster::brick(
 			noop => $exec_noop,
 			alias => "gluster-brick-mkdir ${name}",
 		}
+	}
+
+	# run fstrim periodically when using thin-p
+	cron { "gluster-fstrim-${safename}":
+		# the: > /dev/null 2>&1 disables email notifications from cron!
+		command => "/usr/sbin/fstrim ${valid_path} > /dev/null 2>&1",
+		user => root,
+		hour => 23,			# just before midnight
+		ensure => $lvm_thinp ? {
+			true => $lvm_fstrim ? {
+				false => absent,
+				default => present,
+			},
+			default => absent,
+		},
 	}
 }
 
