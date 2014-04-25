@@ -199,8 +199,8 @@ define gluster::volume(
 	# get the list of bricks fqdn's that don't have our fqdn
 	$others = inline_template("<%= @valid_bricks.find_all{|x| x.split(':')[0] != '${fqdn}' }.collect {|y| y.split(':')[0] }.join(' ') %>")
 
-	$fping = sprintf("/usr/sbin/fping -q %s", $others)
-	$status = sprintf("/usr/sbin/gluster peer status --xml | ${vardir}/xml.py connected %s", $others)
+	$fping = sprintf("${::gluster::params::program_fping} -q %s", $others)
+	$status = sprintf("${::gluster::params::program_gluster} peer status --xml | ${vardir}/xml.py connected %s", $others)
 
 	$onlyif = $ping ? {
 		false => "${status}",
@@ -230,10 +230,10 @@ define gluster::volume(
 
 	# work around stuck connection state (4) of: 'Accepted peer request'...
 	exec { "gluster-volume-stuck-${name}":
-		command => '/sbin/service glusterd reload',
+		command => "${::gluster::params::misc_gluster_reload}",
 		logoutput => on_failure,
-		unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# reconnect if it doesn't exist
-		onlyif => sprintf("/usr/sbin/gluster peer status --xml | ${vardir}/xml.py stuck %s", $others),
+		unless => "${::gluster::params::program_gluster} volume list | /bin/grep -qxF '${name}' -",	# reconnect if it doesn't exist
+		onlyif => sprintf("${::gluster::params::program_gluster} peer status --xml | ${vardir}/xml.py stuck %s", $others),
 		notify => $again ? {
 			false => undef,
 			default => Common::Again::Delta['gluster-exec-again'],
@@ -253,7 +253,7 @@ define gluster::volume(
 	# FIXME: it would be create to have an --allow-root-storage type option
 	# instead, so that we don't inadvertently force some other bad thing...
 	file { "${vardir}/volume/create-${name}.sh":
-		content => inline_template("#!/bin/bash\n/bin/sleep 5s && /usr/sbin/gluster volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} force > >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
+		content => inline_template("#!/bin/bash\n/bin/sleep 5s && ${::gluster::params::program_gluster} volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} force > >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
 		owner => root,
 		group => root,
 		mode => 755,
@@ -289,7 +289,7 @@ define gluster::volume(
 			exec { "gluster-volume-create-${name}":
 				command => "${vardir}/volume/create-${name}.sh",
 				logoutput => on_failure,
-				unless => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
+				unless => "${::gluster::params::program_gluster} volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
 				onlyif => $onlyif,
 				#before => TODO?,
 				require => $require,
@@ -299,10 +299,10 @@ define gluster::volume(
 
 		if $start == true {
 			# try to start volume if stopped
-			exec { "/usr/sbin/gluster volume start ${name}":
+			exec { "${::gluster::params::program_gluster} volume start ${name}":
 				logoutput => on_failure,
-				onlyif => "/usr/sbin/gluster volume list | /bin/grep -qxF '${name}' -",
-				unless => "/usr/sbin/gluster volume status ${name}",	# returns false if stopped
+				onlyif => "${::gluster::params::program_gluster} volume list | /bin/grep -qxF '${name}' -",
+				unless => "${::gluster::params::program_gluster} volume status ${name}",	# returns false if stopped
 				notify => $shorewall ? {
 					false => undef,
 					default => $again ? {
@@ -323,9 +323,9 @@ define gluster::volume(
 			# make its data inaccessible. Do you want to continue? (y/n)
 			# TODO: http://community.gluster.org/q/how-can-i-make-automatic-scripts/
 			# TODO: gluster --mode=script volume stop ...
-			exec { "/usr/bin/yes | /usr/sbin/gluster volume stop ${name}":
+			exec { "/usr/bin/yes | ${::gluster::params::program_gluster} volume stop ${name}":
 				logoutput => on_failure,
-				onlyif => "/usr/sbin/gluster volume status ${name}",	# returns true if started
+				onlyif => "${::gluster::params::program_gluster} volume status ${name}",	# returns true if started
 				require => $settled ? {	# require if type exists
 					false => undef,
 					default => Exec["gluster-volume-create-${name}"],
