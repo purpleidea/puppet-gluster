@@ -149,8 +149,8 @@ define gluster::brick(
 	# get the raw /dev/vdx device, and append the partition number
 	$dev0 = "`/bin/readlink -e ${dev}`"	# resolve to /dev/<device>
 
-	$part_mklabel = "/sbin/parted -s -m -a optimal ${dev0} mklabel ${valid_labeltype}"
-	$part_mkpart = "/sbin/parted -s -m -a optimal ${dev0} mkpart primary 0% 100%"
+	$part_mklabel = "${::gluster::params::program_parted} -s -m -a optimal ${dev0} mklabel ${valid_labeltype}"
+	$part_mkpart = "${::gluster::params::program_parted} -s -m -a optimal ${dev0} mkpart primary 0% 100%"
 
 	#
 	$dev1 = $partition ? {
@@ -180,15 +180,15 @@ define gluster::brick(
 		$lvm_dataalignment = inline_template('<%= @raid_su.to_i*@raid_sw.to_i %>')
 
 		$lvm_pvcreate = "${raid_su}${raid_sw}" ? {	# both empty ?
-			'' => "/sbin/pvcreate ${dev1}",
-			default => "/sbin/pvcreate --dataalignment ${lvm_dataalignment}K ${dev1}",
+			'' => "${::gluster::params::program_pvcreate} ${dev1}",
+			default => "${::gluster::params::program_pvcreate} --dataalignment ${lvm_dataalignment}K ${dev1}",
 		}
 
-		$lvm_vgcreate = "/sbin/vgcreate ${lvm_vgname} ${dev1}"
+		$lvm_vgcreate = "${::gluster::params::program_vgcreate} ${lvm_vgname} ${dev1}"
 
 		# match --virtualsize with 100% of available vg by default
 		$lvm_thinp_virtsize = "${lvm_virtsize}" ? {	# --virtualsize
-			'' => "`/sbin/vgs -o size --units b --noheadings ${lvm_vgname}`",
+			'' => "`${::gluster::params::program_vgs} -o size --units b --noheadings ${lvm_vgname}`",
 			default => "${lvm_virtsize}",
 		}
 
@@ -208,7 +208,7 @@ define gluster::brick(
 		# MIRROR: http://man7.org/linux/man-pages/man7/lvmthin.7.html
 		# TODO: is this the optimal setup for thin-p ?
 		$lvm_thinp_lvcreate_cmdlist = [
-			'/sbin/lvcreate',
+			"${::gluster::params::program_lvcreate}",
 			"--thinpool ${lvm_vgname}/${lvm_tpname}",	# thinp
 			'--extents 100%FREE',	# let lvm figure out the --size
 			"--virtualsize ${lvm_thinp_virtsize}",
@@ -221,7 +221,7 @@ define gluster::brick(
 		# creates dev /dev/vgname/lvname
 		$lvm_lvcreate = $lvm_thinp ? {
 			true => "${lvm_thinp_lvcreate}",
-			default => "/sbin/lvcreate --extents 100%PVS -n ${lvm_lvname} ${lvm_vgname}",
+			default => "${::gluster::params::program_lvcreate} --extents 100%PVS -n ${lvm_lvname} ${lvm_vgname}",
 		}
 	}
 
@@ -262,7 +262,7 @@ define gluster::brick(
 		include gluster::brick::xfs
 		$exec_requires = [Package["${::gluster::params::package_xfsprogs}"]]
 
-		$xfs_arg00 = "/sbin/mkfs.${valid_fstype}"
+		$xfs_arg00 = "${::gluster::params::program_mkfs_xfs}"
 
 		$xfs_arg01 = '-q'	# shh!
 
@@ -308,7 +308,7 @@ define gluster::brick(
 		$xfs_cmd = join(delete($xfs_cmdlist, ''), ' ')
 
 		# TODO: xfs_admin doesn't have a --quiet flag. silence it...
-		$xfs_admin = "/usr/sbin/xfs_admin -U '${valid_fsuuid}' ${dev2}"
+		$xfs_admin = "${::gluster::params::program_xfs_admin} -U '${valid_fsuuid}' ${dev2}"
 
 		# mkfs w/ uuid command
 		$mkfs_exec = "${xfs_cmd} && ${xfs_admin}"
@@ -347,7 +347,7 @@ define gluster::brick(
 		$exec_requires = [Package["${::gluster::params::package_e2fsprogs}"]]
 
 		# mkfs w/ uuid command
-		$mkfs_exec = "/sbin/mkfs.${valid_fstype} -U '${valid_fsuuid}' ${dev2}"
+		$mkfs_exec = "${::gluster::params::program_mkfs_ext4} -U '${valid_fsuuid}' ${dev2}"
 
 		# mount options
 		$options_list = []	# TODO
@@ -404,7 +404,7 @@ define gluster::brick(
 			exec { "${lvm_pvcreate}":
 				logoutput => on_failure,
 				unless => [		# if one element is true, this *doesn't* run
-					"/sbin/pvdisplay ${dev1}",
+					"${::gluster::params::program_pvdisplay} ${dev1}",
 					'/bin/false',	# TODO: add more criteria
 				],
 				require => $exec_requires,
@@ -417,7 +417,7 @@ define gluster::brick(
 			exec { "${lvm_vgcreate}":
 				logoutput => on_failure,
 				unless => [		# if one element is true, this *doesn't* run
-					"/sbin/vgdisplay ${lvm_vgname}",
+					"${::gluster::params::program_vgdisplay} ${lvm_vgname}",
 					'/bin/false',	# TODO: add more criteria
 				],
 				require => $exec_requires,
@@ -430,8 +430,8 @@ define gluster::brick(
 			exec { "${lvm_lvcreate}":
 				logoutput => on_failure,
 				unless => [		# if one element is true, this *doesn't* run
-					#"/sbin/lvdisplay ${lvm_lvname}",	# nope!
-					"/sbin/lvs --separator ':' | /usr/bin/tr -d ' ' | /bin/awk -F ':' '{print \$1}' | /bin/grep -q '${lvm_lvname}'",
+					#"${::gluster::params::program_lvdisplay} ${lvm_lvname}",	# nope!
+					"${::gluster::params::program_lvs} --separator ':' | /usr/bin/tr -d ' ' | /bin/awk -F ':' '{print \$1}' | /bin/grep -q '${lvm_lvname}'",
 					'/bin/false',	# TODO: add more criteria
 				],
 				require => $exec_requires,
