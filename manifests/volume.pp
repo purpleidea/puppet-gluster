@@ -212,14 +212,14 @@ define gluster::volume(
 
 	$require = $ping ? {
 		false => [
-			Service['glusterd'],
+			Service["${::gluster::params::service_glusterd}"],
 			File["${vardir}/volume/create-${name}.sh"],
 			File["${vardir}/xml.py"],	# status check
 			Gluster::Brick[$valid_bricks],
 			Exec["gluster-volume-stuck-${name}"],
 		],
 		default => [
-			Service['glusterd'],
+			Service["${::gluster::params::service_glusterd}"],
 			File["${vardir}/volume/create-${name}.sh"],
 			Package["${::gluster::params::package_fping}"],
 			File["${vardir}/xml.py"],	# status check
@@ -239,7 +239,7 @@ define gluster::volume(
 			default => Common::Again::Delta['gluster-exec-again'],
 		},
 		require => [
-			Service['glusterd'],
+			Service["${::gluster::params::service_glusterd}"],
 			File["${vardir}/xml.py"],	# stuck check
 			Gluster::Brick[$valid_bricks],
 		],
@@ -367,14 +367,14 @@ define gluster::volume(
 		#Shorewall::Rule <<| tag == 'gluster_firewall_volume' and comment != "${fqdn}" |>> {
 		Shorewall::Rule <<| tag == 'gluster_firewall_volume' |>> {
 			source => "${zone}",	# use our source zone
-			before => Service['glusterd'],
+			before => Service["${::gluster::params::service_glusterd}"],
 		}
 
 		Gluster::Rulewrapper <<| tag == 'gluster_firewall_volume' and match == "${name}" |>> {
 		#Shorewall::Rule <<| tag == 'gluster_firewall_volume' and match == "${name}" |>> {
 			source => "${zone}",	# use our source zone
 			port => "${port}",	# comma separated string or list
-			before => Service['glusterd'],
+			before => Service["${::gluster::params::service_glusterd}"],
 		}
 	}
 
