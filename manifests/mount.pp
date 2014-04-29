@@ -142,6 +142,13 @@ define gluster::mount(
 		alias => "${short_name}",	# don't allow duplicates name's
 	}
 
+	$packages = "${::gluster::params::package_glusterfs_fuse}" ? {
+		'' => ["${::gluster::params::package_glusterfs}"],
+		default => [
+			"${::gluster::params::package_glusterfs}",
+			"${::gluster::params::package_glusterfs_fuse}",
+		],
+	}
 	# Mount Options:
 	# * backupvolfile-server=server-name
 	# * fetch-attempts=N (where N is number of attempts)
@@ -163,10 +170,7 @@ define gluster::mount(
 		dump => '0',		# fs_freq: 0 to skip file system dumps
 		pass => '0',		# fs_passno: 0 to skip fsck on boot
 		require => [
-			Package[
-				["${::gluster::params::package_glusterfs}",
-				"${::gluster::params::package_glusterfs_fuse}"]
-			],
+			Package[$packages],
 			File["${long_name}"],		# the mountpoint
 			Exec['gluster-fuse'],	# ensure fuse is loaded!
 		],

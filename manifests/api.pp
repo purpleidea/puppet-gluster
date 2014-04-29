@@ -26,15 +26,18 @@ class gluster::api(
 		default => "gluster-${version}",
 	}
 
-	package { "${::gluster::params::package_glusterfs_api}":
-		ensure => "${version}" ? {
-			'' => present,
-			default => "${version}",
-		},
-		require => $repo ? {
-			false => undef,
-			default => Gluster::Repo["${rname}"],
-		},
+	# certain packages don't exist on certain operating systems
+	if "${::gluster::params::package_glusterfs_api}" != '' {
+		package { "${::gluster::params::package_glusterfs_api}":
+			ensure => "${version}" ? {
+				'' => present,
+				default => "${version}",
+			},
+			require => $repo ? {
+				false => undef,
+				default => Gluster::Repo["${rname}"],
+			},
+		}
 	}
 }
 
