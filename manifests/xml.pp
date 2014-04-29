@@ -19,13 +19,18 @@ class gluster::xml {
 	include gluster::vardir
 	include gluster::params
 
-	package { "${::gluster::params::package_python_argparse}":
-		ensure => present,
+	# argparse is built into python on new platforms and isn't needed here!
+	if "${::gluster::params::package_python_argparse}" != '' {
+		package { "${::gluster::params::package_python_argparse}":
+			ensure => present,
+			before => File["${vardir}/xml.py"],
+		}
 	}
 
 	# for parsing gluster xml output
 	package { "${::gluster::params::package_python_lxml}":
 		ensure => present,
+		before => File["${vardir}/xml.py"],
 	}
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
@@ -38,11 +43,7 @@ class gluster::xml {
 		mode => 700,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		ensure => present,
-		require => [
-			Package["${::gluster::params::package_python_argparse}"],
-			Package["${::gluster::params::package_python_lxml}"],
-			File["${vardir}/"],
-		],
+		require => File["${vardir}/"],
 	}
 }
 
