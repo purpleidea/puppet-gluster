@@ -92,7 +92,7 @@ class gluster::server(
 		owner => root,
 		group => root,
 		mode => 644,
-		#notify => Service['glusterd'],	# TODO: ???
+		#notify => Service["${::gluster::params::service_glusterd}"],	# TODO: ???
 		require => Package["${::gluster::params::package_glusterfs_server}"],
 	}
 
@@ -122,7 +122,7 @@ class gluster::server(
 		owner => root,
 		group => root,
 		mode => 644,
-		#notify => Service['glusterd'],	# TODO: eventually...
+		#notify => Service["${::gluster::params::service_glusterd}"],	# TODO: eventually...
 		require => File['/etc/glusterfs/glusterd.vol'],
 	}
 
@@ -134,7 +134,7 @@ class gluster::server(
 		owner => root,
 		group => root,
 		mode => 644,
-		notify => Service['glusterd'],
+		notify => Service["${::gluster::params::service_glusterd}"],
 		require => File['/var/lib/glusterd/'],
 	}
 
@@ -164,7 +164,7 @@ class gluster::server(
 		#	ACCEPT    ${src}    $FW    tcp    24009:${endport}
 		#	",
 		#	comment => 'Allow 24000s for gluster',
-		#	before => Service['glusterd'],
+		#	before => Service["${::gluster::params::service_glusterd}"],
 		#}
 
 		#if $nfs {					# FIXME: TODO
@@ -175,7 +175,7 @@ class gluster::server(
 	}
 
 	# start service only after the firewall is opened and hosts are defined
-	service { 'glusterd':
+	service { "${::gluster::params::service_glusterd}":
 		enable => true,		# start on boot
 		ensure => running,	# ensure it stays running
 		hasstatus => false,	# FIXME: BUG: https://bugzilla.redhat.com/show_bug.cgi?id=836007

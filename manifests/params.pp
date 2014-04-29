@@ -50,6 +50,9 @@ class gluster::params(
 
 	$program_fping = '/usr/sbin/fping',
 
+	# services...
+	$service_glusterd = 'glusterd',
+
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',
 

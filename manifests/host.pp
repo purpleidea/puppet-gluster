@@ -34,7 +34,7 @@ define gluster::host(
 		fail("The chosen UUID: '${uuid}' is not valid.")
 	}
 
-	Gluster::Host[$name] -> Service['glusterd']	# glusterd requires host
+	Gluster::Host[$name] -> Service["${::gluster::params::service_glusterd}"]	# glusterd requires host
 
 	# if we're on itself
 	if "${fqdn}" == "${name}" {
@@ -124,7 +124,7 @@ define gluster::host(
 				seltype => 'glusterd_var_lib_t',
 				seluser => 'system_u',
 				ensure => present,
-				notify => Service['glusterd'],
+				notify => Service["${::gluster::params::service_glusterd}"],
 				require => File['/var/lib/glusterd/'],
 			}
 
@@ -158,7 +158,7 @@ define gluster::host(
 				notify => [
 					# propagate the notify up
 					File['/var/lib/glusterd/peers/'],
-					Service['glusterd'],	# ensure reload
+					Service["${::gluster::params::service_glusterd}"],	# ensure reload
 				],
 				before => File["/var/lib/glusterd/peers/${valid_uuid}"],
 				alias => "gluster-host-uuid-${name}",
@@ -180,7 +180,7 @@ define gluster::host(
 				notify => [
 					# propagate the notify up
 					File['/var/lib/glusterd/peers/'],
-					Service['glusterd'],	# ensure reload
+					Service["${::gluster::params::service_glusterd}"],	# ensure reload
 				],
 				before => File["/var/lib/glusterd/peers/${valid_uuid}"],
 				require => Exec["gluster-host-uuid-${name}"],
@@ -194,7 +194,7 @@ define gluster::host(
 				notify => [
 					# propagate the notify up
 					File['/var/lib/glusterd/peers/'],
-					Service['glusterd'],	# ensure reload
+					Service["${::gluster::params::service_glusterd}"],	# ensure reload
 				],
 				before => File["/var/lib/glusterd/peers/${valid_uuid}"],
 				require => Exec["gluster-host-state-${name}"],
@@ -212,7 +212,7 @@ define gluster::host(
 				notify => [
 					# propagate the notify up
 					File['/var/lib/glusterd/peers/'],
-					Service['glusterd'],	# ensure reload
+					Service["${::gluster::params::service_glusterd}"],	# ensure reload
 				],
 			}
 		}
@@ -377,7 +377,7 @@ define gluster::host(
 		# them but this isn't a huge issue at the moment...
 		Shorewall::Rule <<| tag == 'gluster_firewall_management' |>> {
 			source => "${zone}",	# use our source zone
-			before => Service['glusterd'],
+			before => Service["${::gluster::params::service_glusterd}"],
 		}
 	}
 }
