@@ -48,7 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	* [gluster::mount](#glustermount)
 6. [Examples - Example configurations](#examples)
 7. [Limitations - Puppet versions, OS compatibility, etc...](#limitations)
-8. [Development - Background on module development](#development)
+8. [Development - Background on module development and reporting bugs](#development)
 9. [Author - Author and contact information](#author)
 
 ##Overview
@@ -366,6 +366,14 @@ need to remount the root filesystem in read-write mode. You can do this with:
 ```bash
 mount -n -o remount /
 ```
+
+###Will this work on my favourite OS? (eg: GNU/Linux F00bar OS v12 ?)
+If it's a GNU/Linux based OS, can run GlusterFS, and Puppet, then it will
+probably work. Typically, you might need to add a yaml data file to the _data/_
+folder so that Puppet-Gluster knows where certain operating system specific
+things are found. The multi-distro support has been designed to make it
+particularly easy to add support for additional platforms. If your platform
+doesn't work, please submit a yaml data file with the platform specific values.
 
 ###Awesome work, but it's missing support for a feature and/or platform!
 
@@ -828,20 +836,29 @@ It is also available from:
 
 This module has been tested against open source Puppet 3.2.4 and higher.
 
-The module has been tested on:
+The module is routinely tested on:
 
-* CentOS 6.4/6.5
+* CentOS 6.5
 
 It will probably work without incident or without major modification on:
 
 * CentOS 5.x/6.x
 * RHEL 5.x/6.x
 
+It has patches to support:
+
+* Fedora 20+
+* Ubuntu 12.04+
+* Debian 7+
+
 It will most likely work with other Puppet versions and on other platforms, but
-testing under other conditions has been light due to lack of resources. It will
-most likely not work on Debian/Ubuntu systems without modification. I would
-really love to add support for these operating systems, but I do not have any
-test resources to do so. Please sponsor this if you'd like to see it happen.
+testing on those platforms has been minimal due to lack of time and resources.
+
+Testing is community supported! Please report any issues as there are a lot of
+features, and in particular, support for additional distros isn't well tested.
+The multi-distro architecture has been chosen to easily support new additions.
+Most platforms and versions will only require a change to the yaml based data/
+folder.
 
 ##Development
 
@@ -851,6 +868,8 @@ appreciated. Please contact me if you'd like to sponsor a feature, invite me to
 talk/teach or for consulting.
 
 You can follow along [on my technical blog](https://ttboj.wordpress.com/).
+
+To report any bugs, please file a ticket at: [https://bugzilla.redhat.com/enter_bug.cgi?product=GlusterFS&component=puppet-gluster](https://bugzilla.redhat.com/enter_bug.cgi?product=GlusterFS&component=puppet-gluster).
 
 ##Author
 
