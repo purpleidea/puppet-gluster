@@ -67,7 +67,10 @@ class gluster::server(
 			'' => present,
 			default => "${version}",
 		},
-		before => Package["${::gluster::params::package_glusterfs_api}"],
+		before => "${::gluster::params::package_glusterfs_api}" ? {
+			'' => undef,
+			default => Package["${::gluster::params::package_glusterfs_api}"],
+		},
 		require => $repo ? {
 			false => undef,
 			default => Gluster::Repo["${rname}"],

@@ -1,4 +1,6 @@
 # gluster/data/tree/Debian.yaml
 ---
-
+gluster::params::package_glusterfs: 'glusterfs-client'
+gluster::params::package_glusterfs_api: ''      # doesn't exist
+gluster::params::package_glusterfs_fuse: ''     # doesn't exist
 # vim: ts=8

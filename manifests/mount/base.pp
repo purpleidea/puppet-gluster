@@ -37,13 +37,22 @@ class gluster::mount::base(
 		ensure_resource('gluster::repo', "${rname}", $params)
 	}
 
-	package { ["${::gluster::params::package_glusterfs}",
-		"${::gluster::params::package_glusterfs_fuse}"]:
+	$packages = "${::gluster::params::package_glusterfs_fuse}" ? {
+		'' => ["${::gluster::params::package_glusterfs}"],
+		default => [
+			"${::gluster::params::package_glusterfs}",
+			"${::gluster::params::package_glusterfs_fuse}",
+		],
+	}
+	package { $packages:
 		ensure => "${version}" ? {
 			'' => present,
 			default => "${version}",
 		},
-		before => Package["${::gluster::params::package_glusterfs_api}"],
+		before => "${::gluster::params::package_glusterfs_api}" ? {
+			'' => undef,
+			default => Package["${::gluster::params::package_glusterfs_api}"],
+		},
 		require => $repo ? {
 			false => undef,
 			default => Gluster::Repo["${rname}"],
