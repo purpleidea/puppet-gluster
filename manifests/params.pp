@@ -49,6 +49,7 @@ class gluster::params(
 	$program_mkfs_ext4 = '/sbin/mkfs.ext4',
 
 	$program_fping = '/usr/sbin/fping',
+	$program_findmnt = '/bin/findmnt',
 
 	# services...
 	$service_glusterd = 'glusterd',
