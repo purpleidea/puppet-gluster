@@ -72,6 +72,7 @@ replica = 1		# default replica count
 clients = 1		# default number of gluster clients to build
 layout = ''		# default brick layout
 setgroup = ''		# default setgroup value
+sync = 'rsync'		# default sync type
 cachier = false		# default cachier usage
 
 #
@@ -91,6 +92,7 @@ if File.exist?(f)
 	clients = settings[:clients]
 	layout = settings[:layout]
 	setgroup = settings[:setgroup]
+	sync = settings[:sync]
 	cachier = settings[:cachier]
 end
 
@@ -152,6 +154,12 @@ while skip < ARGV.length
 
 		setgroup = v.to_s	# set gluster setgroup
 
+	elsif ARGV[skip].start_with?(arg='--gluster-sync=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		sync = v.to_s	# set sync type
+
 	elsif ARGV[skip].start_with?(arg='--gluster-cachier=')
 		v = ARGV.delete_at(skip).dup
 		v.slice! arg
@@ -178,6 +186,7 @@ settings = {
 	:clients => clients,
 	:layout => layout,
 	:setgroup => setgroup,
+	:sync => sync,
 	:cachier => cachier
 }
 File.open(f, 'w') do |file|
@@ -222,7 +231,7 @@ end
 
 # XXX: workaround for: https://github.com/mitchellh/vagrant/issues/2447
 # only run on 'vagrant init' or if it's the first time running vagrant
-if (ARGV.length > 0 and ARGV[0] == 'init') or not(File.exist?(f))
+if sync == 'nfs' and ((ARGV.length > 0 and ARGV[0] == 'init') or not(File.exist?(f)))
 	`sudo systemctl restart nfs-server`
 	`firewall-cmd --permanent --zone public --add-service mountd`
 	`firewall-cmd --permanent --zone public --add-service rpc-bind`
@@ -244,6 +253,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	config.vm.box_url = 'https://download.gluster.org/pub/gluster/purpleidea/vagrant/centos-6/centos-6.box'
 
 	#
+	#	sync type
+	#
+	config.vm.synced_folder './', '/vagrant', type: sync	# nfs, rsync
+
+	#
 	#	cache
 	#
 	# NOTE: you should probably erase the cache between rebuilds if you are
@@ -257,11 +271,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 		if not ARGV.include?('--no-parallel')	# when running in parallel,
 			config.cache.scope = :machine	# use the per machine cache
 		end
-		config.cache.enable_nfs = true	# sets nfs => true on the synced_folder
-		# the nolock option is required, otherwise the NFSv3 client will try to
-		# access the NLM sideband protocol to lock files needed for /var/cache/
-		# all of this can be avoided by using NFSv4 everywhere. die NFSv3, die!
-		config.cache.mount_options = ['rw', 'vers=3', 'tcp', 'nolock']
+		if sync == 'nfs'	# TODO: support other sync types here...
+			config.cache.enable_nfs = true	# sets nfs => true on the synced_folder
+			# the nolock option is required, otherwise the NFSv3 client will try to
+			# access the NLM sideband protocol to lock files needed for /var/cache/
+			# all of this can be avoided by using NFSv4 everywhere. die NFSv3, die!
+			config.cache.mount_options = ['rw', 'vers=3', 'tcp', 'nolock']
+		end
 	end
 
 	#
@@ -346,6 +362,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 				'vagrant_gluster_firewall' => firewall ? 'true' : 'false',
 				'vagrant_gluster_allow' => (1..count).map{|z| range[offset+z].to_s}.join(','),
 			}
+			puppet.synced_folder_type = sync
 		end
 
 		vm.vm.provider :libvirt do |libvirt|
@@ -530,11 +547,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 			end
 		end
 	end
-
-	#
-	#	misc
-	#
-	#config.vm.synced_folder "hacking/", "/vagrant_hacking", :nfs => true, :mount_options => ['rw', 'vers=3', 'tcp']
 
 	#
 	#	libvirt
