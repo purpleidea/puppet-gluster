@@ -289,6 +289,15 @@ puppet node deactivate HOSTNAME
 for each host you're using, and that you've removed all of the files from the
 brick directories on each host.
 
+###Puppet runs fail with "Connection refused - connect(2)" errors.
+
+You may see a "_Connection refused - connect(2)_" message when running puppet.
+This typically happens if your puppet vm guest is overloaded. When running high
+guest counts on your laptop, or running without hardware virtualization support
+this is quite common. Another common causes of this is if your domain type is
+set to _qemu_ instead of the accelerated _kvm_. Since the _qemu_ domain type is
+much slower, puppet timeouts and failures are common when it doesn't respond.
+
 ###Provisioning fails with: "Can't open /dev/sdb1 exclusively."
 
 If when provisioning you get an error like:
