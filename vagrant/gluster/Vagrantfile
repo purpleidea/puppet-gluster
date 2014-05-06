@@ -74,6 +74,7 @@ clients = 1		# default number of gluster clients to build
 layout = ''		# default brick layout
 setgroup = ''		# default setgroup value
 sync = 'rsync'		# default sync type
+splay = []		# default host distribution
 cachier = false		# default cachier usage
 
 #
@@ -95,6 +96,7 @@ if File.exist?(f)
 	layout = settings[:layout]
 	setgroup = settings[:setgroup]
 	sync = settings[:sync]
+	splay = settings[:splay]
 	cachier = settings[:cachier]
 end
 
@@ -168,6 +170,12 @@ while skip < ARGV.length
 
 		sync = v.to_s	# set sync type
 
+	elsif ARGV[skip].start_with?(arg='--gluster-splay=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		splay = v.to_s.split(',')	# set splay list
+
 	elsif ARGV[skip].start_with?(arg='--gluster-cachier=')
 		v = ARGV.delete_at(skip).dup
 		v.slice! arg
@@ -196,6 +204,7 @@ settings = {
 	:layout => layout,
 	:setgroup => setgroup,
 	:sync => sync,
+	:splay => splay,
 	:cachier => cachier
 }
 File.open(f, 'w') do |file|
@@ -471,6 +480,19 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 			end
 
 			vm.vm.provider :libvirt do |libvirt|
+				# distribute this guest across a list of hosts!
+				if splay.length > 0
+					rotate = (i-1) % splay.length	# rotate
+					user,host = splay[rotate].split('@')
+					if host.nil?	# no @ exists...
+						host = user
+						user = 'root'
+					end
+					libvirt.connect_via_ssh = true
+					libvirt.host = host.to_s
+					libvirt.username = user.to_s
+				end
+
 				# add additional disks to the os
 				(1..disks).each do |j|	# if disks is 0, this passes :)
 					#print "disk: #{j}"
@@ -576,9 +598,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	#
 	config.vm.provider :libvirt do |libvirt|
 		libvirt.driver = 'kvm'	# needed for kvm performance benefits !
+		# TODO: will machine specific libvirt settings override these ?
+		libvirt.connect_via_ssh = false
 		# leave out to connect directly with qemu:///system
 		#libvirt.host = 'localhost'
-		libvirt.connect_via_ssh = false
 		libvirt.username = 'root'
 		libvirt.storage_pool_name = 'default'
 		#libvirt.default_network = 'default'	# XXX: this does nothing
