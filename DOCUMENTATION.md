@@ -778,6 +778,8 @@ This should be _xfs_ or _ext4_. Using _xfs_ is recommended, but _ext4_ is also
 quite common. This only affects a file system that is getting created by this
 module. If you provision a new machine, with a root file system of _ext4_, and
 the brick you create is a root file system path, then this option does nothing.
+A _btrfs_ option is now available for testing. It is not officially supported
+by GlusterFS, but testing it anyways, and reporting any issues is encouraged.
 
 ####`xfs_inode64`
 Set _inode64_ mount option when using the _xfs_ fstype. Choose _true_ to set.

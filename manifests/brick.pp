@@ -246,6 +246,7 @@ define gluster::brick(
 		},
 		default => $fstype ? {
 			'ext4' => 'ext4',	# TODO
+			'btrfs' => 'btrfs',
 			default => 'xfs',
 		},
 	}
@@ -351,6 +352,20 @@ define gluster::brick(
 
 		# mount options
 		$options_list = []	# TODO
+
+	} elsif ( $valid_fstype == 'btrfs' ) {
+		# exec requires
+		include gluster::brick::btrfs
+		$exec_requires = [Package["${::gluster::params::package_btrfsprogs}"]]
+
+		# FIXME: this filesystem has not yet been optimized for performance
+
+		# mkfs w/ uuid command
+		$mkfs_exec = "${::gluster::params::program_mkfs_btrfs} -U '${valid_fsuuid}' ${dev2}"
+
+		# mount options
+		$options_list = []	# TODO
+
 	} else {
 		fail('The $fstype is invalid.')
 	}

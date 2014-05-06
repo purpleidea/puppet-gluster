@@ -24,6 +24,7 @@ class gluster::params(
 
 	$package_e2fsprogs = 'e2fsprogs',
 	$package_xfsprogs = 'xfsprogs',
+	$package_btrfsprogs = 'btrfs-progs',
 
 	$package_python_argparse = 'python-argparse',
 	$package_python_lxml = 'python-lxml',
@@ -47,6 +48,7 @@ class gluster::params(
 	$program_xfsadmin = '/usr/sbin/xfs_admin',
 	$program_mkfs_xfs = '/sbin/mkfs.xfs',
 	$program_mkfs_ext4 = '/sbin/mkfs.ext4',
+	$program_mkfs_btrfs = '/sbin/mkfs.btrfs',
 
 	$program_fping = '/usr/sbin/fping',
 	$program_findmnt = '/bin/findmnt',

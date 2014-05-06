@@ -67,6 +67,7 @@ netmask2 = IPAddr.new('255.255.255.255').mask(cidr2).to_s
 count = 4		# default number of gluster hosts to build
 disks = 0		# default number of disks to attach (after the host os)
 bricks = 0		# default number of bricks to build (0 defaults to 1)
+fstype = ''		# default filesystem for bricks (requires bricks > 0)
 version = ''		# default gluster version (empty string means latest!)
 firewall = false	# default firewall enabled (FIXME: default to true when keepalived bug is fixed)
 replica = 1		# default replica count
@@ -88,6 +89,7 @@ if File.exist?(f)
 	count = settings[:count]
 	disks = settings[:disks]
 	bricks = settings[:bricks]
+	fstype = settings[:fstype]
 	version = settings[:version]
 	firewall = settings[:firewall]
 	replica = settings[:replica]
@@ -120,6 +122,12 @@ while skip < ARGV.length
 		v.slice! arg
 
 		bricks = v.to_i		# set gluster brick count
+
+	elsif ARGV[skip].start_with?(arg='--gluster-fstype=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		fstype = v.to_s		# set gluster fstype
 
 	elsif ARGV[skip].start_with?(arg='--gluster-version=')
 		v = ARGV.delete_at(skip).dup
@@ -189,6 +197,7 @@ settings = {
 	:count => count,
 	:disks => disks,
 	:bricks => bricks,
+	:fstype => fstype,
 	:version => version,
 	:firewall => firewall,
 	:replica => replica,
@@ -460,6 +469,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 					'vagrant' => '1',
 					'vagrant_gluster_disks' => disks.to_s,
 					'vagrant_gluster_bricks' => bricks.to_s,
+					'vagrant_gluster_fstype' => fstype.to_s,
 					'vagrant_gluster_replica' => replica.to_s,
 					'vagrant_gluster_layout' => layout,
 					'vagrant_gluster_setgroup' => setgroup,
