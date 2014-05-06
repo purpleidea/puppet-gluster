@@ -69,6 +69,10 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 	$brick_param_defaults = {
 		# TODO: set these from vagrant variables...
 		'lvm' => false,
+		'fstype' => "${::vagrant_gluster_fstype}" ? {
+			'' => undef,
+			default => "${::vagrant_gluster_fstype}",
+		},
 		'xfs_inode64' => true,
 		'force' => true,
 	}

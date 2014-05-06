@@ -14,6 +14,7 @@ gluster::params::program_vgdisplay: '/usr/sbin/vgdisplay'
 #gluster::params::program_lvdisplay: '/usr/sbin/lvdisplay'
 gluster::params::program_mkfs_xfs: '/usr/sbin/mkfs.xfs'
 gluster::params::program_mkfs_ext4: '/usr/sbin/mkfs.ext4'
+gluster::params::program_mkfs_btrfs: '/usr/sbin/mkfs.btrfs'
 gluster::params::program_findmnt: '/usr/bin/findmnt'
 gluster::params::misc_gluster_reload: '/usr/bin/systemctl reload glusterd'
 
