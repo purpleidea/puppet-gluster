@@ -76,6 +76,7 @@ setgroup = ''		# default setgroup value
 sync = 'rsync'		# default sync type
 splay = []		# default host distribution
 csplay = []		# default client distribution
+puppet = ''		# default location that puppet master should go
 cachier = false		# default cachier usage
 
 #
@@ -99,6 +100,7 @@ if File.exist?(f)
 	sync = settings[:sync]
 	splay = settings[:splay]
 	csplay = settings[:csplay]
+	puppet = settings[:puppet]
 	cachier = settings[:cachier]
 end
 
@@ -184,6 +186,12 @@ while skip < ARGV.length
 
 		csplay = v.to_s.split(',')	# set client splay list
 
+	elsif ARGV[skip].start_with?(arg='--gluster-puppet=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		puppet = v.to_s		# set puppet server location
+
 	elsif ARGV[skip].start_with?(arg='--gluster-cachier=')
 		v = ARGV.delete_at(skip).dup
 		v.slice! arg
@@ -214,6 +222,7 @@ settings = {
 	:sync => sync,
 	:splay => splay,
 	:csplay => csplay,
+	:puppet => puppet,
 	:cachier => cachier
 }
 File.open(f, 'w') do |file|
@@ -395,6 +404,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 		vm.vm.provider :libvirt do |libvirt|
 			libvirt.cpus = 2
 			libvirt.memory = 1024
+
+			if puppet != ''
+				user,host = puppet.split('@')
+				if host.nil?	# no @ exists...
+					host = user
+					user = 'root'
+				end
+				libvirt.connect_via_ssh = true
+				libvirt.host = host.to_s
+				libvirt.username = user.to_s
+			end
 		end
 	end
 
