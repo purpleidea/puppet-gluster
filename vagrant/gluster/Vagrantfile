@@ -75,6 +75,7 @@ layout = ''		# default brick layout
 setgroup = ''		# default setgroup value
 sync = 'rsync'		# default sync type
 splay = []		# default host distribution
+csplay = []		# default client distribution
 cachier = false		# default cachier usage
 
 #
@@ -97,6 +98,7 @@ if File.exist?(f)
 	setgroup = settings[:setgroup]
 	sync = settings[:sync]
 	splay = settings[:splay]
+	csplay = settings[:csplay]
 	cachier = settings[:cachier]
 end
 
@@ -176,6 +178,12 @@ while skip < ARGV.length
 
 		splay = v.to_s.split(',')	# set splay list
 
+	elsif ARGV[skip].start_with?(arg='--gluster-csplay=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		csplay = v.to_s.split(',')	# set client splay list
+
 	elsif ARGV[skip].start_with?(arg='--gluster-cachier=')
 		v = ARGV.delete_at(skip).dup
 		v.slice! arg
@@ -205,6 +213,7 @@ settings = {
 	:setgroup => setgroup,
 	:sync => sync,
 	:splay => splay,
+	:csplay => csplay,
 	:cachier => cachier
 }
 File.open(f, 'w') do |file|
@@ -589,6 +598,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 					'vagrant_gluster_firewall' => firewall ? 'true' : 'false',
 					'vagrant_gluster_version' => version,
 				}
+			end
+
+			vm.vm.provider :libvirt do |libvirt|
+				# distribute this guest across a list of hosts!
+				if csplay.length > 0
+					rotate = (i-1) % csplay.length	# rotate
+					user,host = csplay[rotate].split('@')
+					if host.nil?	# no @ exists...
+						host = user
+						user = 'root'
+					end
+					libvirt.connect_via_ssh = true
+					libvirt.host = host.to_s
+					libvirt.username = user.to_s
+				end
 			end
 		end
 	end
