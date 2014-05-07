@@ -71,7 +71,7 @@ class gluster::params(
 	}
 	# create a custom external fact!
 	file { "${factbase}gluster_program.yaml":
-		content => inline_template('<%= @hash.to_yaml %>')
+		content => inline_template('<%= @hash.to_yaml %>'),
 		owner => root,
 		group => root,
 		mode => 644,		# u=rw,go=r
