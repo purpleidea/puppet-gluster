@@ -16,7 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::brick::xfs {
-	package { 'xfsprogs':
+
+	include gluster::params
+
+	package { "${::gluster::params::package_xfsprogs}":
 		ensure => present,
 	}
 }

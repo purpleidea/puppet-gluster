@@ -19,20 +19,25 @@ class gluster::api(
 	$repo = true,		# are we using the automatic repo ?
 	$version = ''		# pick a specific version (defaults to latest)
 ) {
+	include gluster::params
+
 	$rname = "${version}" ? {
 		'' => 'gluster',
 		default => "gluster-${version}",
 	}
 
-	package { 'glusterfs-api':
-		ensure => "${version}" ? {
-			'' => present,
-			default => "${version}",
-		},
-		require => $repo ? {
-			false => undef,
-			default => Gluster::Repo["${rname}"],
-		},
+	# certain packages don't exist on certain operating systems
+	if "${::gluster::params::package_glusterfs_api}" != '' {
+		package { "${::gluster::params::package_glusterfs_api}":
+			ensure => "${version}" ? {
+				'' => present,
+				default => "${version}",
+			},
+			require => $repo ? {
+				false => undef,
+				default => Gluster::Repo["${rname}"],
+			},
+		}
 	}
 }
 

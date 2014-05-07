@@ -32,6 +32,7 @@ class gluster::server(
 	$FW = '$FW'			# make using $FW in shorewall easier
 
 	include gluster::vardir
+	include gluster::params
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
@@ -57,16 +58,19 @@ class gluster::server(
 		mode => 700,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		ensure => present,
-		before => Package['glusterfs-server'],
+		before => Package["${::gluster::params::package_glusterfs_server}"],
 		require => File["${vardir}/"],
 	}
 
-	package { 'glusterfs-server':
+	package { "${::gluster::params::package_glusterfs_server}":
 		ensure => "${version}" ? {
 			'' => present,
 			default => "${version}",
 		},
-		before => Package['glusterfs-api'],
+		before => "${::gluster::params::package_glusterfs_api}" ? {
+			'' => undef,
+			default => Package["${::gluster::params::package_glusterfs_api}"],
+		},
 		require => $repo ? {
 			false => undef,
 			default => Gluster::Repo["${rname}"],
@@ -88,8 +92,8 @@ class gluster::server(
 		owner => root,
 		group => root,
 		mode => 644,
-		#notify => Service['glusterd'],	# TODO: ???
-		require => Package['glusterfs-server'],
+		#notify => Service["${::gluster::params::service_glusterd}"],	# TODO: ???
+		require => Package["${::gluster::params::package_glusterfs_server}"],
 	}
 
 	# NOTE: this option can be useful for users of libvirt migration as in:
@@ -118,7 +122,7 @@ class gluster::server(
 		owner => root,
 		group => root,
 		mode => 644,
-		#notify => Service['glusterd'],	# TODO: eventually...
+		#notify => Service["${::gluster::params::service_glusterd}"],	# TODO: eventually...
 		require => File['/etc/glusterfs/glusterd.vol'],
 	}
 
@@ -130,7 +134,7 @@ class gluster::server(
 		owner => root,
 		group => root,
 		mode => 644,
-		notify => Service['glusterd'],
+		notify => Service["${::gluster::params::service_glusterd}"],
 		require => File['/var/lib/glusterd/'],
 	}
 
@@ -160,7 +164,7 @@ class gluster::server(
 		#	ACCEPT    ${src}    $FW    tcp    24009:${endport}
 		#	",
 		#	comment => 'Allow 24000s for gluster',
-		#	before => Service['glusterd'],
+		#	before => Service["${::gluster::params::service_glusterd}"],
 		#}
 
 		#if $nfs {					# FIXME: TODO
@@ -171,7 +175,7 @@ class gluster::server(
 	}
 
 	# start service only after the firewall is opened and hosts are defined
-	service { 'glusterd':
+	service { "${::gluster::params::service_glusterd}":
 		enable => true,		# start on boot
 		ensure => running,	# ensure it stays running
 		hasstatus => false,	# FIXME: BUG: https://bugzilla.redhat.com/show_bug.cgi?id=836007

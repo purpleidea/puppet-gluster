@@ -20,6 +20,7 @@ class gluster::mount::base(
 	$version = ''		# pick a specific version (defaults to latest)
 ) {
 	include gluster::vardir
+	include gluster::params
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
@@ -36,12 +37,22 @@ class gluster::mount::base(
 		ensure_resource('gluster::repo', "${rname}", $params)
 	}
 
-	package { ['glusterfs', 'glusterfs-fuse']:
+	$packages = "${::gluster::params::package_glusterfs_fuse}" ? {
+		'' => ["${::gluster::params::package_glusterfs}"],
+		default => [
+			"${::gluster::params::package_glusterfs}",
+			"${::gluster::params::package_glusterfs_fuse}",
+		],
+	}
+	package { $packages:
 		ensure => "${version}" ? {
 			'' => present,
 			default => "${version}",
 		},
-		before => Package['glusterfs-api'],
+		before => "${::gluster::params::package_glusterfs_api}" ? {
+			'' => undef,
+			default => Package["${::gluster::params::package_glusterfs_api}"],
+		},
 		require => $repo ? {
 			false => undef,
 			default => Gluster::Repo["${rname}"],
@@ -62,20 +73,20 @@ class gluster::mount::base(
 	#
 
 	# modprobe fuse if it's missing
-	exec { '/sbin/modprobe fuse':
+	exec { "${::gluster::params::program_modprobe} fuse":
 		logoutput => on_failure,
 		onlyif => '/usr/bin/test -z "`/bin/dmesg | /bin/grep -i fuse`"',
 		alias => 'gluster-fuse',
 	}
-	#exec { '/sbin/modprobe fuse':
+	#exec { "${::gluster::params::program_modprobe} fuse":
 	#	logoutput => on_failure,
-	#	unless => "/sbin/lsmod | /bin/grep -q '^fuse'",
+	#	unless => "${::gluster::params::program_lsmod} | /bin/grep -q '^fuse'",
 	#	alias => 'gluster-modprobe-fuse',
 	#}
 
 	# TODO: will this autoload the fuse module?
 	#file { '/etc/modprobe.d/fuse.conf':
-	#	content => "fuse\n",	# TODO: "install fuse /sbin/modprobe --ignore-install fuse ; /bin/true\n" ?
+	#	content => "fuse\n",	# TODO: "install fuse ${::gluster::params::program_modprobe} --ignore-install fuse ; /bin/true\n" ?
 	#	owner => root,
 	#	group => root,
 	#	mode => 644,		# u=rw,go=r

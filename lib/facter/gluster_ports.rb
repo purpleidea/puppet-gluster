@@ -17,6 +17,15 @@
 
 require 'facter'
 
+# get the gluster path. this fact comes from an external fact set in: params.pp
+gluster = Facter.value('gluster_program_gluster').to_s.chomp
+if gluster == ''
+	gluster = `which gluster`.chomp
+	if gluster == ''
+		gluster = '/usr/sbin/gluster'
+	end
+end
+
 # find the module_vardir
 dir = Facter.value('puppet_vardirtmp')		# nil if missing
 if dir.nil?					# let puppet decide if present!
@@ -43,11 +52,11 @@ found = {}
 
 # we need the script installed first to be able to generate the port facts...
 if not(xmlfile.nil?) and File.exist?(xmlfile)
-	volumes = `/usr/sbin/gluster volume list`
+	volumes = `#{gluster} volume list`
 	if $?.exitstatus == 0
 		volumes.split.each do |x|
 			# values come out as comma separated strings for direct usage
-			cmd = '/usr/sbin/gluster volume status --xml | '+xmlfile+" ports --volume '"+x+"' --host '"+host+"'"
+			cmd = gluster+' volume status --xml | '+xmlfile+" ports --volume '"+x+"' --host '"+host+"'"
 			result = `#{cmd}`
 			if $?.exitstatus == 0
 				found[x] = result

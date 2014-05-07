@@ -1,0 +1,9 @@
+# gluster/data/tree/Debian.yaml
+---
+gluster::params::package_glusterfs: 'glusterfs-client'
+gluster::params::package_glusterfs_api: ''      # doesn't exist
+gluster::params::package_glusterfs_fuse: ''     # doesn't exist
+gluster::params::service_glusterd: 'glusterfs-server'
+# TODO: the debian family of glusterd needs a reload command in the init file !
+gluster::params::misc_gluster_reload: '/usr/sbin/service glusterfs-server restart'
+# vim: ts=8

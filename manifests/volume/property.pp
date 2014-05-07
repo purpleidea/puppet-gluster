@@ -24,6 +24,7 @@ define gluster::volume::property(
 ) {
 	include gluster::xml
 	include gluster::vardir
+	include gluster::params
 	include gluster::volume::property::data
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
@@ -167,9 +168,9 @@ define gluster::volume::property(
 		# set a volume property only if value doesn't match what is available
 		# FIXME: check that the value we're setting isn't the default
 		# FIXME: you can check defaults with... gluster volume set help | ...
-		exec { "/usr/sbin/gluster volume set ${volume} ${key} ${safe_value}":
-			unless => "/usr/bin/test \"`/usr/sbin/gluster volume --xml info ${volume} | ${vardir}/xml.py property --key '${key}'`\" = '${safe_value}'",
-			onlyif => "/usr/sbin/gluster volume list | /bin/grep -qxF '${volume}' -",
+		exec { "${::gluster::params::program_gluster} volume set ${volume} ${key} ${safe_value}":
+			unless => "/usr/bin/test \"`${::gluster::params::program_gluster} volume --xml info ${volume} | ${vardir}/xml.py property --key '${key}'`\" = '${safe_value}'",
+			onlyif => "${::gluster::params::program_gluster} volume list | /bin/grep -qxF '${volume}' -",
 			logoutput => on_failure,
 			require => [
 				Gluster::Volume[$volume],

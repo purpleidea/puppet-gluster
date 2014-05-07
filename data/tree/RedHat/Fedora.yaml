@@ -1,0 +1,20 @@
+# gluster/data/tree/RedHat/Fedora.yaml
+---
+gluster::params::package_python_argparse: ''	# doesn't exist
+gluster::params::program_modprobe: '/usr/sbin/modprobe'
+gluster::params::program_lsmod: '/usr/sbin/lsmod'
+gluster::params::program_parted: '/usr/sbin/parted'
+gluster::params::program_pvcreate: '/usr/sbin/pvcreate'
+gluster::params::program_vgcreate: '/usr/sbin/vgcreate'
+gluster::params::program_lvcreate: '/usr/sbin/lvcreate'
+gluster::params::program_vgs: '/usr/sbin/vgs'
+gluster::params::program_lvs: '/usr/sbin/lvs'
+gluster::params::program_pvdisplay: '/usr/sbin/pvdisplay'
+gluster::params::program_vgdisplay: '/usr/sbin/vgdisplay'
+#gluster::params::program_lvdisplay: '/usr/sbin/lvdisplay'
+gluster::params::program_mkfs_xfs: '/usr/sbin/mkfs.xfs'
+gluster::params::program_mkfs_ext4: '/usr/sbin/mkfs.ext4'
+gluster::params::program_findmnt: '/usr/bin/findmnt'
+gluster::params::misc_gluster_reload: '/usr/bin/systemctl reload glusterd'
+
+# vim: ts=8
