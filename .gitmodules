@@ -19,6 +19,6 @@
 [submodule "vagrant/gluster/puppet/modules/yum"]
 	path = vagrant/gluster/puppet/modules/yum
 	url = https://github.com/purpleidea/puppet-yum.git
-[submodule "vagrant/gluster/puppet/modules/puppet-module"]
+[submodule "vagrant/gluster/puppet/modules/module-data"]
 	path = vagrant/gluster/puppet/modules/module-data
 	url = https://github.com/purpleidea/puppet-module-data.git
