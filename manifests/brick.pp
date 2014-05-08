@@ -308,7 +308,7 @@ define gluster::brick(
 		$xfs_cmd = join(delete($xfs_cmdlist, ''), ' ')
 
 		# TODO: xfs_admin doesn't have a --quiet flag. silence it...
-		$xfs_admin = "${::gluster::params::program_xfs_admin} -U '${valid_fsuuid}' ${dev2}"
+		$xfs_admin = "${::gluster::params::program_xfsadmin} -U '${valid_fsuuid}' ${dev2}"
 
 		# mkfs w/ uuid command
 		$mkfs_exec = "${xfs_cmd} && ${xfs_admin}"
