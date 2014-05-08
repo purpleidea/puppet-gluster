@@ -19,6 +19,9 @@ class gluster::xml {
 	include gluster::vardir
 	include gluster::params
 
+	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
+	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
+
 	# argparse is built into python on new platforms and isn't needed here!
 	if "${::gluster::params::package_python_argparse}" != '' {
 		package { "${::gluster::params::package_python_argparse}":
@@ -32,9 +35,6 @@ class gluster::xml {
 		ensure => present,
 		before => File["${vardir}/xml.py"],
 	}
-
-	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
-	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
 	file { "${vardir}/xml.py":
 		source => 'puppet:///modules/gluster/xml.py',
