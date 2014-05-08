@@ -56,6 +56,7 @@ class gluster::params(
 
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',
+	$misc_gluster_repo = 'https://download.gluster.org/pub/gluster/glusterfs/',
 
 	# comment...
 	$comment = ''

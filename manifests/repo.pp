@@ -22,7 +22,9 @@ define gluster::repo(
 	# if you leave this blank, we assume you want the latest version...
 	$version = ''
 ) {
-	$base = hiera('gluster::repo::base')	# eg: 'https://download.gluster.org/pub/gluster/glusterfs/'
+	include gluster::params
+
+	$base = "${::gluster::params::misc_gluster_repo}"
 
 	if "${version}" == '' {
 		# latest
