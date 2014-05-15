@@ -20,7 +20,7 @@ require 'facter'
 # get the gluster path. this fact comes from an external fact set in: params.pp
 gluster = Facter.value('gluster_program_gluster').to_s.chomp
 if gluster == ''
-	gluster = `which gluster`.chomp
+	gluster = `which gluster 2> /dev/null`.chomp
 	if gluster == ''
 		gluster = '/usr/sbin/gluster'
 	end
