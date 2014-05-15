@@ -34,7 +34,8 @@ MODULES := \
 # NOTE: set to a git commit id if we need an specific commit for vagrant builds
 # NOTE: remember that new commits to master should change this to a specific id
 # if they will break the vagrant build process. hopefully we don't forget this!
-SHA1SUM := master
+#SHA1SUM := master
+SHA1SUM := $(shell git rev-parse --verify HEAD)	# goto whatever the main tree is at
 
 .PHONY: all modules gluster
 .SILENT: all modules gluster
