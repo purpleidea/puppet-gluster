@@ -65,20 +65,24 @@ $(OUTPUT)/builder.img: files/*
 	--output $(OUTPUT)/builder.img \
 	--format qcow2 \
 	--size $(SIZE)G \
+	--run-command 'yum erase -y vim-minimal; yum install -y vim-enhanced; /bin/true' \
 	--install rsync,nfs-utils,sudo,openssh-server,openssh-clients \
-	--install screen,vim-enhanced,git,wget,file,man,tree,nmap,tcpdump,htop,lsof,telnet,mlocate,bind-utils,koan,iftop,yum-utils,nc \
+	--install screen,git,wget,file,man,tree,nmap,tcpdump,htop,lsof,telnet,mlocate,bind-utils,koan,iftop,yum-utils,nc \
 	--root-password file:files/password \
 	--upload files/epel-release-6-8.noarch.rpm:/root/epel-release-6-8.noarch.rpm \
 	--upload files/puppetlabs-release-el-6.noarch.rpm:/root/puppetlabs-release-el-6.noarch.rpm \
-	--run-command 'yum install -y /root/epel-release-6-8.noarch.rpm && rm -f /root/epel-release-6-8.noarch.rpm' \
+	--upload files/puppetlabs-release-fedora-20.noarch.rpm:/root/puppetlabs-release-fedora-20.noarch.rpm \
+	--run-command '/usr/bin/test -e /etc/fedora-release || yum install -y /root/epel-release-6-8.noarch.rpm; rm -f /root/epel-release-6-8.noarch.rpm' \
 	--run-command 'yum install -y bash-completion moreutils' \
-	--run-command 'yum install -y /root/puppetlabs-release-el-6.noarch.rpm && rm -f /root/puppetlabs-release-el-6.noarch.rpm' \
+	--run-command '/usr/bin/test -e /etc/fedora-release || yum install -y /root/puppetlabs-release-el-6.noarch.rpm; rm -f /root/puppetlabs-release-el-6.noarch.rpm' \
+	--run-command '/usr/bin/test -e /etc/fedora-release && yum install -y /root/puppetlabs-release-fedora-20.noarch.rpm; rm -f /root/puppetlabs-release-fedora-20.noarch.rpm' \
 	--run-command 'yum install -y puppet' \
 	--run-command 'yum update -y' \
 	--run files/user.sh \
 	--run files/ssh.sh \
 	--run files/network.sh \
-	--run files/cleanup.sh
+	--run files/cleanup.sh \
+	--run-command 'touch /.autorelabel'
 
 	# boot machine once to run the selinux relabelling, see:
 	# https://www.redhat.com/archives/libguestfs/2014-January/msg00183.html
