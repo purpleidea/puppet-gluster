@@ -347,6 +347,68 @@ _dd_ to your hardware provisioning step. The downside is that this can be very
 time consuming, and potentially dangerous if you accidentally re-provision the
 wrong machine.
 
+###Provisioning fails with: "cannot open /dev/sdb1: Device or resource busy"
+
+If when provisioning you get an error like:
+
+_"mkfs.xfs: cannot open /dev/sdb1: Device or resource busy"_
+
+It is possible that dracut might have found an existing logical volume on the
+device, and device mapper has made it available. This is common if you are
+re-using dirty block devices that haven't run through a _dd_ first. This is
+almost identical to the previous frequently asked question, although this
+failure message is what is seen when _mkfs.xfs_ is being blocked by dracut,
+where in the former problem it was the _pvcreate_ that was being blocked. The
+reason that we see this manifest through _mkfs.xfs_ instead of _pvcreate_ is
+that this particular cluster is being build with _lvm => false_. Here is an
+example of the diagnosis and treatment of this problem:
+
+```bash
+[root@server mapper]# pwd
+/dev/mapper
+[root@server mapper]# dmesg | grep dracut
+dracut: dracut-004-335.el6
+dracut: rd_NO_LUKS: removing cryptoluks activation
+dracut: Starting plymouth daemon
+dracut: rd_NO_DM: removing DM RAID activation
+dracut: rd_NO_MD: removing MD RAID activation
+dracut: Scanning devices sda2 sdb  for LVM logical volumes vg_server/lv_swap vg_server/lv_root
+dracut: inactive '/dev/vg_bricks/b1' [9.00 TiB] inherit
+dracut: inactive '/dev/vg_server/lv_root' [50.00 GiB] inherit
+dracut: inactive '/dev/vg_server/lv_home' [383.26 GiB] inherit
+dracut: inactive '/dev/vg_server/lv_swap' [31.50 GiB] inherit
+dracut: Mounted root filesystem /dev/mapper/vg_server-lv_root
+dracut:
+dracut: Switching root
+[root@server mapper]# mkfs.xfs -q -f -i size=512 -n size=8192 /dev/sdb1
+mkfs.xfs: cannot open /dev/sdb1: Device or resource busy
+[root@server mapper]# lsof /dev/sdb1
+[root@server mapper]# echo $?
+1
+[root@server mapper]# ls
+control       vg_server-lv_home  vg_server-lv_swap
+vg_bricks-b1  vg_server-lv_root
+[root@server mapper]# ls -lAh
+total 0
+crw-rw---- 1 root root 10, 58 May 20  2014 control
+lrwxrwxrwx 1 root root      7 May 20  2014 vg_bricks-b1 -> ../dm-2
+lrwxrwxrwx 1 root root      7 May 20  2014 vg_server-lv_home -> ../dm-3
+lrwxrwxrwx 1 root root      7 May 20  2014 vg_server-lv_root -> ../dm-0
+lrwxrwxrwx 1 root root      7 May 20  2014 vg_server-lv_swap -> ../dm-1
+[root@server mapper]# dmsetup remove vg_bricks-b1
+[root@server mapper]# ls
+control  vg_server-lv_home  vg_server-lv_root  vg_server-lv_swap
+[root@server mapper]# mkfs.xfs -q -f -i size=512 -n size=8192 /dev/sdb1
+[root@server mapper]# echo $?
+0
+[root@server mapper]# HAPPY_ADMIN='yes'
+```
+
+If you frequently start with "dirty" block devices, you may consider adding a
+_dd_ to your hardware provisioning step. The downside is that this can be very
+time consuming, and potentially dangerous if you accidentally re-provision the
+wrong machine.
+
 ###I changed the hardware manually, and now my system won't boot.
 
 If you're using Puppet-Gluster to manage storage, the filesystem will be
