@@ -524,11 +524,22 @@ define gluster::brick(
 	} elsif ((type($dev) == 'boolean') and (! $dev)) and ("${fqdn}" == "${host}") {
 
 		# ensure the full path exists!
+		# TODO: is the mkdir needed ?
 		exec { "/bin/mkdir -p '${valid_path}'":
 			creates => "${valid_path}",
 			logoutput => on_failure,
 			noop => $exec_noop,
-			alias => "gluster-brick-mkdir ${name}",
+			alias => "gluster-brick-mkdir-${name}",
+			before => File["${valid_path}"],
+		}
+
+		# avoid any possible purging of data!
+		file { "${valid_path}":
+			ensure => directory,	# make sure this is a directory
+			recurse => false,	# don't recurse into directory
+			purge => false,		# don't purge unmanaged files
+			force => false,		# don't purge subdirs and links
+			require => Exec["gluster-brick-mkfs-${name}"],
 		}
 	}
 }
