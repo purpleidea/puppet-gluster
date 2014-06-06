@@ -43,15 +43,16 @@ class gluster::simple(
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
-	if "${path}" == '' {
-		file { "${vardir}/data/":
-			ensure => directory,	# make sure this is a directory
-			recurse => false,	# don't recurse into directory
-			purge => false,		# don't purge unmanaged files
-			force => false,		# don't purge subdirs and links
-			require => File["${vardir}/"],
-		}
-	}
+	# NOTE: this is done in brick.pp now
+	#if "${path}" == '' {
+	#	file { "${vardir}/data/":
+	#		ensure => directory,	# make sure this is a directory
+	#		recurse => false,	# don't recurse into directory
+	#		purge => false,		# don't purge unmanaged files
+	#		force => false,		# don't purge subdirs and links
+	#		require => File["${vardir}/"],
+	#	}
+	#}
 
 	$chosen_path = "${path}" ? {
 		'' => "${vardir}/data/",
