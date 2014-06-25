@@ -1,4 +1,6 @@
 # gluster/data/tree/RedHat/RedHat.yaml
 ---
+gluster::params::pkgrepo_baseos: '%sRHEL/'
+gluster::params::pkgrepo_skip: 'false'
 
 # vim: ts=8

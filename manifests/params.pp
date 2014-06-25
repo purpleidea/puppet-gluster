@@ -54,9 +54,13 @@ class gluster::params(
 	# services...
 	$service_glusterd = 'glusterd',
 
+	# package repo data...
+	$pkgrepo_skip = false,	# do we skip over the pkgrepo stuff completely?
+	$pkgrepo_base = 'https://download.gluster.org/pub/gluster/glusterfs/',
+	$pkgrepo_baseos = '%sCentOS/',
+
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',
-	$misc_gluster_repo = 'https://download.gluster.org/pub/gluster/glusterfs/',
 
 	# comment...
 	$comment = ''

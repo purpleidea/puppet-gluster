@@ -24,7 +24,7 @@ define gluster::repo(
 ) {
 	include gluster::params
 
-	$base = "${::gluster::params::misc_gluster_repo}"
+	$base = "${::gluster::params::pkgrepo_base}"
 
 	if "${version}" == '' {
 		# latest
@@ -65,18 +65,14 @@ define gluster::repo(
 		}
 	}
 
-	case $operatingsystem {
-		'CentOS': {
-			$base_os = "${base_v}CentOS/"
-		}
-		'RedHat': {
-			$base_os = "${base_v}RHEL/"
-		}
-		#'Debian', 'Ubuntu': {
-		#}
-		default: {
-			fail("Operating system: '${operatingsystem}' not yet supported.")
-		}
+	#$base_os = "${base_v}CentOS/"
+	$base_os = sprintf("${::gluster::params::pkgrepo_baseos}", "${base_v}")
+	$skip = "${::gluster::params::pkgrepo_skip}" ? {
+		true => true,
+		false => false,
+		'true' => true,
+		'false' => false,
+		default => true,
 	}
 
 	$arch = "${architecture}" ? {
@@ -95,16 +91,24 @@ define gluster::repo(
 
 	$gpgkey = "${base_os}pub.key"
 
-	include ::yum
+	if $skip {
+		if "${version}" != '' {
+			# TODO: we should support pulling old versions from the
+			# download.gluster.org repos, even if distro has it in!
+			warning('Available versions are taken from the distro.')
+		}
+	} else {	# skip this if we're meant to use the built-in packages
+		include ::yum
 
-	#yum::repos::repo { "gluster-${arch}":
-	yum::repos::repo { "${name}":
-		baseurl => "${base_arch}${arch}/",
-		enabled => true,
-		gpgcheck => true,
-		# XXX: this should not be an https:// link, it should be a file
-		gpgkeys => ["${gpgkey}"],
-		ensure => present,
+		#yum::repos::repo { "gluster-${arch}":
+		yum::repos::repo { "${name}":
+			baseurl => "${base_arch}${arch}/",
+			enabled => true,
+			gpgcheck => true,
+			# XXX: this should not be an https:// link, it should be a file
+			gpgkeys => ["${gpgkey}"],
+			ensure => present,
+		}
 	}
 
 	# TODO: technically, i don't think this is needed yet...

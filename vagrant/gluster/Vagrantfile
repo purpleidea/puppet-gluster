@@ -74,6 +74,7 @@ clients = 1		# default number of gluster clients to build
 layout = ''		# default brick layout
 setgroup = ''		# default setgroup value
 sync = 'rsync'		# default sync type
+os = 'centos-6'		# default os
 cachier = false		# default cachier usage
 
 #
@@ -95,6 +96,7 @@ if File.exist?(f)
 	layout = settings[:layout]
 	setgroup = settings[:setgroup]
 	sync = settings[:sync]
+	os = settings[:os]
 	cachier = settings[:cachier]
 end
 
@@ -166,7 +168,13 @@ while skip < ARGV.length
 		v = ARGV.delete_at(skip).dup
 		v.slice! arg
 
-		sync = v.to_s	# set sync type
+		sync = v.to_s		# set sync type
+
+	elsif ARGV[skip].start_with?(arg='--gluster-os=')
+		v = ARGV.delete_at(skip).dup
+		v.slice! arg
+
+		os = v.to_s		# set gluster os
 
 	elsif ARGV[skip].start_with?(arg='--gluster-cachier=')
 		v = ARGV.delete_at(skip).dup
@@ -196,6 +204,7 @@ settings = {
 	:layout => layout,
 	:setgroup => setgroup,
 	:sync => sync,
+	:os => os,
 	:cachier => cachier
 }
 File.open(f, 'w') do |file|
@@ -255,11 +264,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	#
 	#	box (pre-built base image)
 	#
-	config.vm.box = 'centos-6'		# i built it
+	#config.vm.box = 'centos-6'		# i built it
+	config.vm.box = "#{os}"
 
 	# box source url
 	# TODO: this box should be GPG signed
-	config.vm.box_url = 'https://download.gluster.org/pub/gluster/purpleidea/vagrant/centos-6/centos-6.box'
+	#config.vm.box_url = 'https://download.gluster.org/pub/gluster/purpleidea/vagrant/centos-6/centos-6.box'
+	config.vm.box_url = "https://download.gluster.org/pub/gluster/purpleidea/vagrant/#{os}/#{os}.box"
 
 	#
 	#	sync type
@@ -310,6 +321,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 	#puppet_fqdn = "#{puppet_hostname}.#{domain}"
 	config.vm.define :puppet, :primary => true do |vm|
+
+		# TODO: statically set the box os here until others are tested!
+		vm.vm.box = 'centos-6'		# i built it
+		vm.vm.box_url = 'https://download.gluster.org/pub/gluster/purpleidea/vagrant/centos-6/centos-6.box'
+
 		vm.vm.hostname = puppet_hostname
 		# red herring network so that management happens here...
 		vm.vm.network :private_network,

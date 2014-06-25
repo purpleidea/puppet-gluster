@@ -1,5 +1,5 @@
 # gluster/data/tree/RedHat.yaml
 ---
-gluster::params::misc_gluster_repo: 'https://download.gluster.org/pub/gluster/glusterfs/'
+gluster::params::pkgrepo_base: 'https://download.gluster.org/pub/gluster/glusterfs/'
 
 # vim: ts=8
