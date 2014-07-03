@@ -54,6 +54,9 @@ class gluster::params(
 	# services...
 	$service_glusterd = 'glusterd',
 
+	# external modules...
+	$include_puppet_facter = true,
+
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',
 	$misc_gluster_repo = 'https://download.gluster.org/pub/gluster/glusterfs/',
@@ -65,18 +68,28 @@ class gluster::params(
 		warning('Unable to load yaml data/ directory!')
 	}
 
-	include puppet::facter
-	$factbase = "${::puppet::facter::base}"
-	$hash = {
-		'gluster_program_gluster' => $program_gluster,
+	$valid_include_puppet_facter = $include_puppet_facter ? {
+		true => true,
+		false => false,
+		'true' => true,
+		'false' => false,
+		default => true,
 	}
-	# create a custom external fact!
-	file { "${factbase}gluster_program.yaml":
-		content => inline_template('<%= @hash.to_yaml %>'),
-		owner => root,
-		group => root,
-		mode => 644,		# u=rw,go=r
-		ensure => present,
+
+	if $valid_include_puppet_facter {
+		include puppet::facter
+		$factbase = "${::puppet::facter::base}"
+		$hash = {
+			'gluster_program_gluster' => $program_gluster,
+		}
+		# create a custom external fact!
+		file { "${factbase}gluster_program.yaml":
+			content => inline_template('<%= @hash.to_yaml %>'),
+			owner => root,
+			group => root,
+			mode => 644,		# u=rw,go=r
+			ensure => present,
+		}
 	}
 }
 
