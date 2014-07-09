@@ -62,6 +62,6 @@ gluster:
 	basename `pwd` | grep -q '^modules' || exit 1	# run in a modules dir!
 	i='puppet-gluster'; \
 	j=`echo $$i | awk -F '-' '{print $$2}'`; \
-	[ -d "$$j" ] || git clone ../../../../. $$j; \
+	[ -d "$$j" ] || git clone ../../../. $$j; \
 	[ -d "$$j" ] && cd $$j && git checkout master && git pull && git checkout $(SHA1SUM); cd ..
 

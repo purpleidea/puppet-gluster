@@ -582,7 +582,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 		libvirt.username = 'root'
 		libvirt.storage_pool_name = 'default'
 		#libvirt.default_network = 'default'	# XXX: this does nothing
-		#libvirt.default_prefix = ''	# set a prefix for your vm's...
+		libvirt.default_prefix = 'gluster'	# prefix for your vm's!
 	end
 
 end
