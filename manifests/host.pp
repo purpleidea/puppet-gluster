@@ -60,9 +60,9 @@ define gluster::host(
 		# don't purge the uuid file generated within
 		file { "${vardir}/uuid/":
 			ensure => directory,	# make sure this is a directory
-			recurse => false,	# don't recurse into directory
-			purge => false,		# don't purge unmanaged files
-			force => false,		# don't purge subdirs and links
+			recurse => true,	# recurse into directory
+			purge => true,		# purge unmanaged files
+			force => true,		# purge subdirs and links
 			require => File["${vardir}/"],
 		}
 
@@ -70,15 +70,16 @@ define gluster::host(
 		# sticks if we ever go back to using automatic uuids. this is
 		# useful if a user wants to initially import uuids by picking
 		# them manually, and then letting puppet take over afterwards
-		if "${uuid}" != '' {
-			file { "${vardir}/uuid/uuid":
-				content => "${uuid}\n",
-				owner => root,
-				group => root,
-				mode => 600,	# might as well...
-				ensure => present,
-				require => File["${vardir}/uuid/"],
-			}
+		file { "${vardir}/uuid/uuid":
+			content => "${uuid}" ? {
+				'' => undef,
+				default => "${uuid}\n",
+			},
+			owner => root,
+			group => root,
+			mode => 600,	# might as well...
+			ensure => present,
+			require => File["${vardir}/uuid/"],
 		}
 
 		$valid_uuid = "${uuid}" ? {

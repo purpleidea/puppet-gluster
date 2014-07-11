@@ -63,12 +63,25 @@ end
 
 # generate uuid and parent directory if they don't already exist...
 if not(module_vardir.nil?) and File.directory?(module_vardir)
-	if not File.directory?(uuiddir)
-		Dir::mkdir(uuiddir)
+
+	create = false
+	if File.directory?(uuiddir)
+
+		if File.exist?(uuidfile)
+			test = File.open(uuidfile, 'r').read.strip.downcase	# read into str
+			# skip over uuid's of the wrong length or that don't match (security!!)
+			if test.length == 36 and regexp.match(test)
+				create = false
+			else
+				create = true
+			end
+		else
+			create = true
+		end
 	end
 
 	# create a uuid and store it in our vardir if it doesn't already exist!
-	if File.directory?(uuiddir) and (not File.exist?(uuidfile))
+	if create
 		result = system("/usr/bin/uuidgen > '" + uuidfile + "'")
 		if not(result)
 			# TODO: print warning
