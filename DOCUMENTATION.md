@@ -938,6 +938,6 @@ To report any bugs, please file a ticket at: [https://bugzilla.redhat.com/enter_
 Copyright (C) 2010-2013+ James Shubin
 
 * [github](https://github.com/purpleidea/)
-* [@purpleidea](https://twitter.com/#!/purpleidea)
+* [&#64;purpleidea](https://twitter.com/#!/purpleidea)
 * [https://ttboj.wordpress.com/](https://ttboj.wordpress.com/)
 
