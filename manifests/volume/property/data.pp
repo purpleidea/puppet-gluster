@@ -19,8 +19,6 @@ class gluster::volume::property::data() {
 
 	# expected type
 	$etypes = {
-		# FIXME: the empty '' strings need to be filled in...
-		# FIXME: some of the 'string' values could probably be booleans
 
 		# Allow a comma separated list of addresses and/or hostnames to connect to the server. By default, all connections are allowed.
 		'auth.allow' => 'array',	# default: (null)
@@ -32,7 +30,7 @@ class gluster::volume::property::data() {
 		'cluster.background-self-heal-count' => 'integer',	# default: 16
 
 		# Choose a local subvolume (i.e. Brick) to read from if read-subvolume is not explicitly set.
-		'cluster.choose-local' => '',	# default: true
+		'cluster.choose-local' => 'truefalse',	# default: true
 
 		# Data fops like write/truncate will not perform pre/post fop changelog operations in afr transaction if this option is disabled
 		'cluster.data-change-log' => 'onoff',	# default: on
@@ -41,7 +39,7 @@ class gluster::volume::property::data() {
 		'cluster.data-self-heal' => 'onoff',	# default: on
 
 		# Select between "full", "diff". The "full" algorithm copies the entire file from source to sink. The "diff" algorithm copies to sink only those blocks whose checksums don't match with those of source. If no option is configured the option is chosen dynamically as follows: If the file does not exist on one of the sinks or empty file exists or if the source file size is about the same as page size the entire file will be read and written i.e "full" algo, otherwise "diff" algo is chosen.
-		'cluster.data-self-heal-algorithm' => '',	# default: (null)
+		'cluster.data-self-heal-algorithm' => 'string',	# default: (reset)
 
 		# Lock phase of a transaction has two sub-phases. First is an attempt to acquire locks in parallel by broadcasting non-blocking lock requests. If lock acquisition fails on any server, then the held locks are unlocked and revert to a blocking locked mode sequentially on one server after another. If this option is enabled the initial broadcasting lock request attempt to acquire lock on the entire file. If this fails, we revert back to the sequential "regional" blocking lock as before. In the case where such an "eager" lock is granted in the non-blocking phase, it gives rise to an opportunity for optimization. i.e, if the next write transaction on the same FD arrives before the unlock phase of the first transaction, it "takes over" the full file lock. Similarly if yet another data transaction arrives before the unlock phase of the "optimized" transaction, that in turn "takes over" the lock as well. The actual unlock now happens at the end of the last "optimized" transaction.
 		'cluster.eager-lock' => 'onoff',	# default: on
@@ -65,13 +63,13 @@ class gluster::volume::property::data() {
 		'cluster.metadata-self-heal' => 'onoff',	# default: on
 
 		# Percentage/Size of disk space, after which the process starts balancing out the cluster, and logs will appear in log files
-		'cluster.min-free-disk' => '',	# default: 10%
+		'cluster.min-free-disk' => 'string',	# default: 10%
 
 		# after system has only N% of inodes, warnings starts to appear in log files
-		'cluster.min-free-inodes' => '',	# default: 5%
+		'cluster.min-free-inodes' => 'string',	# default: 5%
 
 		# If quorum-type is "fixed" only allow writes if this many bricks or present. Other quorum types will OVERWRITE this value.
-		'cluster.quorum-count' => '',	# default: (null)
+		'cluster.quorum-count' => 'integer',	# default: (null)
 
 		# If value is "fixed" only allow writes if quorum-count bricks are present. If value is "auto" only allow writes if more than half of bricks, or exactly half including the first, are present.
 		'cluster.quorum-type' => 'string',	# default: none
@@ -83,13 +81,13 @@ class gluster::volume::property::data() {
 		'cluster.readdir-optimize' => 'offon',	# default: off
 
 		# inode-read fops happen only on one of the bricks in replicate. AFR will prefer the one computed using the method specified using this option0 = first responder, 1 = hash by GFID of file (all clients use same subvolume), 2 = hash by GFID of file and client PID
-		'cluster.read-hash-mode' => '',	# default: 0
+		'cluster.read-hash-mode' => 'integer',	# default: 0
 
 		# inode-read fops happen only on one of the bricks in replicate. Afr will prefer the one specified using this option if it is not stale. Option value must be one of the xlator names of the children. Ex: <volname>-client-0 till <volname>-client-<number-of-bricks - 1>
-		'cluster.read-subvolume' => '',	# default: (null)
+		'cluster.read-subvolume' => 'string',	# default: (null)
 
 		# inode-read fops happen only on one of the bricks in replicate. AFR will prefer the one specified using this option if it is not stale. allowed options include -1 till replica-count - 1
-		'cluster.read-subvolume-index' => '',	# default: -1
+		'cluster.read-subvolume-index' => 'integer',	# default: -1
 
 		# This option if set to ON displays and logs the time taken for migration of each file, during the rebalance process. If set to OFF, the rebalance logs will only display the time spent in each directory.
 		'cluster.rebalance-stats' => 'offon',	# default: off
@@ -98,42 +96,42 @@ class gluster::volume::property::data() {
 		'cluster.self-heal-daemon' => 'offon',	# default: off
 
 		# readdirp size for performing entry self-heal
-		'cluster.self-heal-readdir-size' => '',	# default: 1KB
+		'cluster.self-heal-readdir-size' => 'integer',	# default: 1024 - Min 1024 Max 131072
 
 		# Maximum number blocks per file for which self-heal process would be applied simultaneously.
 		'cluster.self-heal-window-size' => 'integer',	# default: 1
 
 		# Sets the quorum percentage for the trusted storage pool.
-		'cluster.server-quorum-ratio' => '',	# default: (null)
+		'cluster.server-quorum-ratio' => 'integer',	# in  % default: (null)
 
 		# If set to server, enables the specified volume to participate in quorum.
 		'cluster.server-quorum-type' => 'string',	# default: (null)
 
 		# Size of the stripe unit that would be read from or written to the striped servers.
-		'cluster.stripe-block-size' => '',	# default: 128KB
+		'cluster.stripe-block-size' => 'string',	# default: 128KB
 
 		# Enable coalesce mode to flatten striped files as stored on the server (i.e., eliminate holes caused by the traditional format).
-		'cluster.stripe-coalesce' => '',	# default: false
+		'cluster.stripe-coalesce' => 'falsetrue',	# default: false
 
 		# Specifies the directory layout spread.
-		'cluster.subvols-per-directory' => '',	# default: (null)
+		'cluster.subvols-per-directory' => 'integer',	# default: (null)
 
 		# Changes the log-level of the bricks
-		'diagnostics.brick-log-level' => '',	# default: INFO
+		'diagnostics.brick-log-level' => 'string',	# default: INFO
 
 		# Gluster's syslog log-level
-		'diagnostics.brick-sys-log-level' => '',	# default: CRITICAL
+		'diagnostics.brick-sys-log-level' => 'string',	# default: CRITICAL
 
 		# Changes the log-level of the clients
-		'diagnostics.client-log-level' => '',	# default: INFO
+		'diagnostics.client-log-level' => 'string',	# default: INFO
 
 		# Gluster's syslog log-level
-		'diagnostics.client-sys-log-level' => '',	# default: CRITICAL
+		'diagnostics.client-sys-log-level' => 'string',	# default: CRITICAL
 
 		# If on stats related to file-operations would be tracked inside GlusterFS data-structures.
 		'diagnostics.dump-fd-stats' => 'offon',	# default: off
 
-		# If on stats related to the latency of each operation would be tracked inside GlusterFS data-structures. 
+		# If on stats related to the latency of each operation would be tracked inside GlusterFS data-structures.
 		'diagnostics.latency-measurement' => 'offon',	# default: off
 
 		# Sets the grace-timeout value. Valid range 10-1800.
@@ -159,89 +157,89 @@ class gluster::volume::property::data() {
 
 		# XXX: this appears twice
 		# Specifies the window size for tcp socket.
-		'network.tcp-window-size' => '',	# default: (null)
+		'network.tcp-window-size' => 'integer',	# default: (null)
 
 		# Users have the option of turning on name lookup for incoming client connections using this option. Use this option to turn on name lookups during address-based authentication. Turning this on will enable you to use hostnames in rpc-auth.addr.* filters. In some setups, the name server can take too long to reply to DNS queries resulting in timeouts of mount requests. By default, name lookup is off
-		'nfs.addr-namelookup' => '',	# default: (null)
+		'nfs.addr-namelookup' => 'offon',	# default: (off)
 
 		# This option is used to start or stop NFS server for individual volume.
-		'nfs.disable' => '',	# default: (null)
+		'nfs.disable' => 'offon',	# default: (off)
 
 		# Internal option set to tell gnfs to use a different scheme for encoding file handles when DVM is being used.
-		'nfs.dynamic-volumes' => '',	# default: (null)
+		'nfs.dynamic-volumes' => 'offon',	# default: (off)
 
 		# For nfs clients or apps that do not support 64-bit inode numbers, use this option to make NFS return 32-bit inode numbers instead. Disabled by default, so NFS returns 64-bit inode numbers.
-		'nfs.enable-ino32' => '',	# default: (null)
+		'nfs.enable-ino32' => 'offon',	# default: (off)
 
 		# By default, all subvolumes of nfs are exported as individual exports. There are cases where a subdirectory or subdirectories in the volume need to be exported separately. This option can also be used in conjunction with nfs3.export-volumes option to restrict exports only to the subdirectories specified through this option. Must be an absolute path.
-		'nfs.export-dir' => '',	# default: (null)
+		'nfs.export-dir' => 'string',	# default: (null)
 
 		# By default, all subvolumes of nfs are exported as individual exports. There are cases where a subdirectory or subdirectories in the volume need to be exported separately. Enabling this option allows any directory on a volumes to be exported separately. Directory exports are enabled by default.
-		'nfs.export-dirs' => '',	# default: (null)
+		'nfs.export-dirs' => 'onoff',	# default: (on)
 
 		# Enable or disable exporting whole volumes, instead if used in conjunction with nfs3.export-dir, can allow setting up only subdirectories as exports. On by default.
-		'nfs.export-volumes' => '',	# default: (null)
+		'nfs.export-volumes' => 'onoff',	# default: (on)
 
 		# Use this option to make NFS be faster on systems by using more memory. This option specifies a multiple that determines the total amount of memory used. Default value is 15. Increase to use more memory in order to improve performance for certain use cases. Please consult gluster-users list before using this option.
-		'nfs.mem-factor' => '',	# default: (null)
+		'nfs.mem-factor' => 'integer',	# default: (null)
 
 		# set the option to 'on' to enable mountd on UDP. Required for some Solaris and AIX NFS clients. The need for enabling this option often depends on the usage of NLM.
-		'nfs.mount-udp' => '',	# default: (null)
+		'nfs.mount-udp' => 'offon',	# default: (off)
 
 		# This option, if set to 'off', disables NLM server by not registering the service with the portmapper. Set it to 'on' to re-enable it. Default value: 'on'
-		'nfs.nlm' => '',	# default: (null)
+		'nfs.nlm' => 'onoff',	# default: (on)
 
 		# Use this option on systems that need Gluster NFS to be associated with a non-default port number.
-		'nfs.port' => '',	# default: (null)
+		'nfs.port' => 'integer',	# default: (null)
 
 		# Allow client connections from unprivileged ports. By default only privileged ports are allowed. Use this option to enable or disable insecure ports for a specific subvolume and to override the global setting set by the previous option.
-		'nfs.ports-insecure' => '',	# default: (null)
+		'nfs.ports-insecure' => 'offon',	# default: (off)
 
 		# For systems that need to run multiple nfs servers, only one registration is possible with portmap service. Use this option to turn off portmap registration for Gluster NFS. On by default
-		'nfs.register-with-portmap' => '',	# default: (null)
+		'nfs.register-with-portmap' => 'onoff',	# default: (on)
 
 		# Allow a comma separated list of addresses and/or hostnames to connect to the server. By default, all connections are allowed. This allows users to define a rule for a specific exported volume.
 		'nfs.rpc-auth-allow' => 'array',	# default: (null)
 
 		# Disable or enable the AUTH_NULL authentication type for a particular exported volume overriding defaults and general setting for AUTH_NULL. Must always be enabled. This option is here only to avoid unrecognized option warnings.
-		'nfs.rpc-auth-null' => '',	# default: (null)
+		'nfs.rpc-auth-null' => 'onoff',	# default: (on)
 
 		# Reject a comma separated list of addresses and/or hostnames from connecting to the server. By default, all connections are allowed. This allows users to define a rule for a specific exported volume.
 		'nfs.rpc-auth-reject' => 'array',	# default: (null)
 
 		# Disable or enable the AUTH_UNIX authentication type for a particular exported volume overriding defaults and general setting for AUTH_UNIX scheme. Must always be enabled for better interoperability.However, can be disabled if needed. Enabled by default.
-		'nfs.rpc-auth-unix' => '',	# default: (null)
+		'nfs.rpc-auth-unix' => 'onoff',	# default: (on)
 
 		# Specifies the nfs transport type. Valid transport types are 'tcp' and 'rdma'.
-		'nfs.transport-type' => '',	# default: tcp
+		'nfs.transport-type' => 'string',	# default: tcp
 
 		# All writes and COMMIT requests are treated as async. This implies that no write requests are guaranteed to be on server disks when the write reply is received at the NFS client. Trusted sync includes trusted-write behaviour. Off by default.
-		'nfs.trusted-sync' => '',	# default: (null)
+		'nfs.trusted-sync' => 'offon',	# default: (off)
 
 		# On an UNSTABLE write from client, return STABLE flag to force client to not send a COMMIT request. In some environments, combined with a replicated GlusterFS setup, this option can improve write performance. This flag allows user to trust Gluster replication logic to sync data to the disks and recover when required. COMMIT requests if received will be handled in a default manner by fsyncing. STABLE writes are still handled in a sync manner. Off by default.
-		'nfs.trusted-write' => '',	# default: (null)
+		'nfs.trusted-write' => 'offon',	# default: (off)
 
 		# Type of access desired for this subvolume: read-only, read-write(default)
-		'nfs.volume-access' => '',	# default: (null)
+		'nfs.volume-access' => 'string',	# default: (read-write)
 
 		# Maximum file size which would be cached by the io-cache translator.
-		'performance.cache-max-file-size' => '',	# default: 0
+		'performance.cache-max-file-size' => 'integer',	# default: 0
 
 		# Minimum file size which would be cached by the io-cache translator.
-		'performance.cache-min-file-size' => '',	# default: 0
+		'performance.cache-min-file-size' => 'integer',	# default: 0
 
 		# Assigns priority to filenames with specific patterns so that when a page needs to be ejected out of the cache, the page of a file whose priority is the lowest will be ejected earlier
-		'performance.cache-priority' => '',	# default: 
+		'performance.cache-priority' => 'string',	# default:
 
 		# The cached data for a file will be retained till 'cache-refresh-timeout' seconds, after which data re-validation is performed.
 		'performance.cache-refresh-timeout' => 'integer',	# default: 1
 
 		# XXX: this appears twice, with different defaults !
 		# Size of the read cache.
-		'performance.cache-size' => '',	# default: 32MB
+		'performance.cache-size' => 'string',	# default: 32MB
 
 		# Size of the read cache.
-		'performance.cache-size' => '',	# default: 128MB
+		'performance.cache-size' => 'string',	# default: 128MB
 
 		# enable/disable io-threads translator in the client graph of volume.
 		'performance.client-io-threads' => 'offon',	# default: off
@@ -249,11 +247,11 @@ class gluster::volume::property::data() {
 		# Enable/Disable least priority
 		'performance.enable-least-priority' => 'onoff',	# default: on
 
-		# If this option is set ON, instructs write-behind translator to perform flush in background, by returning success (or any errors, if any of previous writes were failed) to application even before flush FOP is sent to backend filesystem. 
+		# If this option is set ON, instructs write-behind translator to perform flush in background, by returning success (or any errors, if any of previous writes were failed) to application even before flush FOP is sent to backend filesystem.
 		'performance.flush-behind' => 'onoff',	# default: on
 
 		# Convert all readdir requests to readdirplus to collect stat info on each entry.
-		'performance.force-readdirp' => '',	# default: true
+		'performance.force-readdirp' => 'onoff',	# default: on
 
 		# Max number of threads in IO threads translator which perform high priority IO operations at a given time
 		'performance.high-prio-threads' => 'integer',	# default: 16
@@ -304,7 +302,7 @@ class gluster::volume::property::data() {
 		'performance.write-behind' => 'onoff',	# default: on
 
 		# Size of the write-behind buffer for a single file (inode).
-		'performance.write-behind-window-size' => '',	# default: 1MB
+		'performance.write-behind-window-size' => 'string',	# default: 1MB
 
 		# NOTE: this option taken from gluster documentation
 		# Allow client connections from unprivileged ports. By default only privileged ports are allowed. This is a global setting in case insecure ports are to be enabled for all exports using a single option.
@@ -314,7 +312,7 @@ class gluster::volume::property::data() {
 		'server.root-squash' => 'offon',	# default: off
 
 		# Specifies directory in which gluster should save its statedumps. By default it is the /tmp directory
-		'server.statedump-path' => '',	# default: /var/run/gluster
+		'server.statedump-path' => 'string',	# default: /var/run/gluster
 
 		# Support for native Linux AIO
 		'storage.linux-aio' => 'offon',	# default: off

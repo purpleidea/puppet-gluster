@@ -116,6 +116,45 @@ define gluster::volume::property(
 		} else {
 			fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
 		}
+
+	# if it's a special truefalse type and of an acceptable value
+	} elsif ($etype == 'truefalse') {	# default is true
+		if type($value) == 'boolean' {
+			$safe_value = $value ? {
+				false => 'false',
+				default => 'true',
+			}
+
+		} elsif type($value) == 'string' {
+			$downcase_value = inline_template('<%= @value.downcase %>')
+			$safe_value = $downcase_value ? {
+				'false' => 'false',
+				default => 'true',
+			}
+
+		} else {
+			fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
+		}
+
+	# if it's a special falsetrue type and of an acceptable value
+	} elsif ($etype == 'falsetrue') {	# default is false
+		if type($value) == 'boolean' {
+			$safe_value = $value ? {
+				true => 'true',
+				default => 'false',
+			}
+
+		} elsif type($value) == 'string' {
+			$downcase_value = inline_template('<%= @value.downcase %>')
+			$safe_value = $downcase_value ? {
+				'true' => 'true',
+				default => 'false',
+			}
+
+		} else {
+			fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
+		}
+
 	} elsif $etype == 'integer' {
 		# TODO: we could also add range and/or set validation
 		$safe_value = inline_template('<%= [Fixnum, String].include?(@value.class) ? @value.to_i : "null" %>')
