@@ -102,7 +102,7 @@ class gluster::volume::property::data() {
 		'cluster.self-heal-window-size' => 'integer',	# default: 1
 
 		# Sets the quorum percentage for the trusted storage pool.
-		'cluster.server-quorum-ratio' => 'integer',	# in  % default: (null)
+		'cluster.server-quorum-ratio' => 'integer',	# in % default: (null)
 
 		# If set to server, enables the specified volume to participate in quorum.
 		'cluster.server-quorum-type' => 'string',	# default: (null)
