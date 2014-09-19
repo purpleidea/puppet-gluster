@@ -429,6 +429,25 @@ need to remount the root filesystem in read-write mode. You can do this with:
 mount -n -o remount /
 ```
 
+###I get a file dependency error when running Puppet-Gluster.
+
+In order for Puppet-Gluster to be able to do its magic, it needs to store some
+temporary files on each GlusterFS host. These files usually get stored in:
+_/var/lib/puppet/tmp/gluster/_. The parent directory (_/var/lib/puppet/tmp/_)
+gets created by the _puppet::vardir_ module. The error you'll typically see is:
+
+```bash
+Error: Failed to apply catalog: Could not find dependency
+File[/var/lib/puppet/tmp/] for File[/var/lib/puppet/tmp/gluster/] at
+/etc/puppet/modules/gluster/manifests/vardir.pp:49
+```
+
+This error occurs if you forget to _include_ the _puppet::vardir_ class from
+the [puppet-puppet](https://github.com/purpleidea/puppet-puppet/) module. If
+you don't want to include the entire module, you can pull in the
+_puppet::vardir_ class by itself, or create the contained file type manually in
+your puppet manifests.
+
 ###Will this work on my favourite OS? (eg: GNU/Linux F00bar OS v12 ?)
 If it's a GNU/Linux based OS, can run GlusterFS, and Puppet, then it will
 probably work. Typically, you might need to add a yaml data file to the _data/_
