@@ -15,11 +15,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-.PHONY: all docs rpm srpm spec tar upload upload-sources upload-srpms upload-rpms
+.PHONY: all push docs test rpm srpm spec tar upload upload-sources upload-srpms upload-rpms
 .SILENT:
 
 # version of the program
-VERSION := $(shell cat VERSION)
+VERSION := $(shell gjs -c "print(`cat metadata.json`['version'])")
 RELEASE = 1
 SPEC = rpmbuild/SPECS/puppet-gluster.spec
 SOURCE = rpmbuild/SOURCES/puppet-gluster-$(VERSION).tar.bz2
@@ -30,10 +30,19 @@ REMOTE_PATH = 'purpleidea/puppet-gluster'
 
 all: docs rpm
 
+push:
+	# use blacksmith to push module to forge
+	git checkout master && rake module:push
+
 docs: puppet-gluster-documentation.pdf
 
 puppet-gluster-documentation.pdf: DOCUMENTATION.md
 	pandoc DOCUMENTATION.md -o 'puppet-gluster-documentation.pdf'
+
+test:
+	# TODO: avoid exiting with non-zero when there are only warnings?
+	#rake syntax
+	rake test
 
 #
 #	aliases

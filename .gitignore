@@ -4,4 +4,4 @@ pkg/
 docs/
 hacking/
 rpmbuild/
-screencasts/
+.pmtignore

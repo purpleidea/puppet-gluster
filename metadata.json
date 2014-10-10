@@ -1,0 +1,15 @@
+{
+	"name": "purpleidea-gluster",
+	"version": "0.0.5",
+	"author": "James Shubin",
+	"summary": "A Puppet module for GlusterFS",
+	"license": "GNU Affero General Public License, Version 3.0+",
+	"source": "https://github.com/purpleidea/puppet-gluster/",
+	"project_page": "https://github.com/purpleidea/puppet-gluster/",
+	"issues_url": null,
+	"description": "UNKNOWN",
+	"dependencies": [
+		{ "name": "puppetlabs/stdlib", "version_requirement": ">= 4.0.0" }
+	]
+}
+
