@@ -11,8 +11,8 @@ node /^annex\d+$/ {	# annex{1,2,..N}
 		# this is useful in a tool like foreman which only lets you set
 		# class variables, and doesn't let you define individual types!
 		replica => 2,
-		vip = '192.168.1.42',
-		vrrp = true,
+		vip => '192.168.1.42',
+		vrrp => true,
 		# NOTE: this example will show you different possibilities, but
 		# it is probably not sane to define your devices in a mixed way
 		brick_params => {
@@ -21,7 +21,7 @@ node /^annex\d+$/ {	# annex{1,2,..N}
 				{dev => '/dev/sde', partition => false},
 			],
 			'fqdn2.example.com' => [
-				{dev => '/dev/disk/by-path/pci-0000:02:00.0-scsi-0:1:0:0', raid_su => 256, raid_sw => 10}
+				{dev => '/dev/disk/by-path/pci-0000:02:00.0-scsi-0:1:0:0', raid_su => 256, raid_sw => 10},
 				{dev => '/dev/disk/by-id/wwn-0x600508e0000000002b012b744715743a', lvm => true},
 			],
 			#'fqdnN.example.com' => [...],

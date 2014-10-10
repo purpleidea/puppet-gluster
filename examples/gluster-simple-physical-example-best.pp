@@ -7,10 +7,10 @@ node /^annex\d+$/ {	# annex{1,2,..N}
 
 	class { '::gluster::simple':
 		replica => 2,
-		vip = '192.168.1.42',
-		vrrp = true,
+		vip => '192.168.1.42',
+		vrrp => true,
 		# NOTE: _each_ host will have four bricks with these devices...
-		brick_params_defaults = [	# note the spelling and type...
+		brick_params_defaults => [	# note the spelling and type...
 			{'dev' => '/dev/sdb'},
 			{'dev' => '/dev/sdc'},
 			{'dev' => '/dev/sdd'},

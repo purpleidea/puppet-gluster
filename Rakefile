@@ -28,6 +28,7 @@ exclude_paths = [
 	"vendor/**/*",
 	"spec/**/*",
 	"tmp/**/*",
+	"rpmbuild/**/*",
 	"vagrant/**/*",	# TODO: remove this, once we update vagrant/ to puppet4
 ]
 PuppetLint.configuration.ignore_paths = exclude_paths
