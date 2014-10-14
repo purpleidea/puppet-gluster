@@ -251,6 +251,8 @@ vagrant tricks, and to get the needed dependencies installed:
 * [Vagrant vsftp and other tricks](https://ttboj.wordpress.com/2013/12/21/vagrant-vsftp-and-other-tricks/)
 * [Vagrant clustered SSH and ‘screen’](https://ttboj.wordpress.com/2014/01/02/vagrant-clustered-ssh-and-screen/)
 
+###Can I use it without a puppetmaster?
+
 ###Puppet runs fail with "Invalid relationship" errors.
 
 When running Puppet, you encounter a compilation failure like:
