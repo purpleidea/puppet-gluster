@@ -253,6 +253,28 @@ vagrant tricks, and to get the needed dependencies installed:
 
 ###Can I use it without a puppetmaster?
 
+Yes, you can use Puppet-Gluster without a puppetmaster, however you will lose
+out on some advantages and features that are simply not possible without one.
+The features you will miss out on are Puppet-Gluster features, that make
+configuring this module easier, and not any core GlusterFS features.
+
+For example, without a puppetmaster, [gluster::simple](#glustersimple) will not
+be able to work, because it relies on the puppetmaster for the exchange of
+[exported resources](http://docs.puppetlabs.com/puppet/latest/reference/lang_exported.html)
+so that Puppet-Gluster can automatically figure out how many hosts are present
+in your cluster.
+
+To use Puppet-Gluster without a puppetmaster, you'll most likely want to use a
+configuration that is similar to the [verbose distributed-replicate](https://github.com/purpleidea/puppet-gluster/blob/master/examples/distributed-replicate-example.pp)
+example.
+
+The more philosophical way of thinking about this is that if you want to
+have multi-hosts coordination of things, so that your life as a sysadmin is
+easier, then you'll need to use a puppetmaster so that there is a central
+point of coordination. This is a current design limitation of puppet.
+
+Please note that you can still use the [VIP as a DLM](#do-i-need-to-use-a-virtual-ip).
+
 ###Puppet runs fail with "Invalid relationship" errors.
 
 When running Puppet, you encounter a compilation failure like:
