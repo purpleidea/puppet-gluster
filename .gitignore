@@ -5,3 +5,4 @@ docs/
 hacking/
 rpmbuild/
 .pmtignore
+puppet-gluster-documentation.pdf
