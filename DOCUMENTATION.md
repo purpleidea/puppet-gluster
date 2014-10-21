@@ -474,6 +474,30 @@ you don't want to include the entire module, you can pull in the
 _puppet::vardir_ class by itself, or create the contained file type manually in
 your puppet manifests.
 
+###I get an undefined method error when running Puppet-Gluster.
+
+This is caused by a regression in a recent version of Puppet. They silently
+"removed" a feature, which apparently wasn't supposed to exist, which
+Puppet-Gluster relied upon. The original author of Puppet-Gluster would like
+this feature added back. If you are affected by this issue, you should see an
+an error similar to:
+
+```bash
+Error: Could not retrieve catalog from remote server:
+Error 400 on SERVER: undefined method `brick_str_to_hash' for
+Scope(Gluster::Volume[puppet]):Puppet::Parser::Scope at
+/etc/puppet/modules/gluster/manifests/volume.pp:89 on node annex1.example.com
+```
+
+Puppet-Gluster now has a patch in git master that works around the missing
+feature. This is:
+
+[06af205a562d543bbeb7c4d5c55143ade3bdb4e6](https://github.com/purpleidea/puppet-gluster/commit/06af205a562d543bbeb7c4d5c55143ade3bdb4e6)
+
+Puppet-Gluster has also been
+[updated](https://github.com/purpleidea/puppet-gluster/commit/6dfaa8446e4287cf6f7f540158cde700fb95b830)
+to fix the issue for users of brick_layout_chained.
+
 ###Will this work on my favourite OS? (eg: GNU/Linux F00bar OS v12 ?)
 If it's a GNU/Linux based OS, can run GlusterFS, and Puppet, then it will
 probably work. Typically, you might need to add a yaml data file to the _data/_
