@@ -29,6 +29,7 @@ module Puppet::Parser::Functions
 		ENDHEREDOC
 
 		Puppet::Parser::Functions.function('warning')	# load function
+		Puppet::Parser::Functions.function('brick_str_to_hash')	# load function
 		# signature: replica, bricks -> bricks
 		unless args.length == 2
 			raise Puppet::ParseError, "brick_layout_chained(): wrong number of arguments (#{args.length}; must be 2)"
@@ -43,23 +44,6 @@ module Puppet::Parser::Functions
 
 		replica = args[0].to_i	# convert from string if needed
 		bricks = args[1]
-
-		# TODO: these functions could be in separate puppet files
-		# eg: Puppet::Parser::Functions.function('myfunc')
-		# function_myfunc(...)
-		def brick_str_to_hash(bricks)
-			# this loop converts brick strings to brick dict's...
-			result = []
-			bricks.each do |x|
-				a = x.split(':')
-				#assert a.length == 2	# TODO
-				p = a[1]
-				p = ((p[-1, 1] == '/') ? p : (p+'/'))	# endswith
-
-				result.push({'host'=> a[0], 'path'=> p})
-			end
-			return result
-		end
 
 		def get_hostlist(bricks)
 			hosts = []
@@ -99,7 +83,7 @@ module Puppet::Parser::Functions
 
 		final = []
 		pointer = 0
-		parsed = brick_str_to_hash(bricks)
+		parsed = function_brick_str_to_hash([bricks])
 		# TODO: there should probably be a proper 'sorted' function for
 		# hostnames, in case they aren't numbered sanely _WITH_ padding.
 		hosts = get_hostlist(parsed).sort
