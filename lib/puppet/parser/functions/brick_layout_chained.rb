@@ -38,7 +38,7 @@ module Puppet::Parser::Functions
 			raise Puppet::ParseError, "brick_layout_chained(): expects the first argument to be an integer, got #{args[0].inspect} which is of type #{args[0].class}"
 		end
 		unless args[1].is_a?(Array)
-			raise Puppet::ParseError, "brick_layout_chained(): expects the first argument to be an array, got #{args[1].inspect} which is of type #{args[1].class}"
+			raise Puppet::ParseError, "brick_layout_chained(): expects the second argument to be an array, got #{args[1].inspect} which is of type #{args[1].class}"
 		end
 
 		replica = args[0].to_i	# convert from string if needed
