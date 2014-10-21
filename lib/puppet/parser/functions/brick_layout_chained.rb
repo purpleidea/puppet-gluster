@@ -30,6 +30,8 @@ module Puppet::Parser::Functions
 
 		Puppet::Parser::Functions.function('warning')	# load function
 		Puppet::Parser::Functions.function('brick_str_to_hash')	# load function
+		Puppet::Parser::Functions.function('get_hostlist')	# load function
+		Puppet::Parser::Functions.function('get_brickstacks')	# load function
 		# signature: replica, bricks -> bricks
 		unless args.length == 2
 			raise Puppet::ParseError, "brick_layout_chained(): wrong number of arguments (#{args.length}; must be 2)"
@@ -45,49 +47,13 @@ module Puppet::Parser::Functions
 		replica = args[0].to_i	# convert from string if needed
 		bricks = args[1]
 
-		def get_hostlist(bricks)
-			hosts = []
-			bricks.each do |x|
-				key = x['host']
-				val = x['path']
-
-				if not hosts.include?(key)
-					hosts.push(key)
-				end
-			end
-			return hosts
-		end
-
-		def get_brickstacks(bricks, sort=false)
-			stacks = {}
-			hosts = get_hostlist(bricks)
-			bricks.each do |x|
-				key = x['host']
-				val = x['path']
-				if not stacks.include?(key); stacks[key] = []; end	# initialize
-				stacks[key].push(val)
-			end
-
-			# optionally sort the paths in each individual host stack...
-			if sort
-				sorted_stacks = {}
-				stacks.each do |k, v|
-					# TODO: there should probably be a proper 'sorted' function for
-					# paths, in case they aren't numbered sanely _WITH_ padding.
-					sorted_stacks[k] = v.sort
-				end
-				return sorted_stacks
-			end
-			return stacks
-		end
-
 		final = []
 		pointer = 0
 		parsed = function_brick_str_to_hash([bricks])
 		# TODO: there should probably be a proper 'sorted' function for
 		# hostnames, in case they aren't numbered sanely _WITH_ padding.
-		hosts = get_hostlist(parsed).sort
-		brickstack = get_brickstacks(parsed, sort=true)
+		hosts = function_get_hostlist([parsed]).sort
+		brickstack = function_get_brickstacks([parsed, true])
 
 		if bricks.length == 0; return []; end
 
