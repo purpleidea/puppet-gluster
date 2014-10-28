@@ -506,6 +506,18 @@ things are found. The multi-distro support has been designed to make it
 particularly easy to add support for additional platforms. If your platform
 doesn't work, please submit a yaml data file with the platform specific values.
 
+###How do I get the OS independent aspects of this module to work?
+The OS independent aspects of this module use the hiera "data-in-modules"
+technique. It is actually very simple to get this to work. For a longer write
+up of this technique, please read:
+[https://ttboj.wordpress.com/2014/06/04/hiera-data-in-modules-and-os-independent-puppet/](https://ttboj.wordpress.com/2014/06/04/hiera-data-in-modules-and-os-independent-puppet/)
+
+In short, this requires puppet version 3.0.0 or greater, and needs the
+[module_data](https://github.com/ripienaar/puppet-module-data)
+puppet module to be present on the puppet server in the _modules/_ directory.
+The *module_data* code should be in a module folder named: *module_data/*.
+That's it!
+
 ###Awesome work, but it's missing support for a feature and/or platform!
 
 Since this is an Open Source / Free Software project that I also give away for
