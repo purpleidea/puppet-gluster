@@ -1,6 +1,16 @@
 language: ruby
 rvm: 1.8.7
 notifications:
+  irc:
+    channels:
+      - "irc.freenode.net#gluster-dev"
+    template:
+      - "%{repository} (%{commit}: %{author}): %{message}"
+      - "More info : %{build_url}"
+    on_success: always
+    on_failure: always
+    use_notice: false
+    skip_join: true
   email:
     - travis-ci@shubin.ca
 # TODO: do a full rake test once warnings are all gone!
