@@ -9,7 +9,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
@@ -81,6 +81,7 @@ define gluster::repo(
 	}
 
 	$arch = "${architecture}" ? {
+		'amd64' => 'binary-amd64',
 		'x86_64' => 'x86_64',
 		'i386' => 'i386',
 		'i486' => 'i386',
@@ -120,15 +121,15 @@ define gluster::repo(
 			#	ensure => present,
 			#}
 		}
-		case 'Debian': {
+		'Debian': {
 			include ::apt
 
 			apt::source { "${name}":
-				location	=> "${base_os}apt",
-				release		=> 'wheezy',
-				repos		=> 'main',
-				key		=> '21C74DF2',
-				key_source	=> "${base_os}pubkey.gpg",
+				location => "${base_os}wheezy/apt",
+				release => 'wheezy',
+				repos => 'main',
+				key => '21C74DF2',
+				key_source => "${base_os}wheezy/pubkey.gpg",
 			}
 		}
 	}

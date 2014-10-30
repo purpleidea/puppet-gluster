@@ -29,7 +29,7 @@ class gluster::vardir {	# module vardir snippet
 			purge => true,		# purge all unmanaged files
 			force => true,		# also purge subdirs and links
 			owner => root,
-			group => nobody,
+			group => root,
 			mode => 600,
 			backup => false,	# don't backup to filebucket
 			#before => File["${module_vardir}"],	# redundant
@@ -44,7 +44,7 @@ class gluster::vardir {	# module vardir snippet
 		recurse => true,		# recursively manage directory
 		purge => true,			# purge all unmanaged files
 		force => true,			# also purge subdirs and links
-		owner => root, group => nobody, mode => 600, backup => false,
+		owner => root, group => root, mode => 600, backup => false,
 		require => File["${tmp}"],	# File['/var/lib/puppet/tmp/']
 	}
 }

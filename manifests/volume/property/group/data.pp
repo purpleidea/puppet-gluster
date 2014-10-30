@@ -33,7 +33,7 @@ class gluster::volume::property::group::data() {
 		purge => true,
 		force => true,
 		owner => root,
-		group => nobody,
+		group => root,
 		mode => 644,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		require => File["${vardir}/"],
