@@ -91,7 +91,7 @@ define gluster::repo(
 		fail("Architecture: '${architecture}' not yet supported.")
 	}
 
-	$base_arch = "${base_os}epel-${operatingsystemrelease}/"
+	$base_arch = "${base_os}epel-${::gluster::params::repo_operatingsystemrelease}/"
 
 	$gpgkey = "${base_os}pub.key"
 
@@ -103,7 +103,7 @@ define gluster::repo(
 		enabled => true,
 		gpgcheck => true,
 		# XXX: this should not be an https:// link, it should be a file
-		gpgkeys => ["${gpgkey}"],
+		gpgkeys => "${gpgkey}",
 		ensure => present,
 	}
 
