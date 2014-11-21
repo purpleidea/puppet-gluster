@@ -186,6 +186,9 @@ class gluster::volume::property::data() {
 		# set the option to 'on' to enable mountd on UDP. Required for some Solaris and AIX NFS clients. The need for enabling this option often depends on the usage of NLM.
 		'nfs.mount-udp' => 'offon',	# default: (off)
 
+		# Use this option to change the the path for persistent caching of connected NFS-clients. For better perfomance this path should point to SHM
+		'nfs.mount-rmtab' => 'string', # default /var/lib/glusterd/nfs/rmtab
+
 		# This option, if set to 'off', disables NLM server by not registering the service with the portmapper. Set it to 'on' to re-enable it. Default value: 'on'
 		'nfs.nlm' => 'onoff',	# default: (on)
 
