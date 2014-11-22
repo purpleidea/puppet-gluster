@@ -64,7 +64,10 @@ class gluster::params(
 	$misc_gluster_repo = 'https://download.gluster.org/pub/gluster/glusterfs/',
 
 	# comment...
-	$comment = ''
+	$comment = '',
+
+	# the operatingsystemrelease string used in the repository URL.
+	$repo_operatingsystemrelease = "${operatingsystemrelease}",
 ) {
 	if "${comment}" == '' {
 		warning('Unable to load yaml data/ directory!')
