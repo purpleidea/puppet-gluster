@@ -91,7 +91,7 @@ define gluster::repo(
 		fail("Architecture: '${architecture}' not yet supported.")
 	}
 
-	$base_arch = "${base_os}epel-${::gluster::params::repo_operatingsystemrelease}/"
+	$base_arch = "${base_os}epel-${::gluster::params::misc_repo_operatingsystemrelease}/"
 
 	$gpgkey = "${base_os}pub.key"
 

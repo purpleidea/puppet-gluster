@@ -63,11 +63,12 @@ class gluster::params(
 	$misc_gluster_reload = '/sbin/service glusterd reload',
 	$misc_gluster_repo = 'https://download.gluster.org/pub/gluster/glusterfs/',
 
-	# comment...
-	$comment = '',
-
 	# the operatingsystemrelease string used in the repository URL.
-	$repo_operatingsystemrelease = "${operatingsystemrelease}",
+	$misc_repo_operatingsystemrelease = "${operatingsystemrelease}",
+
+	# comment...
+	$comment = ''
+
 ) {
 	if "${comment}" == '' {
 		warning('Unable to load yaml data/ directory!')
