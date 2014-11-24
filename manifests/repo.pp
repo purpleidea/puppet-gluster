@@ -81,10 +81,7 @@ define gluster::repo(
 
 	$arch = "${architecture}" ? {
 		'x86_64' => 'x86_64',
-		'i386' => 'i386',
-		'i486' => 'i386',
-		'i586' => 'i386',
-		'i686' => 'i386',
+		/i\d86/  => 'i386',
 		default => '',
 	}
 	if "${arch}" == '' {
@@ -93,29 +90,21 @@ define gluster::repo(
 
 	$base_arch = "${base_os}epel-${operatingsystemrelease}/"
 
-	$gpgkey = "${base_os}pub.key"
+  $repo_key = '/etc/pki/rpm-gpg/RPM-GPG-KEY-gluster.pub'
 
-	include ::yum
+  file { $repo_key:
+    ensure => file,
+    source => "puppet:///modules/${module_name}/RPM-GPG-KEY-gluster.pub",
+    before => Yumrepo["glusterfs-${arch}"],
+  }
 
-	#yum::repos::repo { "gluster-${arch}":
-	yum::repos::repo { "${name}":
-		baseurl => "${base_arch}${arch}/",
-		enabled => true,
-		gpgcheck => true,
-		# XXX: this should not be an https:// link, it should be a file
-		gpgkeys => ["${gpgkey}"],
-		ensure => present,
-	}
-
-	# TODO: technically, i don't think this is needed yet...
-	#yum::repos::repo { 'gluster-noarch':
-	#	baseurl => "${base_arch}noarch/",
-	#	enabled => true,
-	#	gpgcheck => true,
-	#	# XXX: this should not be an https:// link, it should be a file
-	#	gpgkeys => ["${gpgkey}"],
-	#	ensure => present,
-	#}
+  yumrepo { "gluster-${arch}":
+    enabled  => 1,
+    baseurl  => "${base_arch}${arch}/",
+    descr    => "GlusterFS ${arch}",
+    gpgcheck => true,
+    gpgkey   => $repo_key,
+  }
 }
 
 # vim: ts=8
