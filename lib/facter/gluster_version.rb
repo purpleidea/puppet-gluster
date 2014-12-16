@@ -29,10 +29,23 @@ cut = `which cut 2> /dev/null`.chomp
 
 # create the fact if the gluster executable exists
 if File.exist?(gluster)
+	cmd = gluster+' --version | /usr/bin/head -1 | '+cut+' -d " " -f 2'
+	version = `#{cmd}`.chomp
+	match = /^(\d+)\.(\d+)\.(\d+)$/.match("#{version}")
+	if not match.nil?
+		major_version = "#{match[1]}.#{match[2]}"
+		Facter.add('gluster_major_version') do
+			#confine :operatingsystem => %w{CentOS, RedHat, Fedora}
+			setcode {
+				major_version
+			}
+		end
+	end
+
 	Facter.add('gluster_version') do
 		#confine :operatingsystem => %w{CentOS, RedHat, Fedora}
 		setcode {
-			Facter::Util::Resolution.exec(gluster+' --version | /usr/bin/head -1 | '+cut+' -d " " -f 2').chomp
+			version
 		}
 	end
 end
