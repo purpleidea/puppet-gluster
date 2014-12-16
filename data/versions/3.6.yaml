@@ -1,0 +1,4 @@
+# gluster/data/versions/3.6.yaml
+---
+gluster::versions::operating_version: '30600'   # v3.6.0
+# vim: ts=8

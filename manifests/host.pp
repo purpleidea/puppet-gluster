@@ -97,25 +97,10 @@ define gluster::host(
 				'\1.\2'				# print int.int
 			)
 
-			# TODO: add additional values to this table...
-			# TODO: this should use "data-in-modules" instead...
-			# READ: https://www.gluster.org/community/documentation/index.php/OperatingVersions
-			$operating_version = "${gluster_version}" ? {
-				'' => '',	# gluster not yet installed...
-				# specific version matches go here...
-				'3.4.0' => '2',
-				'3.5.0' => '3',
-				'3.5.1' => '30501',
-				'3.6.0' => '30600',
-				default => "${gluster_main_version}" ? {
-					# loose version matches go here...
-					#'3.3' => '1',		# blank...
-					'3.4' => '2',
-					'3.5' => '30501',	# 3.5.1
-					'3.6' => '30600',	# 3.6.0
-					default => '-1',	# unknown...
-				},
-			}
+			# TODO: add additional values to the yaml hiera data...
+			include gluster::versions
+			# if empty string, gluster is not yet installed...
+			$operating_version = "${::gluster::versions::operating_versions}"
 
 			# this catches unknown gluster versions to add to table
 			if "${operating_version}" == '-1' {

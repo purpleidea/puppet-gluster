@@ -1,6 +1,8 @@
 # gluster/data/hiera.yaml
 ---
 :hierarchy:
+- versions/%{::gluster_major_version}/%{::gluster_version}
+- versions/%{::gluster_major_version}
 - tree/%{::osfamily}/%{::operatingsystem}/%{::operatingsystemrelease}
 - tree/%{::osfamily}/%{::operatingsystem}
 - tree/%{::osfamily}
