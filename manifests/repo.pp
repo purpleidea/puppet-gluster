@@ -126,7 +126,7 @@ define gluster::repo(
 
 			apt::source { "${name}":
 				location => "${base_os}wheezy/apt",
-				release => 'wheezy',
+				release => "${operatingsystemrelease},
 				repos => 'main',
 				key => '21C74DF2',
 				key_source => "${base_os}wheezy/pubkey.gpg",
