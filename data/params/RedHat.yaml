@@ -1,4 +1,4 @@
-# gluster/data/tree/RedHat.yaml
+# gluster/data/params/RedHat.yaml
 ---
 gluster::params::misc_gluster_repo: 'https://download.gluster.org/pub/gluster/glusterfs/'
 

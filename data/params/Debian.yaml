@@ -1,4 +1,4 @@
-# gluster/data/tree/Debian.yaml
+# gluster/data/params/Debian.yaml
 ---
 gluster::params::package_glusterfs: 'glusterfs-client'
 gluster::params::package_glusterfs_api: ''      # doesn't exist

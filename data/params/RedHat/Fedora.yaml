@@ -1,4 +1,4 @@
-# gluster/data/tree/RedHat/CentOS/7.0.1406.yaml
+# gluster/data/params/RedHat/Fedora.yaml
 ---
 gluster::params::package_python_argparse: ''	# doesn't exist
 gluster::params::program_modprobe: '/usr/sbin/modprobe'
@@ -17,6 +17,5 @@ gluster::params::program_mkfs_ext4: '/usr/sbin/mkfs.ext4'
 gluster::params::program_mkfs_btrfs: '/usr/sbin/mkfs.btrfs'
 gluster::params::program_findmnt: '/usr/bin/findmnt'
 gluster::params::misc_gluster_reload: '/usr/bin/systemctl reload glusterd'
-gluster::params::misc_repo_operatingsystemrelease: '7'
 
 # vim: ts=8
