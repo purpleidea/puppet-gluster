@@ -100,7 +100,7 @@ define gluster::host(
 			# TODO: add additional values to the yaml hiera data...
 			include gluster::versions
 			# if empty string, gluster is not yet installed...
-			$operating_version = "${::gluster::versions::operating_versions}"
+			$operating_version = "${::gluster::versions::operating_version}"
 
 			# this catches unknown gluster versions to add to table
 			if "${operating_version}" == '-1' {
