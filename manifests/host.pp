@@ -25,6 +25,7 @@ define gluster::host(
 	$password = ''	# if empty, puppet will attempt to choose one magically
 ) {
 	include gluster::vardir
+        include gluster::vrrpdir
 	include gluster::params
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
@@ -217,14 +218,6 @@ define gluster::host(
 		$vip = $::gluster::server::vip
 		if ! ($vip =~ /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/) {
 			fail('You must specify a valid VIP to use with VRRP.')
-		}
-
-		file { "${vardir}/vrrp/":
-			ensure => directory,	# make sure this is a directory
-			recurse => true,	# recurse into directory
-			purge => true,		# purge unmanaged files
-			force => true,		# purge subdirs and links
-			require => File["${vardir}/"],
 		}
 
 		# store so that a fact can figure out the interface and cidr...
