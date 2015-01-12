@@ -21,6 +21,15 @@ class gluster::host::base {
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
+	# don't purge the uuid file generated within
+	file { "${vardir}/uuid/":
+		ensure => directory,	# make sure this is a directory
+		recurse => true,	# recurse into directory
+		purge => true,		# purge unmanaged files
+		force => true,		# purge subdirs and links
+		require => File["${vardir}/"],
+	}
+
 	file { "${vardir}/vrrp/":
 		ensure => directory,	# make sure this is a directory
 		recurse => true,	# recurse into directory

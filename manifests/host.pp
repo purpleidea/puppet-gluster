@@ -58,15 +58,6 @@ define gluster::host(
 			fqdn => "${fqdn}",
 		}
 
-		# don't purge the uuid file generated within
-		file { "${vardir}/uuid/":
-			ensure => directory,	# make sure this is a directory
-			recurse => true,	# recurse into directory
-			purge => true,		# purge unmanaged files
-			force => true,		# purge subdirs and links
-			require => File["${vardir}/"],
-		}
-
 		# if we manually *pick* a uuid, then store it too, so that it
 		# sticks if we ever go back to using automatic uuids. this is
 		# useful if a user wants to initially import uuids by picking
@@ -80,7 +71,7 @@ define gluster::host(
 			group => root,
 			mode => 600,	# might as well...
 			ensure => present,
-			require => File["${vardir}/uuid/"],
+			require => File["${vardir}/uuid/"],	# in ::base
 		}
 
 		$valid_uuid = "${uuid}" ? {

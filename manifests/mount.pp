@@ -28,6 +28,9 @@ define gluster::mount(
 	$shorewall = false
 ) {
 	include gluster::params
+	include gluster::host::base	# add base folders so they don't purge
+	include gluster::brick::base	# they get created by the facts mkdir!
+	include gluster::volume::base	# this one is currently unnecessary...
 
 	#mount -t glusterfs brick1.example.com:/test /test
 	#include gluster::mount::base
