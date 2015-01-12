@@ -26,6 +26,7 @@ define gluster::host(
 ) {
 	include gluster::vardir
 	include gluster::params
+	include gluster::host::base
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
@@ -219,14 +220,6 @@ define gluster::host(
 			fail('You must specify a valid VIP to use with VRRP.')
 		}
 
-		file { "${vardir}/vrrp/":
-			ensure => directory,	# make sure this is a directory
-			recurse => true,	# recurse into directory
-			purge => true,		# purge unmanaged files
-			force => true,		# purge subdirs and links
-			require => File["${vardir}/"],
-		}
-
 		# store so that a fact can figure out the interface and cidr...
 		file { "${vardir}/vrrp/ip":
 			content => "${valid_ip}\n",
@@ -234,7 +227,7 @@ define gluster::host(
 			group => root,
 			mode => 600,	# might as well...
 			ensure => present,
-			require => File["${vardir}/vrrp/"],
+			require => File["${vardir}/vrrp/"],	# in ::base
 		}
 
 		# NOTE: this is a tag to protect the pass file...
