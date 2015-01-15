@@ -114,7 +114,7 @@ define gluster::host(
 				group => root,
 				mode => 600,			# u=rw,go=r
 				seltype => 'glusterd_var_lib_t',
-				seluser => 'system_u',
+				seluser => "${::gluster::params::selinux_glusterd_seluser}",
 				ensure => present,
 				notify => Service["${::gluster::params::service_glusterd}"],
 				require => File['/var/lib/glusterd/'],
@@ -200,7 +200,7 @@ define gluster::host(
 				# NOTE: this mode was found by inspecting the process
 				mode => 600,			# u=rw,go=r
 				seltype => 'glusterd_var_lib_t',
-				seluser => 'system_u',
+				seluser => "${::gluster::params::selinux_glusterd_seluser}",
 				notify => [
 					# propagate the notify up
 					File['/var/lib/glusterd/peers/'],
