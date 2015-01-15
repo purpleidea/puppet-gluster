@@ -54,7 +54,7 @@ class gluster::params(
 	$program_findmnt = '/bin/findmnt',
 
 	# SELinux
-	$seluser = 'system_u',
+	$selinux_glusterd_seluser = 'system_u',
 
 	# services...
 	$service_glusterd = 'glusterd',

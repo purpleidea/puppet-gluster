@@ -1,4 +1,10 @@
-# gluster/data/params/RedHat/CentOS/6.5.yaml
+# gluster/data/params/RedHat/CentOS/6.6.yaml
 ---
-gluster::params::seluser: 'unconfined_u'	# standard of system_u causes puppet to restart gluster on each run due to modifications.
+# looks like this may be irrelevant after all as  CentOS 6.6 
+# appears to accept system_u; however, it required a reboot for 
+# puppet to stop looping through modifying files on each iteration.
+gluster::params::selinux_glusterd_seluser: 'system_u'	
+
+
+
 # vim: ts=8
