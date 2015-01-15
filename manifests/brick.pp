@@ -84,7 +84,7 @@ define gluster::brick(
 	#
 	#	fsuuid...
 	#
-	if ("${fsuuid}" != '') and "${fsuuid}" =~ /^[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12}$/ {
+	if ("${fsuuid}" != '') and (! ("${fsuuid}" =~ /^[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12}$/)) {
 		fail("The chosen fs uuid: '${fsuuid}' is not valid.")
 	}
 
