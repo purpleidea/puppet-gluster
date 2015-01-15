@@ -1,0 +1,4 @@
+# gluster/data/params/RedHat/CentOS/6.5.yaml
+---
+gluster::params::seluser: 'unconfined_u'	# standard of system_u causes puppet to restart gluster on each run due to modifications.
+# vim: ts=8

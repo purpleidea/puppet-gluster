@@ -53,6 +53,9 @@ class gluster::params(
 	$program_fping = '/usr/sbin/fping',
 	$program_findmnt = '/bin/findmnt',
 
+	# SELinux
+	$seluser = 'system_u',
+
 	# services...
 	$service_glusterd = 'glusterd',
 
