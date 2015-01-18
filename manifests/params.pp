@@ -55,10 +55,10 @@ class gluster::params(
 	$program_awk = '/bin/awk',
 
 	# Owner/Group
-	$data_owner = 'root',
-	$data_group = 'nobody',
-	$conf_owner = 'root',
-	$conf_group = 'root',
+	$misc_owner_data = 'root',
+	$misc_group_data = 'nobody',
+	$misc_owner_conf = 'root',
+	$misc_group_conf = 'root',
 
 	# services...
 	$service_glusterd = 'glusterd',
@@ -102,8 +102,8 @@ class gluster::params(
 		# create a custom external fact!
 		file { "${factbase}gluster_program.yaml":
 			content => inline_template('<%= @hash.to_yaml %>'),
-			owner => $conf_owner,
-			group => $conf_group,
+			owner => "${misc_owner_conf}",
+			group => "${misc_group_conf}",
 			mode => 644,		# u=rw,go=r
 			ensure => present,
 		}

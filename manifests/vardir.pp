@@ -30,8 +30,8 @@ class gluster::vardir {	# module vardir snippet
 			recurse => false,	# don't recurse into directory
 			purge => true,		# purge all unmanaged files
 			force => true,		# also purge subdirs and links
-			owner => $::gluster::params::data_owner,
-			group => $::gluster::params::data_group,
+			owner => "${::gluster::params::misc_owner_data}",
+			group => "${::gluster::params::misc_group_data}",
 			mode => 600,
 			backup => false,	# don't backup to filebucket
 			#before => File["${module_vardir}"],	# redundant
@@ -46,9 +46,9 @@ class gluster::vardir {	# module vardir snippet
 		recurse => true,		# recursively manage directory
 		purge => true,			# purge all unmanaged files
 		force => true,			# also purge subdirs and links
-		owner => $::gluster::params::data_owner,
-		group => $::gluster::params::data_group,
-		mode => 600, 
+		owner => "${::gluster::params::misc_owner_data}",
+		group => "${::gluster::params::misc_group_data}",
+		mode => 600,
 		backup => false,
 		require => File["${tmp}"],	# File['/var/lib/puppet/tmp/']
 	}

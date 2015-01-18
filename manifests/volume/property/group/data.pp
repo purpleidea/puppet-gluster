@@ -33,8 +33,8 @@ class gluster::volume::property::group::data() {
 		recurse => true,
 		purge => true,
 		force => true,
-		owner => $::gluster::params::data_owner,
-		group => $::gluster::params::data_group,
+		owner => "${::gluster::params::misc_owner_data}",
+		group => "${::gluster::params::misc_group_data}",
 		mode => 644,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		require => File["${vardir}/"],
