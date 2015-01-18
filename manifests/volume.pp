@@ -311,7 +311,7 @@ define gluster::volume(
 					},
 				},
 				require => $settled ? {	# require if type exists
-					false => undef,
+					false => Service["${::gluster::params::service_glusterd}"],
 					default => Exec["gluster-volume-create-${name}"],
 				},
 				alias => "gluster-volume-start-${name}",
