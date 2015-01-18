@@ -38,8 +38,8 @@ class gluster::xml {
 
 	file { "${vardir}/xml.py":
 		source => 'puppet:///modules/gluster/xml.py',
-		owner => root,
-		group => nobody,
+		owner => "${::gluster::params::misc_owner_data}",
+		group => "${::gluster::params::misc_group_data}",
 		mode => 700,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		ensure => present,

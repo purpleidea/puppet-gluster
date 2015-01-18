@@ -24,8 +24,9 @@ define gluster::mount(
 				# defs, but not actually mount (testing)
 	$repo = true,		# add a repo automatically? true or false
 	$version = '',		# pick a specific version (defaults to latest)
-	$ip = '',	# you can specify which ip address to use (if multiple)
-	$shorewall = false
+	$ip = '',		# you can specify which ip address to use (if multiple)
+	$type = 'glusterfs',	# use 'glusterfs' or 'nfs'
+	$shorewall = false,
 ) {
 	include gluster::params
 
@@ -63,8 +64,8 @@ define gluster::mount(
 		fail('The $server must match a $host:/$volume pattern.')
 	}
 
-	$short_name = sprintf("%s", regsubst("${name}", '\/$', ''))	# no trailing
-	$long_name = sprintf("%s/", regsubst("${name}", '\/$', ''))	# trailing...
+	$mount_short_name = sprintf("%s", regsubst("${name}", '\/$', ''))	# no trailing
+	$mount_long_name = sprintf("%s/", regsubst("${name}", '\/$', ''))	# trailing...
 
 	$valid_ip = "${ip}" ? {
 		'' => "${::gluster_host_ip}" ? {	# smart fact...
@@ -77,6 +78,7 @@ define gluster::mount(
 		fail('No valid IP exists!')
 	}
 
+	# TODO: review shorewall rules against nfs fstype mount option
 	if $shorewall {
 		$safename = regsubst("${name}", '/', '_', 'G')	# make /'s safe
 		@@shorewall::rule { "glusterd-management-${fqdn}-${safename}":
@@ -125,23 +127,24 @@ define gluster::mount(
 		default => mounted,
 	}
 
-	# ensure parent directories exist
+	# ensure parent directories exist for mount point
 	exec { "gluster-mount-mkdir-${name}":
-		command => "/bin/mkdir -p '${long_name}'",
-		creates => "${long_name}",
+		command => "/bin/mkdir -p '${mount_long_name}'",
+		creates => "${mount_long_name}",
 		logoutput => on_failure,
-		before => File["${long_name}"],
+		before => File["${mount_long_name}"],
 	}
 
 	# make an empty directory for the mount point
-	file { "${long_name}":			# ensure a trailing slash
+	file { "${mount_long_name}":		# ensure a trailing slash
 		ensure => directory,		# make sure this is a directory
 		recurse => false,		# don't recurse into directory
 		purge => false,			# don't purge unmanaged files
 		force => false,			# don't purge subdirs and links
-		alias => "${short_name}",	# don't allow duplicates name's
+		alias => "${mount_short_name}",	# don't allow duplicates name's
 	}
 
+	# TODO: review packages content against nfs fstype mount option
 	$packages = "${::gluster::params::package_glusterfs_fuse}" ? {
 		'' => ["${::gluster::params::package_glusterfs}"],
 		default => [
@@ -149,6 +152,12 @@ define gluster::mount(
 			"${::gluster::params::package_glusterfs_fuse}",
 		],
 	}
+
+	$valid_type = "${type}" ? {
+		'nfs' => 'nfs',
+		default => 'glusterfs',
+	}
+
 	# Mount Options:
 	# * backupvolfile-server=server-name
 	# * fetch-attempts=N (where N is number of attempts)
@@ -161,18 +170,18 @@ define gluster::mount(
 	# * selinux (enable selinux on GlusterFS mount)
 	# XXX: consider mounting only if some exported resource, collected and turned into a fact shows that the volume is available...
 	# XXX: or something... consider adding the notify => Poke[] functionality
-	mount { "${short_name}":
+	mount { "${mount_short_name}":
 		atboot => true,
 		ensure => $mounted_bool,
 		device => "${server}",
-		fstype => 'glusterfs',
+		fstype => "${valid_type}",
 		options => "defaults,_netdev,${rw_bool}",	# TODO: will $suid_bool work with gluster ?
 		dump => '0',		# fs_freq: 0 to skip file system dumps
 		pass => '0',		# fs_passno: 0 to skip fsck on boot
 		require => [
 			Package[$packages],
-			File["${long_name}"],		# the mountpoint
-			Exec['gluster-fuse'],	# ensure fuse is loaded!
+			File["${mount_long_name}"],	# the mountpoint
+			Exec['gluster-fuse'],		# ensure fuse is loaded!
 		],
 	}
 }

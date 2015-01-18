@@ -52,12 +52,23 @@ class gluster::params(
 
 	$program_fping = '/usr/sbin/fping',
 	$program_findmnt = '/bin/findmnt',
+	$program_awk = '/bin/awk',
+
+	# Owner/Group
+	$misc_owner_data = 'root',
+	$misc_group_data = 'nobody',
+	$misc_owner_conf = 'root',
+	$misc_group_conf = 'root',
 
 	# services...
 	$service_glusterd = 'glusterd',
 
 	# external modules...
 	$include_puppet_facter = true,
+
+	# Default directories
+	# See http://manpages.ubuntu.com/manpages/trusty/man8/mount.glusterfs.8.html
+	$misc_gluster_logs = '/var/log/glusterfs/',
 
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',
@@ -91,8 +102,8 @@ class gluster::params(
 		# create a custom external fact!
 		file { "${factbase}gluster_program.yaml":
 			content => inline_template('<%= @hash.to_yaml %>'),
-			owner => root,
-			group => root,
+			owner => "${misc_owner_conf}",
+			group => "${misc_group_conf}",
 			mode => 644,		# u=rw,go=r
 			ensure => present,
 		}
