@@ -68,7 +68,7 @@ class gluster::params(
 
 	# Default directories
 	# See http://manpages.ubuntu.com/manpages/trusty/man8/mount.glusterfs.8.html
-	$gluster_log_directory = '/var/log/glusterfs/',
+	$misc_gluster_logs = '/var/log/glusterfs/',
 
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',

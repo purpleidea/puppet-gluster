@@ -24,8 +24,8 @@ class gluster::mount::base(
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
-	$log_short_name = sprintf("%s", regsubst("${::gluster::params::gluster_log_directory}", '\/$', ''))	# no trailing
-	$log_long_name = sprintf("%s/", regsubst("${::gluster::params::gluster_log_directory}", '\/$', ''))	# trailing...
+	$log_short_name = sprintf("%s", regsubst("${::gluster::params::misc_gluster_logs}", '\/$', ''))	# no trailing
+	$log_long_name = sprintf("%s/", regsubst("${::gluster::params::misc_gluster_logs}", '\/$', ''))	# trailing...
 
 	# if we use ::mount and ::server on the same machine, this could clash,
 	# so we use the ensure_resource function to allow identical duplicates!
