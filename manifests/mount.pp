@@ -25,7 +25,7 @@ define gluster::mount(
 	$repo = true,		# add a repo automatically? true or false
 	$version = '',		# pick a specific version (defaults to latest)
 	$ip = '',		# you can specify which ip address to use (if multiple)
-	$type = 'glusterfs',	# use 'glusterfs' or 'ntfs'
+	$type = 'glusterfs',	# use 'glusterfs' or 'nfs'
 	$shorewall = false,
 ) {
 	include gluster::params
@@ -78,7 +78,7 @@ define gluster::mount(
 		fail('No valid IP exists!')
 	}
 
-	# TODO: review shorewall rules against ntfs fstype mount option
+	# TODO: review shorewall rules against nfs fstype mount option
 	if $shorewall {
 		$safename = regsubst("${name}", '/', '_', 'G')	# make /'s safe
 		@@shorewall::rule { "glusterd-management-${fqdn}-${safename}":
@@ -144,7 +144,7 @@ define gluster::mount(
 		alias => "${mount_short_name}",	# don't allow duplicates name's
 	}
 
-	# TODO: review packages content against ntfs fstype mount option
+	# TODO: review packages content against nfs fstype mount option
 	$packages = "${::gluster::params::package_glusterfs_fuse}" ? {
 		'' => ["${::gluster::params::package_glusterfs}"],
 		default => [
@@ -152,6 +152,12 @@ define gluster::mount(
 			"${::gluster::params::package_glusterfs_fuse}",
 		],
 	}
+
+	$valid_type = "${type}" ? {
+		'nfs' => 'nfs',
+		default => 'glusterfs',
+	}
+
 	# Mount Options:
 	# * backupvolfile-server=server-name
 	# * fetch-attempts=N (where N is number of attempts)
@@ -168,7 +174,7 @@ define gluster::mount(
 		atboot => true,
 		ensure => $mounted_bool,
 		device => "${server}",
-		fstype => "${type}",
+		fstype => "${valid_type}",
 		options => "defaults,_netdev,${rw_bool}",	# TODO: will $suid_bool work with gluster ?
 		dump => '0',		# fs_freq: 0 to skip file system dumps
 		pass => '0',		# fs_passno: 0 to skip fsck on boot
