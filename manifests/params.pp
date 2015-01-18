@@ -53,6 +53,12 @@ class gluster::params(
 	$program_fping = '/usr/sbin/fping',
 	$program_findmnt = '/bin/findmnt',
 
+	# Owner/Group
+	$data_owner = 'root',
+	$data_group = 'nobody',
+	$conf_owner = 'root',
+	$conf_group = 'root',
+
 	# services...
 	$service_glusterd = 'glusterd',
 
@@ -91,8 +97,8 @@ class gluster::params(
 		# create a custom external fact!
 		file { "${factbase}gluster_program.yaml":
 			content => inline_template('<%= @hash.to_yaml %>'),
-			owner => root,
-			group => root,
+			owner => $conf_owner,
+			group => $conf_group,
 			mode => 644,		# u=rw,go=r
 			ensure => present,
 		}

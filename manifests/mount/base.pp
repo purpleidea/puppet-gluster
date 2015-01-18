@@ -87,8 +87,8 @@ class gluster::mount::base(
 	# TODO: will this autoload the fuse module?
 	#file { '/etc/modprobe.d/fuse.conf':
 	#	content => "fuse\n",	# TODO: "install fuse ${::gluster::params::program_modprobe} --ignore-install fuse ; /bin/true\n" ?
-	#	owner => root,
-	#	group => root,
+	#	owner => $::gluster::params::conf_owner,
+	#	group => $::gluster::params::conf_group,
 	#	mode => 644,		# u=rw,go=r
 	#	ensure => present,
 	#}

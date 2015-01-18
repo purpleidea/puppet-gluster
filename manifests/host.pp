@@ -75,8 +75,8 @@ define gluster::host(
 				'' => undef,
 				default => "${uuid}\n",
 			},
-			owner => root,
-			group => root,
+			owner => $::gluster::params::conf_owner,
+			group => $::gluster::params::conf_group,
 			mode => 600,	# might as well...
 			ensure => present,
 			require => File["${vardir}/uuid/"],
@@ -110,8 +110,8 @@ define gluster::host(
 			# set a unique uuid per host, and operating version...
 			file { '/var/lib/glusterd/glusterd.info':
 				content => template('gluster/glusterd.info.erb'),
-				owner => root,
-				group => root,
+				owner => $::gluster::params::conf_owner,
+				group => $::gluster::params::conf_group,
 				mode => 600,			# u=rw,go=r
 				seltype => 'glusterd_var_lib_t',
 				seluser => 'system_u',
@@ -124,8 +124,8 @@ define gluster::host(
 			@@file { "${vardir}/uuid/uuid_${name}":
 				content => "${valid_uuid}\n",
 				tag => 'gluster_uuid',
-				owner => root,
-				group => root,
+				owner => $::gluster::params::conf_owner,
+				group => $::gluster::params::conf_group,
 				mode => 600,
 				ensure => present,
 			}
@@ -195,8 +195,8 @@ define gluster::host(
 			# tag the file so it doesn't get removed by purge
 			file { "/var/lib/glusterd/peers/${valid_uuid}":
 				ensure => present,
-				owner => root,
-				group => root,
+				owner => $::gluster::params::conf_owner,
+				group => $::gluster::params::conf_group,
 				# NOTE: this mode was found by inspecting the process
 				mode => 600,			# u=rw,go=r
 				seltype => 'glusterd_var_lib_t',
@@ -230,8 +230,8 @@ define gluster::host(
 		# store so that a fact can figure out the interface and cidr...
 		file { "${vardir}/vrrp/ip":
 			content => "${valid_ip}\n",
-			owner => root,
-			group => root,
+			owner => $::gluster::params::conf_owner,
+			group => $::gluster::params::conf_group,
 			mode => 600,	# might as well...
 			ensure => present,
 			require => File["${vardir}/vrrp/"],
@@ -243,8 +243,8 @@ define gluster::host(
 				'' => undef,
 				default => "${password}",
 			},
-			owner => root,
-			group => root,
+			owner => $::gluster::params::conf_owner,
+			group => $::gluster::params::conf_group,
 			mode => 600,	# might as well...
 			ensure => present,
 			require => File["${vardir}/vrrp/"],
@@ -254,8 +254,8 @@ define gluster::host(
 		@@file { "${vardir}/vrrp/vrrp_${name}":
 			content => "${::gluster_vrrp}\n",
 			tag => 'gluster_vrrp',
-			owner => root,
-			group => root,
+			owner => $::gluster::params::conf_owner,
+			group => $::gluster::params::conf_group,
 			mode => 600,
 			ensure => present,
 		}
