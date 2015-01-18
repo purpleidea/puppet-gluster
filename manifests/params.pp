@@ -52,6 +52,7 @@ class gluster::params(
 
 	$program_fping = '/usr/sbin/fping',
 	$program_findmnt = '/bin/findmnt',
+	$program_awk = '/bin/awk',
 
 	# Owner/Group
 	$data_owner = 'root',
@@ -64,6 +65,10 @@ class gluster::params(
 
 	# external modules...
 	$include_puppet_facter = true,
+
+	# Default directories
+	# See http://manpages.ubuntu.com/manpages/trusty/man8/mount.glusterfs.8.html
+	$gluster_log_directory = '/var/log/glusterfs/',
 
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',

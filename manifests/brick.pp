@@ -446,7 +446,7 @@ define gluster::brick(
 				logoutput => on_failure,
 				unless => [		# if one element is true, this *doesn't* run
 					#"${::gluster::params::program_lvdisplay} ${lvm_lvname}",	# nope!
-					"${::gluster::params::program_lvs} --separator ':' | /usr/bin/tr -d ' ' | /bin/awk -F ':' '{print \$1}' | /bin/grep -q '${lvm_lvname}'",
+					"${::gluster::params::program_lvs} --separator ':' | /usr/bin/tr -d ' ' | ${::gluster::params::program_awk} -F ':' '{print \$1}' | /bin/grep -q '${lvm_lvname}'",
 					'/bin/false',	# TODO: add more criteria
 				],
 				require => $exec_requires,
