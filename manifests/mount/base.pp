@@ -24,6 +24,9 @@ class gluster::mount::base(
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
 
+	$log_short_name = sprintf("%s", regsubst("${::gluster::params::gluster_log_directory}", '\/$', ''))	# no trailing
+	$log_long_name = sprintf("%s/", regsubst("${::gluster::params::gluster_log_directory}", '\/$', ''))	# trailing...
+
 	# if we use ::mount and ::server on the same machine, this could clash,
 	# so we use the ensure_resource function to allow identical duplicates!
 	$rname = "${version}" ? {
@@ -92,6 +95,24 @@ class gluster::mount::base(
 	#	mode => 644,		# u=rw,go=r
 	#	ensure => present,
 	#}
+
+	# ensure parent directories exist for log directory
+	exec { "gluster-log-mkdir-${name}":
+		command => "/bin/mkdir -p '${log_long_name}'",
+		creates => "${log_long_name}",
+		logoutput => on_failure,
+		before => File["${log_long_name}"],
+	}
+
+	# make an empty directory for logs
+	file { "${log_long_name}":          # ensure a trailing slash
+		ensure => directory,            # make sure this is a directory
+		recurse => false,               # don't recurse into directory
+		purge => false,                 # don't purge unmanaged files
+		force => false,                 # don't purge subdirs and links
+		alias => "${log_short_name}",   # don't allow duplicates name's
+	}
+
 }
 
 # vim: ts=8
