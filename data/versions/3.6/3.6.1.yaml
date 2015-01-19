@@ -1,0 +1,5 @@
+# gluster/data/versions/3.6/3.6.1.yaml
+---
+# this is actually due to a bug in 3.6.1 forgetting to update the version
+gluster::versions::operating_version: '30600'   # v3.6.1
+# vim: ts=8
