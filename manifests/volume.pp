@@ -323,7 +323,7 @@ define gluster::volume(
 				logoutput => on_failure,
 				onlyif => "${::gluster::params::program_gluster} volume status ${name}",	# returns true if started
 				require => $settled ? {	# require if type exists
-					false => undef,
+					false => Service["${::gluster::params::service_glusterd}"],
 					default => Exec["gluster-volume-create-${name}"],
 				},
 				alias => "gluster-volume-stop-${name}",
