@@ -72,14 +72,16 @@ define gluster::repo(
 		'RedHat': {
 			$base_os = "${base_v}RHEL/"
 		}
-		#'Debian', 'Ubuntu': {
-		#}
+		'Debian': {
+			$base_os = "${base_v}Debian/"
+		}
 		default: {
 			fail("Operating system: '${operatingsystem}' not yet supported.")
 		}
 	}
 
 	$arch = "${architecture}" ? {
+		'amd64' => 'binary-amd64',
 		'x86_64' => 'x86_64',
 		'i386' => 'i386',
 		'i486' => 'i386',
@@ -91,31 +93,46 @@ define gluster::repo(
 		fail("Architecture: '${architecture}' not yet supported.")
 	}
 
-	$base_arch = "${base_os}epel-${::gluster::params::misc_repo_operatingsystemrelease}/"
+	case $operatingsystem {
+		'CentOS', 'RedHat': {
+			$base_arch = "${base_os}epel-${operatingsystemrelease}/"
 
-	$gpgkey = "${base_os}pub.key"
+			$gpgkey = "${base_os}pub.key"
 
-	include ::yum
+			include ::yum
 
-	#yum::repos::repo { "gluster-${arch}":
-	yum::repos::repo { "${name}":
-		baseurl => "${base_arch}${arch}/",
-		enabled => true,
-		gpgcheck => true,
-		# XXX: this should not be an https:// link, it should be a file
-		gpgkeys => "${gpgkey}",
-		ensure => present,
+			#yum::repos::repo { "gluster-${arch}":
+			yum::repos::repo { "${name}":
+				baseurl => "${base_arch}${arch}/",
+				enabled => true,
+				gpgcheck => true,
+				# XXX: this should not be an https:// link, it should be a file
+				gpgkeys => ["${gpgkey}"],
+				ensure => present,
+			}
+
+			# TODO: technically, i don't think this is needed yet...
+			#yum::repos::repo { 'gluster-noarch':
+			#	baseurl => "${base_arch}noarch/",
+			#	enabled => true,
+			#	gpgcheck => true,
+			#	# XXX: this should not be an https:// link, it should be a file
+			#	gpgkeys => ["${gpgkey}"],
+			#	ensure => present,
+			#}
+		}
+		'Debian': {
+			include ::apt
+
+			apt::source { "${name}":
+				location => "${base_os}wheezy/apt",
+				release => "${operatingsystemrelease},
+				repos => 'main',
+				key => '21C74DF2',
+				key_source => "${base_os}wheezy/pubkey.gpg",
+			}
+		}
 	}
-
-	# TODO: technically, i don't think this is needed yet...
-	#yum::repos::repo { 'gluster-noarch':
-	#	baseurl => "${base_arch}noarch/",
-	#	enabled => true,
-	#	gpgcheck => true,
-	#	# XXX: this should not be an https:// link, it should be a file
-	#	gpgkeys => ["${gpgkey}"],
-	#	ensure => present,
-	#}
 }
 
 # vim: ts=8

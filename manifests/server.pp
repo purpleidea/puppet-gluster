@@ -54,7 +54,7 @@ class gluster::server(
 	file { "${vardir}/sponge.py":		# for scripts needing: 'sponge'
 		source => 'puppet:///modules/gluster/sponge.py',
 		owner => root,
-		group => nobody,
+		group => root,
 		mode => 700,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		ensure => present,
