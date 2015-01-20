@@ -52,6 +52,52 @@ class gluster::params(
 
 	$program_fping = '/usr/sbin/fping',
 	$program_findmnt = '/bin/findmnt',
+	$program_awk = '/bin/awk',
+
+	# Owner/Group
+	# TODO: see /manifests/mount/base.pp
+	# $misc_owner_base_fuse_conf_file = 'root',
+	# $misc_group_base_fuse_conf_file = 'root',
+	$misc_owner_brick_fsuuid_file = 'root',
+	$misc_group_brick_fsuuid_file = 'root',
+	$misc_owner_brick_name_file = 'root',
+	$misc_group_brick_name_file = 'root',
+	$misc_owner_data_gluster_group_dir = 'root',
+	$misc_group_data_gluster_group_dir = 'nobody',
+	$misc_owner_host_gluster_info_file = 'root',
+	$misc_group_host_gluster_info_file = 'root',
+	$misc_owner_host_gluster_uuid_file = 'root',
+	$misc_group_host_gluster_uuid_file = 'root',
+	$misc_owner_host_peer_uuid_file = 'root',
+	$misc_group_host_peer_uuid_file = 'root',
+	$misc_owner_host_uuid_file = 'root',
+	$misc_group_host_uuid_file = 'root',
+	$misc_owner_host_vrrp_ip_file = 'root',
+	$misc_group_host_vrrp_ip_file = 'root',
+	$misc_owner_host_vrrp_name_file = 'root',
+	$misc_group_host_vrrp_name_file = 'root',
+	$misc_owner_host_vrrp_password_file = 'root',
+	$misc_group_host_vrrp_password_file = 'root',
+	$misc_owner_params_gluster_program_file = 'root',
+	$misc_group_params_gluster_program_file = 'root',
+	$misc_owner_server_glusterd_dir = 'root',
+	$misc_group_server_glusterd_dir = 'root',
+	$misc_owner_server_glusterd_vol_file = 'root',
+	$misc_group_server_glusterd_vol_file = 'root',
+	$misc_owner_server_glusterfs_dir = 'root',
+	$misc_group_server_glusterfs_dir = 'root',
+	$misc_owner_server_peers_file = 'root',
+	$misc_group_server_peers_file = 'root',
+	$misc_owner_server_sponge_file = 'root',
+	$misc_group_server_sponge_file = 'nobody',
+	$misc_owner_volume_create_file = 'root',
+	$misc_group_volume_create_file = 'root',
+	$misc_owner_vardir_gluster_tmp_dir = 'root',
+	$misc_group_vardir_gluster_tmp_dir = 'nobody',
+	$misc_owner_vardir_tmp_dir = 'root',
+	$misc_group_vardir_tmp_dir = 'nobody',
+	$misc_owner_xml_parse_file = 'root',
+	$misc_group_xml_parse_file = 'nobody',
 
 	# SELinux
 	$selinux_glusterd_seluser = 'system_u',
@@ -61,6 +107,10 @@ class gluster::params(
 
 	# external modules...
 	$include_puppet_facter = true,
+
+	# Default directories
+	# See http://manpages.ubuntu.com/manpages/trusty/man8/mount.glusterfs.8.html
+	$misc_gluster_logs = '/var/log/glusterfs/',
 
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',
@@ -94,8 +144,8 @@ class gluster::params(
 		# create a custom external fact!
 		file { "${factbase}gluster_program.yaml":
 			content => inline_template('<%= @hash.to_yaml %>'),
-			owner => root,
-			group => root,
+			owner => "${misc_owner_params_gluster_program_file}",
+			group => "${misc_group_params_gluster_program_file}",
 			mode => 644,		# u=rw,go=r
 			ensure => present,
 		}
