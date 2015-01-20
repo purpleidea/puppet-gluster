@@ -310,10 +310,7 @@ define gluster::volume(
 						default => Common::Again::Delta['gluster-exec-again'],
 					},
 				},
-				require => $settled ? {	# require if type exists
-					false => undef,
-					default => Exec["gluster-volume-create-${name}"],
-				},
+				require => Exec["gluster-volume-create-${name}"],
 				alias => "gluster-volume-start-${name}",
 			}
 		} elsif ( $start == false ) {
