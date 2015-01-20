@@ -60,6 +60,10 @@ class gluster::params(
 	# external modules...
 	$include_puppet_facter = true,
 
+	# Default directories
+	# See http://manpages.ubuntu.com/manpages/trusty/man8/mount.glusterfs.8.html
+	$misc_gluster_logs = '/var/log/glusterfs/',
+
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',
 	$misc_gluster_repo = 'https://download.gluster.org/pub/gluster/glusterfs/',
