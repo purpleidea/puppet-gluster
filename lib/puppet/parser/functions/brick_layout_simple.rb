@@ -51,10 +51,6 @@ module Puppet::Parser::Functions
 		replica = args[0].to_i	# convert from string if needed
 		bricks = args[1]
 
-		# TODO: these functions could be in separate puppet files
-		# eg: Puppet::Parser::Functions.function('myfunc')
-		# function_myfunc(...)
-
 		collect = {}
 		parsed = function_brick_str_to_hash([bricks])
 		parsed.each do |x|
