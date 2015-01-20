@@ -316,11 +316,10 @@ define gluster::volume(
 		} elsif ( $start == false ) {
 			# try to stop volume if running
 			# NOTE: this will still succeed even if a client is mounted
-			# NOTE: This uses `yes` to workaround the: Stopping volume will
+			# NOTE: This uses `--mode-script` to workaround the: Stopping volume will
 			# make its data inaccessible. Do you want to continue? (y/n)
-			# TODO: http://community.gluster.org/q/how-can-i-make-automatic-scripts/
-			# TODO: gluster --mode=script volume stop ...
-			exec { "/usr/bin/yes | ${::gluster::params::program_gluster} volume stop ${name}":
+			# https://access.redhat.com/documentation/en-US/Red_Hat_Storage/2.0/html/Installation_Guide/ch08.html
+			exec { "${::gluster::params::program_gluster} --mode=script volume stop ${name}":
 				logoutput => on_failure,
 				onlyif => "${::gluster::params::program_gluster} volume status ${name}",	# returns true if started
 				require => $settled ? {	# require if type exists
