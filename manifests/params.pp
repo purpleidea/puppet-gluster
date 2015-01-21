@@ -57,16 +57,16 @@ class gluster::params(
 	# SELinux
 	$selinux_glusterd_seluser = 'system_u',
 
-	# Owner/Group
-	$misc_owner_root = 'root',
-	$misc_group_root = 'root',
-	$misc_group_nobody = 'nobody',
-
 	# services...
 	$service_glusterd = 'glusterd',
 
 	# external modules...
 	$include_puppet_facter = true,
+
+	# Owner/Group
+	$misc_owner_root = 'root',
+	$misc_group_root = 'root',
+	$misc_group_nobody = 'nobody',
 
 	# Default directories
 	# See http://manpages.ubuntu.com/manpages/trusty/man8/mount.glusterfs.8.html
