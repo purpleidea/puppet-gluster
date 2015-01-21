@@ -57,6 +57,11 @@ class gluster::params(
 	# SELinux
 	$selinux_glusterd_seluser = 'system_u',
 
+	# Owner/Group
+	$misc_owner_root = 'root',
+	$misc_group_root = 'root',
+	$misc_group_nobody = 'nobody',
+
 	# services...
 	$service_glusterd = 'glusterd',
 
@@ -99,8 +104,8 @@ class gluster::params(
 		# create a custom external fact!
 		file { "${factbase}gluster_program.yaml":
 			content => inline_template('<%= @hash.to_yaml %>'),
-			owner => root,
-			group => root,
+			owner => "${misc_owner_root}",
+			group => "${misc_group_root}",
 			mode => 644,		# u=rw,go=r
 			ensure => present,
 		}

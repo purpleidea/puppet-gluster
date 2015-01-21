@@ -74,8 +74,8 @@ define gluster::brick(
 	$safename = regsubst("${name}", '/', '_', 'G')	# make /'s safe
 	file { "${vardir}/brick/${safename}.${group}":
 		content => "${name}\n",
-		owner => root,
-		group => root,
+		owner => "${::gluster::params::misc_owner_root}",
+		group => "${::gluster::params::misc_group_root}",
 		mode => 644,
 		ensure => present,
 		require => File["${vardir}/brick/"],
@@ -96,8 +96,8 @@ define gluster::brick(
 		# $group is unnecessary, but i left it in for consistency...
 		file { "${vardir}/brick/fsuuid/${safename}.${group}":
 			content => "${fsuuid}\n",
-			owner => root,
-			group => root,
+			owner => "${::gluster::params::misc_owner_root}",
+			group => "${::gluster::params::misc_group_root}",
 			mode => 600,	# might as well...
 			ensure => present,
 			require => File["${vardir}/brick/fsuuid/"],
