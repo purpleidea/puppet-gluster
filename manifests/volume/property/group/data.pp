@@ -22,6 +22,7 @@
 class gluster::volume::property::group::data() {
 
 	include gluster::vardir
+	include gluster::params
 
 	#$vardir = $::gluster::vardir::module_vardir	# with trailing slash
 	$vardir = regsubst($::gluster::vardir::module_vardir, '\/$', '')
@@ -32,8 +33,8 @@ class gluster::volume::property::group::data() {
 		recurse => true,
 		purge => true,
 		force => true,
-		owner => root,
-		group => nobody,
+		owner => "${::gluster::params::misc_owner_root}",
+		group => "${::gluster::params::misc_group_nobody}",
 		mode => 644,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		require => File["${vardir}/"],
