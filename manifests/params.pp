@@ -57,6 +57,11 @@ class gluster::params(
 	# SELinux
 	$selinux_glusterd_seluser = 'system_u',
 
+	# Owner/Group
+	$misc_owner_root = 'root',
+	$misc_group_root = 'root',
+	$misc_group_nobody = 'nobody',
+
 	# services...
 	$service_glusterd = 'glusterd',
 
