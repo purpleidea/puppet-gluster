@@ -3,7 +3,7 @@
 [![Build Status](https://secure.travis-ci.org/purpleidea/puppet-gluster.png)](http://travis-ci.org/purpleidea/puppet-gluster)
 
 ## Documentation:
-Please see: [DOCUMENTATION.md](DOCUMENTATION.md) or [puppet-gluster-documentation.pdf](puppet-gluster-documentation.pdf).
+Please see: [DOCUMENTATION.md](DOCUMENTATION.md) or [PDF](https://pdfdoc-purpleidea.rhcloud.com/pdf/https://github.com/purpleidea/puppet-gluster/blob/master/DOCUMENTATION.md).
 
 ## Installation:
 Please read the [INSTALL](INSTALL) file for instructions on getting this installed.
