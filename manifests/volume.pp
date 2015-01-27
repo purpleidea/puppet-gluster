@@ -201,8 +201,9 @@ define gluster::volume(
 
 	$fping = sprintf("${::gluster::params::program_fping} -q %s", $others)
 	$status = sprintf("${::gluster::params::program_gluster} peer status --xml | ${vardir}/xml.py connected %s", $others)
+	$volume_list = "${::gluster::params::program_gluster} volume list | /bin/grep -qxF '${name}' -"
 
-	$onlyif = $ping ? {
+	$onlyif_create = $ping ? {
 		false => "${status}",
 		default => [
 			"${fping}",
@@ -210,7 +211,19 @@ define gluster::volume(
 		],
 	}
 
-	$require = $ping ? {
+	$onlyif_start = $ping ? {
+		false => [
+			"${volume_list}",
+			"${status}",
+		],
+		default => [
+			"${volume_list}",
+			"${fping}",
+			"${status}",
+		],
+	}
+
+	$require_create = $ping ? {
 		false => [
 			Service["${::gluster::params::service_glusterd}"],
 			File["${vardir}/volume/create-${name}.sh"],
@@ -228,11 +241,35 @@ define gluster::volume(
 		],
 	}
 
+	$require_start = $ping ? {
+		false => [
+			Service["${::gluster::params::service_glusterd}"],
+			File["${vardir}/xml.py"],	# status check
+			Gluster::Brick[$valid_bricks],
+			Exec["gluster-volume-stuck-${name}"],
+			$settled ? { # require if type exists
+				false => undef,
+				default => Exec["gluster-volume-create-${name}"],
+			}
+		],
+		default => [
+			Service["${::gluster::params::service_glusterd}"],
+			Package["${::gluster::params::package_fping}"],
+			File["${vardir}/xml.py"],	# status check
+			Gluster::Brick[$valid_bricks],
+			Exec["gluster-volume-stuck-${name}"],
+			$settled ? { # require if type exists
+				false => undef,
+				default => Exec["gluster-volume-create-${name}"],
+			}
+		],
+	}
+
 	# work around stuck connection state (4) of: 'Accepted peer request'...
 	exec { "gluster-volume-stuck-${name}":
 		command => "${::gluster::params::misc_gluster_reload}",
 		logoutput => on_failure,
-		unless => "${::gluster::params::program_gluster} volume list | /bin/grep -qxF '${name}' -",	# reconnect if it doesn't exist
+		unless => "${volume_list}",	# reconnect if it doesn't exist
 		onlyif => sprintf("${::gluster::params::program_gluster} peer status --xml | ${vardir}/xml.py stuck %s", $others),
 		notify => $again ? {
 			false => undef,
@@ -289,10 +326,10 @@ define gluster::volume(
 			exec { "gluster-volume-create-${name}":
 				command => "${vardir}/volume/create-${name}.sh",
 				logoutput => on_failure,
-				unless => "${::gluster::params::program_gluster} volume list | /bin/grep -qxF '${name}' -",	# add volume if it doesn't exist
-				onlyif => $onlyif,
+				unless => "${volume_list}",	# add volume if it doesn't exist
+				onlyif => $onlyif_create,
 				#before => TODO?,
-				require => $require,
+				require => $require_create,
 				alias => "gluster-volume-create-${name}",
 			}
 		}
@@ -301,7 +338,7 @@ define gluster::volume(
 			# try to start volume if stopped
 			exec { "${::gluster::params::program_gluster} volume start ${name}":
 				logoutput => on_failure,
-				onlyif => "${::gluster::params::program_gluster} volume list | /bin/grep -qxF '${name}' -",
+				onlyif => $onlyif_start,
 				unless => "${::gluster::params::program_gluster} volume status ${name}",	# returns false if stopped
 				notify => $shorewall ? {
 					false => undef,
@@ -310,10 +347,7 @@ define gluster::volume(
 						default => Common::Again::Delta['gluster-exec-again'],
 					},
 				},
-				require => $settled ? {	# require if type exists
-					false => undef,
-					default => Exec["gluster-volume-create-${name}"],
-				},
+				require => $require_start,
 				alias => "gluster-volume-start-${name}",
 			}
 		} elsif ( $start == false ) {
