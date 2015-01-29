@@ -1,4 +1,5 @@
 # gluster/data/params/RedHat/CentOS/6.5.yaml
 ---
+gluster::params::selinux_glusterd_seluser: 'unconfined_u'
 
 # vim: ts=8
