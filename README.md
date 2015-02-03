@@ -17,9 +17,8 @@ Please look in the [examples/](examples/) folder for usage. If none exist, pleas
 * Using gluster::simple is probably the best way to try this out.
 * This is easily deployed with vagrant. See the [vagrant/](vagrant/) directory!
 * You can use less of the available resources, if you only want to manage some.
-* You can get CentOS and RHEL rpms from:
-** http://download.gluster.org/pub/gluster/glusterfs/LATEST/CentOS/ or:
-** http://repos.fedorapeople.org/repos/kkeithle/glusterfs/epel-6/x86_64/
+* You can get packages for CentOS and RHEL and other distributions from:
+** http://download.gluster.org/pub/gluster/glusterfs/LATEST/
 * Documentation is now available! Please report grammar and spelling bugs.
 
 ## Dependencies:
