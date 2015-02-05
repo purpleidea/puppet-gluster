@@ -498,6 +498,21 @@ Puppet-Gluster has also been
 [updated](https://github.com/purpleidea/puppet-gluster/commit/6dfaa8446e4287cf6f7f540158cde700fb95b830)
 to fix the issue for users of brick_layout_chained.
 
+###Puppet master gives warning: "Unable to load yaml data/ directory!"
+
+You may see the message "Unable to load yaml data/ directory!" in
+_/var/log/messages_ on your puppet master. This error comes from the
+_ipa::params_ class. The _ipa::params_ class expects the puppet-module-data
+module to read data from the ipa/data directory, and this message indicates
+that the module-data module is not installed properly. Most users do not have
+this issue, but if you do, here is a workaround:
+
+* Run _puppet config print libdir_ to find the puppet libdir (e.g. /var/lib/puppet/lib).
+* Run _mkdir /etc/puppet/modules/module\_data_.
+* Copy the contents of the puppet-module-data directory into _/etc/puppet/modules/module\_data_.
+* Run "ln -s /etc/puppet/modules/module\_data/lib/hiera _<libdir>_/hiera".
+* Restart the puppet master.
+
 ###Will this work on my favourite OS? (eg: GNU/Linux F00bar OS v12 ?)
 If it's a GNU/Linux based OS, can run GlusterFS, and Puppet, then it will
 probably work. Typically, you might need to add a yaml data file to the _data/_
