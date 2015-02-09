@@ -373,7 +373,11 @@ define gluster::brick(
 	# put all the options in an array, remove the empty ones, and join with
 	# commas (this removes ',,' double comma uglyness)
 	# adding 'defaults' here ensures no ',' (leading comma) in mount command
-	$mount_options = inline_template('<%= (["defaults"]+@options_list).delete_if {|x| x.empty? }.join(",") %>')
+	
+	## prepend w/ comma
+	$nobootwait = [",${::gluster::params::mount_nobootwait}"]
+
+	$mount_options = inline_template('<%= (["defaults"]+@options_list).delete_if {|x| x.empty? }.join(",") %><%= (@nobootwait).delete_if {|x| x.empty? }.join(",") %>')
 
 	$exec_noop = $areyousure ? {
 		true => false,
