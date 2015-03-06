@@ -79,6 +79,9 @@ class gluster::params(
 	# the operatingsystemrelease string used in the repository URL.
 	$misc_repo_operatingsystemrelease = "${operatingsystemrelease}",
 
+	# mount parameter to handle missing FS
+	$mount_nofail = 'nofail',
+
 	# comment...
 	$comment = ''
 
