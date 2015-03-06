@@ -80,7 +80,7 @@ class gluster::params(
 	$misc_repo_operatingsystemrelease = "${operatingsystemrelease}",
 
 	# mount parameter to handle missing FS
-	$mount_nobootwait = 'nobootwait',
+	$mount_nofail = 'nofail',
 
 	# comment...
 	$comment = ''

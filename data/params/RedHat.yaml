@@ -3,6 +3,3 @@
 gluster::params::misc_gluster_repo: 'https://download.gluster.org/pub/gluster/glusterfs/'
 
 # vim: ts=8
-
-# FS Mount params (nobootwait for ubuntu/debian based, override for redhat based OS)
-gluster::params::mount_nobootwait: 'nofail'
