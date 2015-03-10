@@ -14,4 +14,8 @@ gluster::params::program_fping: '/usr/bin/fping'
 gluster::params::program_awk: '/usr/bin/awk'
 # TODO: the debian family of glusterd needs a reload command in the init file !
 gluster::params::misc_gluster_reload: '/usr/sbin/service glusterfs-server restart'
+
+# Debian based OS use nobootwait whereas Fedora based OS use nofail.
+gluster::params::misc_mount_nofail: 'nobootwait'
+
 # vim: ts=8

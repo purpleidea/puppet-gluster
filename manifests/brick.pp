@@ -340,7 +340,7 @@ define gluster::brick(
 			default => '',
 		}
 
-		$options_list = ["${option01}", "${option02}"]
+		$options_list = ["${option01}", "${option02}","${::gluster::params::misc_mount_nofail}"]
 
 	} elsif ( $valid_fstype == 'ext4' ) {
 		# exec requires
@@ -351,7 +351,7 @@ define gluster::brick(
 		$mkfs_exec = "${::gluster::params::program_mkfs_ext4} -U '${valid_fsuuid}' ${dev2}"
 
 		# mount options
-		$options_list = []	# TODO
+		$options_list = ["${::gluster::params::misc_mount_nofail}"]	# TODO
 
 	} elsif ( $valid_fstype == 'btrfs' ) {
 		# exec requires
@@ -364,7 +364,7 @@ define gluster::brick(
 		$mkfs_exec = "${::gluster::params::program_mkfs_btrfs} -U '${valid_fsuuid}' ${dev2}"
 
 		# mount options
-		$options_list = []	# TODO
+		$options_list = ["${::gluster::params::misc_mount_nofail}"]	# TODO
 
 	} else {
 		fail('The $fstype is invalid.')

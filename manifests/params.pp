@@ -79,6 +79,9 @@ class gluster::params(
 	# the operatingsystemrelease string used in the repository URL.
 	$misc_repo_operatingsystemrelease = "${operatingsystemrelease}",
 
+	# A failed or missing /etc/fstab entry should not cause the system to hang.
+	$misc_mount_nofail = 'nofail',
+
 	# comment...
 	$comment = ''
 
