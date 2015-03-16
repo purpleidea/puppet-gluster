@@ -533,6 +533,23 @@ puppet module to be present on the puppet server in the _modules/_ directory.
 The *module_data* code should be in a module folder named: *module_data/*.
 That's it!
 
+###I just upgraded puppet-gluster and my UUIDs keep resetting to 00000000-0000-0000-0000-000000000000
+The following commands may also be failing 
+`gluster pool list` or `gluster peer status`
+on some or all of the gluster servers. Furthermore, some hosts may
+see other servers while others are able to list the other peers but remain in
+a disconnected state.
+
+In one case, this was caused by SourceTree's approach to cloning where it was
+pulling in all submodules on the Windows OS and/or converting LF (line feed)
+to CRLF (carriage return line feed) compared to how a git clone command pulls
+in the repository on a linux OS. In order to resolve this you must
+delete the puppet-gluster module directory in its entirety and re-clone it
+directly on the target puppet master.
+If you are using version control to save your puppet manifests/modules
+then please ensure that you perform the appropriate addremove commmands and
+recommit and re-push your code.
+
 ###Awesome work, but it's missing support for a feature and/or platform!
 
 Since this is an Open Source / Free Software project that I also give away for
