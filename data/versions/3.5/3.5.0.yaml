@@ -1,4 +1,4 @@
-# gluster/data/versions/3.5.0.yaml
+# gluster/data/versions/3.5/3.5.0.yaml
 ---
 gluster::versions::operating_version: '3'   # v3.5.0
 # vim: ts=8

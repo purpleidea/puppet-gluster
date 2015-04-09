@@ -159,6 +159,9 @@ class gluster::volume::property::data() {
 		# Specifies the window size for tcp socket.
 		'network.tcp-window-size' => 'integer',	# default: (null)
 
+		# This option is used to enable or disable ACL over NFS
+		'nfs.acl' => 'onoff', # default: on
+
 		# Users have the option of turning on name lookup for incoming client connections using this option. Use this option to turn on name lookups during address-based authentication. Turning this on will enable you to use hostnames in rpc-auth.addr.* filters. In some setups, the name server can take too long to reply to DNS queries resulting in timeouts of mount requests. By default, name lookup is off
 		'nfs.addr-namelookup' => 'offon',	# default: (off)
 

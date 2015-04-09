@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class gluster::vardir {	# module vardir snippet
+	include gluster::params
+
 	if "${::puppet_vardirtmp}" == '' {
 		if "${::puppet_vardir}" == '' {
 			# here, we require that the puppetlabs fact exist!
@@ -28,8 +30,8 @@ class gluster::vardir {	# module vardir snippet
 			recurse => false,	# don't recurse into directory
 			purge => true,		# purge all unmanaged files
 			force => true,		# also purge subdirs and links
-			owner => root,
-			group => nobody,
+			owner => "${::gluster::params::misc_owner_root}",
+			group => "${::gluster::params::misc_group_nobody}",
 			mode => 600,
 			backup => false,	# don't backup to filebucket
 			#before => File["${module_vardir}"],	# redundant
@@ -44,7 +46,10 @@ class gluster::vardir {	# module vardir snippet
 		recurse => true,		# recursively manage directory
 		purge => true,			# purge all unmanaged files
 		force => true,			# also purge subdirs and links
-		owner => root, group => nobody, mode => 600, backup => false,
+		owner => "${::gluster::params::misc_owner_root}",
+		group => "${::gluster::params::misc_group_nobody}",
+		mode => 600,
+		backup => false,
 		require => File["${tmp}"],	# File['/var/lib/puppet/tmp/']
 	}
 }

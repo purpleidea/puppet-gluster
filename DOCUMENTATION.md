@@ -498,6 +498,21 @@ Puppet-Gluster has also been
 [updated](https://github.com/purpleidea/puppet-gluster/commit/6dfaa8446e4287cf6f7f540158cde700fb95b830)
 to fix the issue for users of brick_layout_chained.
 
+###Puppet master gives warning: "Unable to load yaml data/ directory!"
+
+You may see the message "Unable to load yaml data/ directory!" in
+_/var/log/messages_ on your puppet master. This error comes from the
+_ipa::params_ class. The _ipa::params_ class expects the puppet-module-data
+module to read data from the ipa/data directory, and this message indicates
+that the module-data module is not installed properly. Most users do not have
+this issue, but if you do, here is a workaround:
+
+* Run _puppet config print libdir_ to find the puppet libdir (e.g. /var/lib/puppet/lib).
+* Run _mkdir /etc/puppet/modules/module\_data_.
+* Copy the contents of the puppet-module-data directory into _/etc/puppet/modules/module\_data_.
+* Run "ln -s /etc/puppet/modules/module\_data/lib/hiera _<libdir>_/hiera".
+* Restart the puppet master.
+
 ###Will this work on my favourite OS? (eg: GNU/Linux F00bar OS v12 ?)
 If it's a GNU/Linux based OS, can run GlusterFS, and Puppet, then it will
 probably work. Typically, you might need to add a yaml data file to the _data/_
@@ -517,6 +532,21 @@ In short, this requires puppet version 3.0.0 or greater, and needs the
 puppet module to be present on the puppet server in the _modules/_ directory.
 The *module_data* code should be in a module folder named: *module_data/*.
 That's it!
+
+###I just upgraded puppet-gluster and my UUIDs keep resetting to 00000000-0000-0000-0000-000000000000
+The following commands `gluster pool list` or `gluster peer status` may also be
+failing on some or all of the gluster servers. Furthermore, some hosts may
+see other servers, while others are able to list the other peers but they
+remain in a disconnected state.
+
+In one case, this was caused by SourceTree's approach to cloning where it was
+pulling in all submodules on the Windows OS and/or converting LF (line feed)
+to CRLF (carriage return, line feed) compared to how a git clone command pulls
+in the repository on a linux OS. In order to resolve this you must delete the
+puppet-gluster module directory in its entirety and re-clone it directly on the
+target puppet master. If you are using version control to save your puppet
+manifests/modules, then please ensure that you perform the appropriate
+commmands to save your work and re-push your code with the included changes.
 
 ###Awesome work, but it's missing support for a feature and/or platform!
 

@@ -10,7 +10,7 @@ notifications:
     on_success: always
     on_failure: always
     use_notice: false
-    skip_join: true
+    skip_join: false
   email:
     - travis-ci@shubin.ca
 # TODO: do a full rake test once warnings are all gone!

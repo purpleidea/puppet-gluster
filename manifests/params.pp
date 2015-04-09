@@ -52,6 +52,10 @@ class gluster::params(
 
 	$program_fping = '/usr/sbin/fping',
 	$program_findmnt = '/bin/findmnt',
+	$program_awk = '/bin/awk',
+
+	# SELinux
+	$selinux_glusterd_seluser = 'system_u',
 
 	# services...
 	$service_glusterd = 'glusterd',
@@ -59,12 +63,24 @@ class gluster::params(
 	# external modules...
 	$include_puppet_facter = true,
 
+	# Owner/Group
+	$misc_owner_root = 'root',
+	$misc_group_root = 'root',
+	$misc_group_nobody = 'nobody',
+
+	# Default directories
+	# See http://manpages.ubuntu.com/manpages/trusty/man8/mount.glusterfs.8.html
+	$misc_gluster_logs = '/var/log/glusterfs/',
+
 	# misc...
 	$misc_gluster_reload = '/sbin/service glusterd reload',
 	$misc_gluster_repo = 'https://download.gluster.org/pub/gluster/glusterfs/',
 
 	# the operatingsystemrelease string used in the repository URL.
 	$misc_repo_operatingsystemrelease = "${operatingsystemrelease}",
+
+	# A failed or missing /etc/fstab entry should not cause the system to hang.
+	$misc_mount_nofail = 'nofail',
 
 	# comment...
 	$comment = ''
@@ -91,8 +107,8 @@ class gluster::params(
 		# create a custom external fact!
 		file { "${factbase}gluster_program.yaml":
 			content => inline_template('<%= @hash.to_yaml %>'),
-			owner => root,
-			group => root,
+			owner => "${misc_owner_root}",
+			group => "${misc_group_root}",
 			mode => 644,		# u=rw,go=r
 			ensure => present,
 		}

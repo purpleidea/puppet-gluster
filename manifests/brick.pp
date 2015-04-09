@@ -74,8 +74,8 @@ define gluster::brick(
 	$safename = regsubst("${name}", '/', '_', 'G')	# make /'s safe
 	file { "${vardir}/brick/${safename}.${group}":
 		content => "${name}\n",
-		owner => root,
-		group => root,
+		owner => "${::gluster::params::misc_owner_root}",
+		group => "${::gluster::params::misc_group_root}",
 		mode => 644,
 		ensure => present,
 		require => File["${vardir}/brick/"],
@@ -84,7 +84,7 @@ define gluster::brick(
 	#
 	#	fsuuid...
 	#
-	if ("${fsuuid}" != '') and "${fsuuid}" =~ /^[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12}$/ {
+	if ("${fsuuid}" != '') and (! ("${fsuuid}" =~ /^[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12}$/)) {
 		fail("The chosen fs uuid: '${fsuuid}' is not valid.")
 	}
 
@@ -96,8 +96,8 @@ define gluster::brick(
 		# $group is unnecessary, but i left it in for consistency...
 		file { "${vardir}/brick/fsuuid/${safename}.${group}":
 			content => "${fsuuid}\n",
-			owner => root,
-			group => root,
+			owner => "${::gluster::params::misc_owner_root}",
+			group => "${::gluster::params::misc_group_root}",
 			mode => 600,	# might as well...
 			ensure => present,
 			require => File["${vardir}/brick/fsuuid/"],
@@ -340,7 +340,7 @@ define gluster::brick(
 			default => '',
 		}
 
-		$options_list = ["${option01}", "${option02}"]
+		$options_list = ["${option01}", "${option02}","${::gluster::params::misc_mount_nofail}"]
 
 	} elsif ( $valid_fstype == 'ext4' ) {
 		# exec requires
@@ -351,7 +351,7 @@ define gluster::brick(
 		$mkfs_exec = "${::gluster::params::program_mkfs_ext4} -U '${valid_fsuuid}' ${dev2}"
 
 		# mount options
-		$options_list = []	# TODO
+		$options_list = ["${::gluster::params::misc_mount_nofail}"]	# TODO
 
 	} elsif ( $valid_fstype == 'btrfs' ) {
 		# exec requires
@@ -364,7 +364,7 @@ define gluster::brick(
 		$mkfs_exec = "${::gluster::params::program_mkfs_btrfs} -U '${valid_fsuuid}' ${dev2}"
 
 		# mount options
-		$options_list = []	# TODO
+		$options_list = ["${::gluster::params::misc_mount_nofail}"]	# TODO
 
 	} else {
 		fail('The $fstype is invalid.')
@@ -446,7 +446,7 @@ define gluster::brick(
 				logoutput => on_failure,
 				unless => [		# if one element is true, this *doesn't* run
 					#"${::gluster::params::program_lvdisplay} ${lvm_lvname}",	# nope!
-					"${::gluster::params::program_lvs} --separator ':' | /usr/bin/tr -d ' ' | /bin/awk -F ':' '{print \$1}' | /bin/grep -q '${lvm_lvname}'",
+					"${::gluster::params::program_lvs} --separator ':' | /usr/bin/tr -d ' ' | ${::gluster::params::program_awk} -F ':' '{print \$1}' | /bin/grep -q '${lvm_lvname}'",
 					'/bin/false',	# TODO: add more criteria
 				],
 				require => $exec_requires,
@@ -524,11 +524,22 @@ define gluster::brick(
 	} elsif ((type($dev) == 'boolean') and (! $dev)) and ("${fqdn}" == "${host}") {
 
 		# ensure the full path exists!
+		# TODO: is the mkdir needed ?
 		exec { "/bin/mkdir -p '${valid_path}'":
 			creates => "${valid_path}",
 			logoutput => on_failure,
 			noop => $exec_noop,
-			alias => "gluster-brick-mkdir ${name}",
+			alias => "gluster-brick-mkdir-${name}",
+			before => File["${valid_path}"],
+		}
+
+		# avoid any possible purging of data!
+		file { "${valid_path}":
+			ensure => directory,	# make sure this is a directory
+			recurse => false,	# don't recurse into directory
+			purge => false,		# don't purge unmanaged files
+			force => false,		# don't purge subdirs and links
+			require => Exec["gluster-brick-mkfs-${name}"],
 		}
 	}
 }

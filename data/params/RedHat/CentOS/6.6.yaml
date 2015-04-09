@@ -1,0 +1,8 @@
+# gluster/data/params/RedHat/CentOS/6.6.yaml
+---
+# looks like this may be irrelevant after all as CentOS 6.6 appears to accept
+# system_u, however it required a reboot for puppet to stop looping through
+# modifying files on each iteration.
+gluster::params::selinux_glusterd_seluser: 'system_u'
+
+# vim: ts=8

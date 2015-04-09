@@ -53,8 +53,8 @@ class gluster::server(
 	# this is meant to be replace the excellent sponge utility by sponge.py
 	file { "${vardir}/sponge.py":		# for scripts needing: 'sponge'
 		source => 'puppet:///modules/gluster/sponge.py',
-		owner => root,
-		group => nobody,
+		owner => "${::gluster::params::misc_owner_root}",
+		group => "${::gluster::params::misc_group_nobody}",
 		mode => 700,			# u=rwx
 		backup => false,		# don't backup to filebucket
 		ensure => present,
@@ -89,8 +89,8 @@ class gluster::server(
 		recurse => false,		# TODO: eventually...
 		purge => false,			# TODO: eventually...
 		force => false,			# TODO: eventually...
-		owner => root,
-		group => root,
+		owner => "${::gluster::params::misc_owner_root}",
+		group => "${::gluster::params::misc_group_root}",
 		mode => 644,
 		#notify => Service["${::gluster::params::service_glusterd}"],	# TODO: ???
 		require => Package["${::gluster::params::package_glusterfs_server}"],
@@ -107,8 +107,8 @@ class gluster::server(
 
 	file { '/etc/glusterfs/glusterd.vol':
 		content => template('gluster/glusterd.vol.erb'),
-		owner => root,
-		group => root,
+		owner => "${::gluster::params::misc_owner_root}",
+		group => "${::gluster::params::misc_group_root}",
 		mode => 644,			# u=rw,go=r
 		ensure => present,
 		require => File['/etc/glusterfs/'],
@@ -119,8 +119,8 @@ class gluster::server(
 		recurse => false,		# TODO: eventually...
 		purge => false,			# TODO: eventually...
 		force => false,			# TODO: eventually...
-		owner => root,
-		group => root,
+		owner => "${::gluster::params::misc_owner_root}",
+		group => "${::gluster::params::misc_group_root}",
 		mode => 644,
 		#notify => Service["${::gluster::params::service_glusterd}"],	# TODO: eventually...
 		require => File['/etc/glusterfs/glusterd.vol'],
@@ -131,8 +131,8 @@ class gluster::server(
 		recurse => true,		# recursively manage directory
 		purge => true,
 		force => true,
-		owner => root,
-		group => root,
+		owner => "${::gluster::params::misc_owner_root}",
+		group => "${::gluster::params::misc_group_root}",
 		mode => 644,
 		notify => Service["${::gluster::params::service_glusterd}"],
 		require => File['/var/lib/glusterd/'],

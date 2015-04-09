@@ -4,6 +4,18 @@ gluster::params::package_glusterfs: 'glusterfs-client'
 gluster::params::package_glusterfs_api: ''      # doesn't exist
 gluster::params::package_glusterfs_fuse: ''     # doesn't exist
 gluster::params::service_glusterd: 'glusterfs-server'
+
+# Owner/Group
+gluster::params::misc_owner_root: 'root'
+gluster::params::misc_group_root: 'root'
+gluster::params::misc_group_nobody: 'nogroup'
+
+gluster::params::program_fping: '/usr/bin/fping'
+gluster::params::program_awk: '/usr/bin/awk'
 # TODO: the debian family of glusterd needs a reload command in the init file !
 gluster::params::misc_gluster_reload: '/usr/sbin/service glusterfs-server restart'
+
+# Debian based OS use nobootwait whereas Fedora based OS use nofail.
+gluster::params::misc_mount_nofail: 'nobootwait'
+
 # vim: ts=8
