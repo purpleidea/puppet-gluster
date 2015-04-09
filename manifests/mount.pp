@@ -17,15 +17,17 @@
 
 # XXX: try mounting with: glusterfs --volfile-server=<server-address> --volfile-id=<volume-name> <mount-point> --xlator-option='*dht*.assert-no-child-down=yes' 	# TODO: quotes or not?
 define gluster::mount(
-	$server,		# NOTE: use a vip as server hostname
-	$rw = false,		# mount read only (true) or rw (false)
-#	$suid = false,		# mount with suid (true) or nosuid (false)	# TODO: will this work with gluster ?
-	$mounted = true,	# useful if we want to pull in the group
-				# defs, but not actually mount (testing)
-	$repo = true,		# add a repo automatically? true or false
-	$version = '',		# pick a specific version (defaults to latest)
-	$ip = '',		# you can specify which ip address to use (if multiple)
-	$type = 'glusterfs',	# use 'glusterfs' or 'nfs'
+	$server,		  # NOTE: use a vip as server hostname
+	$rw = false,		  # mount read only (true) or rw (false)
+#	$suid = false,		  # mount with suid (true) or nosuid (false)	# TODO: will this work with gluster ?
+	$mount_owner_uid = undef, # mount point owner uid
+	$mount_owner_gid = undef, # mount point owner gid
+	$mounted = true,	  # useful if we want to pull in the group
+				  # defs, but not actually mount (testing)
+	$repo = true,		  # add a repo automatically? true or false
+	$version = '',		  # pick a specific version (defaults to latest)
+	$ip = '',		  # you can specify which ip address to use (if multiple)
+	$type = 'glusterfs',	  # use 'glusterfs' or 'nfs'
 	$shorewall = false,
 ) {
 	include gluster::params
@@ -142,6 +144,8 @@ define gluster::mount(
 		purge => false,			# don't purge unmanaged files
 		force => false,			# don't purge subdirs and links
 		alias => "${short_name}",	# don't allow duplicates name's
+                owner => "${mount_owner_uid}",  # set mount owner uid
+                group => "${mount_owner_gid}",  # set mount owner gid
 	}
 
 	# TODO: review packages content against nfs fstype mount option
