@@ -27,6 +27,8 @@ define gluster::mount(
 	$ip = '',		# you can specify which ip address to use (if multiple)
 	$type = 'glusterfs',	# use 'glusterfs' or 'nfs'
 	$shorewall = false,
+	$owner = '',	# mount owner
+	$group = '',	# mount group
 ) {
 	include gluster::params
 
@@ -142,6 +144,14 @@ define gluster::mount(
 		purge => false,			# don't purge unmanaged files
 		force => false,			# don't purge subdirs and links
 		alias => "${short_name}",	# don't allow duplicates name's
+		owner => "${owner}" ? {		# make sure owner is undef if not specified
+			'' => undef,
+			default => $owner,
+		},
+		group => "${group}" ? {		# make sure group is undef if not specified
+			'' => undef,
+			default => $group,
+		}
 	}
 
 	# TODO: review packages content against nfs fstype mount option
