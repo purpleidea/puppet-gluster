@@ -27,8 +27,8 @@ define gluster::mount(
 	$ip = '',		# you can specify which ip address to use (if multiple)
 	$type = 'glusterfs',	# use 'glusterfs' or 'nfs'
 	$shorewall = false,
-	$owner = '',	# mount owner
-	$group = '',	# mount group
+	$owner = '',		# mount owner
+	$group = '',		# mount group
 ) {
 	include gluster::params
 
