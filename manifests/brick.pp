@@ -539,7 +539,7 @@ define gluster::brick(
 			recurse => false,	# don't recurse into directory
 			purge => false,		# don't purge unmanaged files
 			force => false,		# don't purge subdirs and links
-			require => Exec["gluster-brick-mkfs-${name}"],
+			require => Exec["gluster-brick-mkdir-${name}"],
 		}
 	}
 }
