@@ -104,7 +104,7 @@ class gluster::volume::property::data() {
 		# Sets the quorum percentage for the trusted storage pool.
 		'cluster.server-quorum-ratio' => 'integer',	# in % default: (null)
 
-		# If set to server, enables the specified volume to participate in quorum.
+		# If set to server, enables the specified volume to participate in quorum.
 		'cluster.server-quorum-type' => 'string',	# default: (null)
 
 		# Size of the stripe unit that would be read from or written to the striped servers.
