@@ -293,7 +293,7 @@ class gluster::volume::property::data() {
 		'performance.read-ahead-page-count' => 'integer',	# default: 4
 
 		# enable/disable readdir-ahead translator in the volume.
-		'performance.readdir-ahead' => 'onoff',	# default: off
+		'performance.readdir-ahead' => 'offon',	# default: off
 
 		# enable/disable meta-data caching translator in the volume.
 		'performance.stat-prefetch' => 'onoff',	# default: on
