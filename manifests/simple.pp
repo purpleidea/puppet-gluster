@@ -61,9 +61,18 @@ class gluster::simple(
 
 	$valid_path = sprintf("%s/", regsubst($chosen_path, '\/$', ''))
 
-	$valid_volumes = type($volume) ? {	# always an array of volumes...
-		'array' => $volume,
-		default => ["${volume}"],
+	# Stdlib 4.6.0 deprecates 'type' in favor of 'type3x'. Use if present.
+	# Ensure $valid_volumes is always an array.
+	if is_function_available('type3x') {
+		$valid_volumes = type3x($volume) ? {
+			'array' => $volume,
+			default => ["${volume}"],
+		}
+	} else {
+		$valid_volumes = type($volume) ? {
+			'array' => $volume,
+			default => ["${volume}"],
+		}
 	}
 
 	# if this is a hash, then it's used as the defaults for all the bricks!
