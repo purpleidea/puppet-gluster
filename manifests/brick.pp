@@ -113,7 +113,7 @@ define gluster::brick(
 	}
 
 	# you might see this on first run if the fsuuid isn't generated yet
-	if (type($dev) != 'boolean') and ("${valid_fsuuid}" == '') {
+	if (type3x($dev) != 'boolean') and ("${valid_fsuuid}" == '') {
 		warning('An $fsuuid must be specified or generated.')
 	}
 
@@ -124,7 +124,7 @@ define gluster::brick(
 	# TODO: maybe we can detect these altogether from the raid set!
 	if "${raid_su}" == '' and "${raid_sw}" == '' {
 		# if we are not using a real device, we should ignore warnings!
-		if type($dev) != 'boolean' {			# real devices!
+		if type3x($dev) != 'boolean' {			# real devices!
 			if $lvm or "${fstype}" == 'xfs' {
 				warning('Setting $raid_su and $raid_sw is recommended.')
 			}
@@ -239,7 +239,7 @@ define gluster::brick(
 	}
 
 	# if $dev is false, we assume we're using a path backing store on brick
-	$valid_fstype = type($dev) ? {
+	$valid_fstype = type3x($dev) ? {
 		'boolean' => $dev ? {
 			false => 'path',	# no dev, just a path spec
 			default => '',		# invalid type
@@ -381,7 +381,7 @@ define gluster::brick(
 	}
 
 	# if we're on itself, and we have a real device to work with
-	if (type($dev) != 'boolean') and ("${fqdn}" == "${host}") {
+	if (type3x($dev) != 'boolean') and ("${fqdn}" == "${host}") {
 
 		# partitioning...
 		if $partition {
@@ -521,7 +521,7 @@ define gluster::brick(
 			}
 		}
 
-	} elsif ((type($dev) == 'boolean') and (! $dev)) and ("${fqdn}" == "${host}") {
+	} elsif ((type3x($dev) == 'boolean') and (! $dev)) and ("${fqdn}" == "${host}") {
 
 		# ensure the full path exists!
 		# TODO: is the mkdir needed ?

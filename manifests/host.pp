@@ -308,7 +308,7 @@ define gluster::host(
 
 		#$other_host_ips = inline_template("<%= ips.delete_if {|x| x == '${ipaddress}' }.join(',') %>")		# list of ips except myself
 		#$all_ips = inline_template("<%= (ips+[vip]+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
-		$source_ips = type($ips) ? {
+		$source_ips = type3x($ips) ? {
 			'array' => inline_template("<%= (ips+[]).uniq.delete_if {|x| x.empty? }.join(',') %>"),
 			default => ["${valid_ip}"],
 		}
