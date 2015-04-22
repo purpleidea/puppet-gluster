@@ -147,7 +147,7 @@ class gluster::server(
 
 	if $shorewall {
 		# XXX: WIP
-		#if type($ips) == 'array' {
+		#if type3x($ips) == 'array' {
 		#	#$other_host_ips = inline_template("<%= ips.delete_if {|x| x == '${ipaddress}' }.join(',') %>")		# list of ips except myself
 		#	$source_ips = inline_template("<%= (ips+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
 		#	#$all_ips = inline_template("<%= (ips+[vip]+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")

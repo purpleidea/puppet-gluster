@@ -72,20 +72,20 @@ define gluster::volume::property(
 	}
 
 	if (! $autotype) {
-		if type($value) != 'string' {
-			fail('Expecting type(string) if autotype is disabled.')
+		if type3x($value) != 'string' {
+			fail('Expecting type3x(string) if autotype is disabled.')
 		}
 		$safe_value = shellquote($value)	# TODO: is this the safe thing?
 
 	# if it's a special offon type and of an acceptable value
 	} elsif ($etype == 'offon') {	# default is off
-		if type($value) == 'boolean' {
+		if type3x($value) == 'boolean' {
 			$safe_value = $value ? {
 				true => 'on',
 				default => 'off',
 			}
 
-		} elsif type($value) == 'string' {
+		} elsif type3x($value) == 'string' {
 			$downcase_value = inline_template('<%= @value.downcase %>')
 			$safe_value = $downcase_value ? {
 				'on' => 'on',
@@ -99,13 +99,13 @@ define gluster::volume::property(
 
 	# if it's a special onoff type and of an acceptable value
 	} elsif ($etype == 'onoff') {	# default is on
-		if type($value) == 'boolean' {
+		if type3x($value) == 'boolean' {
 			$safe_value = $value ? {
 				false => 'off',
 				default => 'on',
 			}
 
-		} elsif type($value) == 'string' {
+		} elsif type3x($value) == 'string' {
 			$downcase_value = inline_template('<%= @value.downcase %>')
 			$safe_value = $downcase_value ? {
 				'off' => 'off',
@@ -119,13 +119,13 @@ define gluster::volume::property(
 
 	# if it's a special truefalse type and of an acceptable value
 	} elsif ($etype == 'truefalse') {	# default is true
-		if type($value) == 'boolean' {
+		if type3x($value) == 'boolean' {
 			$safe_value = $value ? {
 				false => 'false',
 				default => 'true',
 			}
 
-		} elsif type($value) == 'string' {
+		} elsif type3x($value) == 'string' {
 			$downcase_value = inline_template('<%= @value.downcase %>')
 			$safe_value = $downcase_value ? {
 				'false' => 'false',
@@ -138,13 +138,13 @@ define gluster::volume::property(
 
 	# if it's a special falsetrue type and of an acceptable value
 	} elsif ($etype == 'falsetrue') {	# default is false
-		if type($value) == 'boolean' {
+		if type3x($value) == 'boolean' {
 			$safe_value = $value ? {
 				true => 'true',
 				default => 'false',
 			}
 
-		} elsif type($value) == 'string' {
+		} elsif type3x($value) == 'string' {
 			$downcase_value = inline_template('<%= @value.downcase %>')
 			$safe_value = $downcase_value ? {
 				'true' => 'true',
@@ -166,7 +166,7 @@ define gluster::volume::property(
 		$safe_value = shellquote($value)	# TODO: is this the safe thing?
 
 	# if it's not a string and it's not the expected type, fail
-	} elsif ( type($value) != $etype ) {	# type() from puppetlabs-stdlib
+	} elsif ( type3x($value) != $etype ) {	# type3x() from puppetlabs-stdlib
 		fail("Gluster::Volume::Property[${key}] must be type: ${etype}.")
 
 	# convert to correct type

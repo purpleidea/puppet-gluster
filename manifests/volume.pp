@@ -51,7 +51,7 @@ define gluster::volume(
 	if $maxlength < $settle_count {
 		fail('The $maxlength needs to be greater than or equal to the $settle_count.')
 	}
-	$are_bricks_collected = (type($bricks) == 'boolean' and ($bricks == true))
+	$are_bricks_collected = (type3x($bricks) == 'boolean' and ($bricks == true))
 	# NOTE: settle checks are still useful even if we are using ping checks
 	# the reason why they are still useful, is that they can detect changes
 	# in the bricks, which might propagate slowly because of exported types
@@ -89,7 +89,7 @@ define gluster::volume(
 		default => brick_layout_simple($replica, $collected_bricks),
 	}
 
-	$valid_bricks = type($bricks) ? {
+	$valid_bricks = type3x($bricks) ? {
 		'boolean' => $bricks ? {
 			true => $ordered_brick_layout,		# an array...
 			default => [],				# invalid type
@@ -341,7 +341,7 @@ define gluster::volume(
 
 		$ips = $::gluster::server::ips		# override host ip list
 		$ip = $::gluster::host::data::ip	# ip of brick's host...
-		$source_ips = type($ips) ? {
+		$source_ips = type3x($ips) ? {
 			'array' => inline_template("<%= (@ips+[]).uniq.delete_if {|x| x.empty? }.join(',') %>"),
 			default => ["${ip}"],
 		}
