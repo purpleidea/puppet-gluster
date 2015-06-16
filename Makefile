@@ -25,8 +25,8 @@ SPEC = rpmbuild/SPECS/puppet-gluster.spec
 SOURCE = rpmbuild/SOURCES/puppet-gluster-$(VERSION).tar.bz2
 SRPM = rpmbuild/SRPMS/puppet-gluster-$(VERSION)-$(RELEASE).src.rpm
 RPM = rpmbuild/RPMS/puppet-gluster-$(VERSION)-$(RELEASE).rpm
-SERVER = 'download.gluster.org'
-REMOTE_PATH = 'purpleidea/puppet-gluster'
+SERVER = 'dl.fedoraproject.org'
+REMOTE_PATH = 'pub/puppet-gluster'
 
 all: docs rpm
 

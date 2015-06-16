@@ -268,7 +268,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 	# box source url
 	# TODO: this box should be GPG signed
-	config.vm.box_url = 'https://download.gluster.org/pub/gluster/purpleidea/vagrant/centos-6/centos-6.box'
+	config.vm.box_url = 'https://dl.fedoraproject.org/pub/alt/purpleidea/vagrant/centos-6/centos-6.box'
 
 	#
 	#	sync type

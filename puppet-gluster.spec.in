@@ -8,7 +8,7 @@ Release:	__RELEASE__
 Summary:	A puppet module for GlusterFS
 License:	AGPLv3+
 URL:		https://github.com/purpleidea/puppet-gluster
-Source0:	https://download.gluster.org/pub/gluster/purpleidea/puppet-gluster/SOURCES/puppet-gluster-%{puppet_module_version}.tar.bz2
+Source0:	https://dl.fedoraproject.org/pub/alt/purpleidea/puppet-gluster/SOURCES/puppet-gluster-%{puppet_module_version}.tar.bz2
 BuildArch:	noarch
 
 Requires: puppet >= 3.0.0
