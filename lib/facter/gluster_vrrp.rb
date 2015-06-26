@@ -172,7 +172,7 @@ if not(ipfile.nil?) and File.exist?(ipfile)
 			end
 
 			# lookup from fact
-			netmask = Facter.value('netmask_'+interface)
+			netmask = Facter.value('netmask_'+interface.gsub('-','_'))
 			if netmaskregexp.match(netmask)
 
 				Facter.add('gluster_vrrp_netmask') do
