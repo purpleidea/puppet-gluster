@@ -278,7 +278,7 @@ define gluster::host(
 
 			keepalived::vrrp { 'VI_GLUSTER':	# TODO: groups!
 				state => "${fqdns[0]}" ? {	# first in list
-					'' => 'MASTER',		# list is empty
+					'' => 'BACKUP',		# list is empty
 					"${fqdn}" => 'MASTER',	# we are first!
 					default => 'BACKUP',	# other in list
 				},
