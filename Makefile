@@ -25,8 +25,9 @@ SPEC = rpmbuild/SPECS/puppet-gluster.spec
 SOURCE = rpmbuild/SOURCES/puppet-gluster-$(VERSION).tar.bz2
 SRPM = rpmbuild/SRPMS/puppet-gluster-$(VERSION)-$(RELEASE).src.rpm
 RPM = rpmbuild/RPMS/puppet-gluster-$(VERSION)-$(RELEASE).rpm
+USERNAME := $(shell cat ~/.config/copr | grep username | awk -F '=' '{print $$2}' | tr -d ' ')
 SERVER = 'dl.fedoraproject.org'
-REMOTE_PATH = 'pub/puppet-gluster'
+REMOTE_PATH = 'pub/alt/$(USERNAME)/puppet-gluster'
 
 all: docs rpm
 
