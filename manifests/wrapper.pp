@@ -23,7 +23,8 @@ class gluster::wrapper(
 	$nfs = false,								# TODO in server.pp
 	$shorewall = false,
 	$zone = 'net',								# TODO: allow a list of zones
-	$allow = 'all'
+	$allow = 'all',
+        $repo = true
 ) {
 	#
 	#	build gluster::server
@@ -40,6 +41,7 @@ class gluster::wrapper(
 		shorewall => $shorewall,
 		zone => $zone,
 		allow => $allow,
+                repo => $repo,
 	}
 
 	#
