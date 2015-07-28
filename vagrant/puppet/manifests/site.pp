@@ -194,4 +194,3 @@ class firewall {
 	ACCEPT       $FW    man                 icmp
 	", comment => 'Allow icmp from the firewall zone'}
 }
-

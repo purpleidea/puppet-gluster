@@ -18,4 +18,3 @@ gluster::mount { '/mnt/some_mount_point':
 	rw => true,
 	mounted => true,
 }
-

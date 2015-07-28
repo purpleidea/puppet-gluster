@@ -45,4 +45,3 @@ task :test => [
 	:lint,
 	:spec,
 ]
-

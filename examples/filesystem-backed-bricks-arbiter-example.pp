@@ -68,7 +68,7 @@ class gluster_base {
 	# as an arbiter. This order is crucial for Gluster.
 	$brick_list = [
 		'annex1.example.com:/data/gluster-storage1',
-		'annex2.example.com:/data/gluster-storage2',		
+		'annex2.example.com:/data/gluster-storage2',
 		'annex3.example.com:/data/gluster-storage3',	# arbiter
 	]
 
@@ -84,4 +84,3 @@ class gluster_base {
 		value => ['192.0.2.13', '198.51.100.42', '203.0.113.69'],
 	}
 }
-

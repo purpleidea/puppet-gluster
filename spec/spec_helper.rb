@@ -15,4 +15,3 @@ end
 class Object
 	alias :must :should
 end
-

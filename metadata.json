@@ -12,4 +12,3 @@
 		{ "name": "puppetlabs/stdlib", "version_requirement": ">= 4.6.0" }
 	]
 }
-

@@ -44,4 +44,3 @@ nfs::client::mount::collect { 'homes':	# match the $tagas from export!
 	#suid => false,
 	#clientaddr => "${::ipaddress}",	# use this if you want!
 }
-

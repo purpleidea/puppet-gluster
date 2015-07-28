@@ -15,4 +15,3 @@ puppet-<modulename>
 You must remove the 'puppet-' prefix from the directory name for it to work!
 
 Happy hacking!
-

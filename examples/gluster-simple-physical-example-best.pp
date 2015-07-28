@@ -25,4 +25,3 @@ node /^annex\d+$/ {	# annex{1,2,..N}
 		# override a particular fqdn with the options that you need to!
 	}
 }
-

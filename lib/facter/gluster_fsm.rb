@@ -159,4 +159,3 @@ Facter.add('gluster_fsm_debug') do
 		'Oh cool, james added fsm support to puppet-gluster. Sweet!'
 	}
 end
-
