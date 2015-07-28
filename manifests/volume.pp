@@ -20,6 +20,7 @@ define gluster::volume(
 	$group = 'default',	# use this bricks group name if we auto collect
 	$transport = 'tcp',
 	$replica = 1,
+	$arbiter = '',		# use '1' to add the last host as an arbiter
 	$stripe = 1,
 	# TODO: maybe this should be called 'chained' => true/false, and maybe,
 	# we can also specify an offset count for chaining, or other parameters
@@ -155,6 +156,12 @@ define gluster::volume(
 		default => "replica ${replica} ",
 	}
 
+	$valid_arbiter = $arbiter ? {
+		'' => '',
+		'0' => '',
+		default => "arbiter ${arbiter} ",
+	}
+
 	$valid_stripe = $stripe ? {
 		'1' => '',
 		default => "stripe ${stripe} ",
@@ -253,7 +260,7 @@ define gluster::volume(
 	# FIXME: it would be create to have an --allow-root-storage type option
 	# instead, so that we don't inadvertently force some other bad thing...
 	file { "${vardir}/volume/create-${name}.sh":
-		content => inline_template("#!/bin/bash\n/bin/sleep 5s && ${::gluster::params::program_gluster} volume create ${name} ${valid_replica}${valid_stripe}transport ${valid_transport} ${brick_spec} force > >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
+		content => inline_template("#!/bin/bash\n/bin/sleep 5s && ${::gluster::params::program_gluster} volume create ${name} ${valid_replica}${valid_arbiter}${valid_stripe}transport ${valid_transport} ${brick_spec} force > >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_root}",
 		mode => 755,
