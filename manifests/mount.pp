@@ -182,6 +182,10 @@ define gluster::mount(
 	# XXX: or something... consider adding the notify => Poke[] functionality
 	mount { "${short_name}":
 		atboot => true,
+		remounts => "${valid_type}" ? {
+			'glusterfs' => false,
+			default => true,
+		},
 		ensure => $mounted_bool,
 		device => "${server}",
 		fstype => "${valid_type}",
