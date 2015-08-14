@@ -110,7 +110,11 @@ if not(valid_brickdir.nil?) and File.directory?(valid_brickdir)
 				# create an fsuuid for each brick and store it
 				# in our vardir if it doesn't already exist...
 				if not File.exist?(uuidfile)
-					result = system("/usr/bin/uuidgen > '" + uuidfile + "'")
+					uuidgen = `which uuidgen 2> /dev/null`.chomp
+					if uuidgen = ''
+						uuidgen = '/usr/bin/uuidgen'
+					end
+					result = system(uuidgen + " > '" + uuidfile + "'")
 					if not(result)
 						# TODO: print warning
 					end
