@@ -111,7 +111,7 @@ if not(valid_brickdir.nil?) and File.directory?(valid_brickdir)
 				# in our vardir if it doesn't already exist...
 				if not File.exist?(uuidfile)
 					uuidgen = `which uuidgen 2> /dev/null`.chomp
-					if uuidgen = ''
+					if uuidgen == ''
 						uuidgen = '/usr/bin/uuidgen'
 					end
 					result = system(uuidgen + " > '" + uuidfile + "'")

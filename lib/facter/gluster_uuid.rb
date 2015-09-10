@@ -83,7 +83,7 @@ if not(module_vardir.nil?) and File.directory?(module_vardir)
 	# create a uuid and store it in our vardir if it doesn't already exist!
 	if create
 		uuidgen = `which uuidgen 2> /dev/null`.chomp
-		if uuidgen = ''
+		if uuidgen == ''
 			uuidgen = '/usr/bin/uuidgen'
 		end
 		result = system(uuidgen + " > '" + uuidfile + "'")
