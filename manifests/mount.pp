@@ -29,6 +29,7 @@ define gluster::mount(
 	$shorewall = false,
 	$owner = '',		# mount owner
 	$group = '',		# mount group
+	$manage_mount_directory = true # enable/disable creation of directory to mount into
 ) {
 	include gluster::params
 
@@ -138,19 +139,21 @@ define gluster::mount(
 	}
 
 	# make an empty directory for the mount point
-	file { "${long_name}":			# ensure a trailing slash
-		ensure => directory,		# make sure this is a directory
-		recurse => false,		# don't recurse into directory
-		purge => false,			# don't purge unmanaged files
-		force => false,			# don't purge subdirs and links
-		alias => "${short_name}",	# don't allow duplicates name's
-		owner => "${owner}" ? {		# make sure owner is undef if not specified
-			'' => undef,
-			default => $owner,
-		},
-		group => "${group}" ? {		# make sure group is undef if not specified
-			'' => undef,
-			default => $group,
+	if $manage_mount_directory {
+		file { "${long_name}":			# ensure a trailing slash
+			ensure => directory,		# make sure this is a directory
+			recurse => false,		# don't recurse into directory
+			purge => false,			# don't purge unmanaged files
+			force => false,			# don't purge subdirs and links
+			alias => "${short_name}",	# don't allow duplicates name's
+			owner => "${owner}" ? {		# make sure owner is undef if not specified
+				'' => undef,
+				default => $owner,
+			},
+			group => "${group}" ? {		# make sure group is undef if not specified
+				'' => undef,
+				default => $group,
+			}
 		}
 	}
 
