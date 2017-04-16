@@ -25,7 +25,10 @@ class gluster::vardir {	# module vardir snippet
 		}
 		$tmp = sprintf("%s/tmp/", regsubst($::puppet_vardir, '\/$', ''))
 		# base directory where puppet modules can work and namespace in
-		file { "${tmp}":
+	} else {
+		$tmp = sprintf("%s/", regsubst($::puppet_vardirtmp, '\/$', ''))
+	}
+	file { "${tmp}":
 			ensure => directory,	# make sure this is a directory
 			recurse => false,	# don't recurse into directory
 			purge => true,		# purge all unmanaged files
@@ -36,9 +39,6 @@ class gluster::vardir {	# module vardir snippet
 			backup => false,	# don't backup to filebucket
 			#before => File["${module_vardir}"],	# redundant
 			#require => Package['puppet'],	# no puppet module seen
-		}
-	} else {
-		$tmp = sprintf("%s/", regsubst($::puppet_vardirtmp, '\/$', ''))
 	}
 	$module_vardir = sprintf("%s/gluster/", regsubst($tmp, '\/$', ''))
 	file { "${module_vardir}":		# /var/lib/puppet/tmp/gluster/
