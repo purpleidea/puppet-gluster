@@ -21,7 +21,7 @@ require 'resolv'
 # try and pick the _right_ ip that gluster should use by default...
 fqdn = Facter.value('fqdn')
 if not fqdn.nil?
-	ip = Resolv.getaddress "#{fqdn}"
+	ip = Resolv.getaddress "#{fqdn}" || ''
 	if not ip.nil?
 		Facter.add('gluster_host_ip') do
 			#confine :operatingsystem => %w{CentOS, RedHat, Fedora}
