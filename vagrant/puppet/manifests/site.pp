@@ -1,13 +1,10 @@
-node default {
-	# this will get put on every host...
-	$url = 'https://ttboj.wordpress.com/'
-	file { '/etc/motd':
-		content => "This is Puppet-Gluster+Vagrant! (${url})\n",
-	}
-}
-
 # puppetmaster
-node puppet inherits default {
+node puppet {
+
+	# this will get put on every host...
+	file { '/etc/motd':
+		content => "This is Puppet-Gluster+Vagrant! (https://ttboj.wordpress.com/)\n",
+	}
 
 	if "${::vagrant_gluster_firewall}" != 'false' {
 		include firewall
@@ -38,7 +35,12 @@ node puppet inherits default {
 	}
 }
 
-node /^annex\d+$/ inherits default {	# annex{1,2,..N}
+node /^annex\d+$/ {	# annex{1,2,..N}
+
+	# this will get put on every host...
+	file { '/etc/motd':
+		content => "This is Puppet-Gluster+Vagrant! (https://ttboj.wordpress.com/)\n",
+	}
 
 	if "${::vagrant_gluster_firewall}" != 'false' {
 		include firewall
@@ -105,7 +107,12 @@ node /^annex\d+$/ inherits default {	# annex{1,2,..N}
 	}
 }
 
-node /^client\d+$/ inherits default {	# client{1,2,..N}
+node /^client\d+$/ {	# client{1,2,..N}
+
+	# this will get put on every host...
+	file { '/etc/motd':
+		content => "This is Puppet-Gluster+Vagrant! (https://ttboj.wordpress.com/)\n",
+	}
 
 	if "${::vagrant_gluster_firewall}" != 'false' {
 		include firewall
