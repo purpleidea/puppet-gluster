@@ -29,7 +29,7 @@ class gluster::server(
 	$ips = false,	# an optional list of ip's for each in hosts[]
 	$clients = []	# list of allowed client ip's	# TODO: get from exported resources
 ) {
-	$FW = '$FW'			# make using $FW in shorewall easier
+	$fw = '$FW'			# make using $FW in shorewall easier
 
 	include gluster::vardir
 	include gluster::params
@@ -145,8 +145,8 @@ class gluster::server(
 		}
 	}
 
-	if $shorewall {
-		# XXX: WIP
+	# XXX: WIP
+	#if $shorewall {
 		#if type3x($ips) == 'array' {
 		#	#$other_host_ips = inline_template("<%= ips.delete_if {|x| x == '${ipaddress}' }.join(',') %>")		# list of ips except myself
 		#	$source_ips = inline_template("<%= (ips+clients).uniq.delete_if {|x| x.empty? }.join(',') %>")
@@ -161,7 +161,7 @@ class gluster::server(
 		#$nfs_endport = inline_template('<%= 38465+hosts.count %>')
 		#shorewall::rule { 'gluster-24000':
 		#	rule => "
-		#	ACCEPT    ${src}    $FW    tcp    24009:${endport}
+		#	ACCEPT    ${src}    $fw    tcp    24009:${endport}
 		#	",
 		#	comment => 'Allow 24000s for gluster',
 		#	before => Service["${::gluster::params::service_glusterd}"],
@@ -169,10 +169,10 @@ class gluster::server(
 
 		#if $nfs {					# FIXME: TODO
 		#	shorewall::rule { 'gluster-nfs': rule => "
-		#	ACCEPT    $(src}    $FW    tcp    38465:${nfs_endport}
+		#	ACCEPT    $(src}    $fw    tcp    38465:${nfs_endport}
 		#	", comment => 'Allow nfs for gluster'}
 		#}
-	}
+	#}
 
 	# start service only after the firewall is opened and hosts are defined
 	service { "${::gluster::params::service_glusterd}":

@@ -141,7 +141,7 @@ node /^client\d+$/ {	# client{1,2,..N}
 
 class firewall {
 
-	$FW = '$FW'			# make using $FW in shorewall easier
+	$fw = '$FW'			# make using $FW in shorewall easier
 
 	class { '::shorewall::configuration':
 		# NOTE: no configuration specifics are needed at the moment
@@ -186,18 +186,18 @@ class firewall {
 	#ACTION      SOURCE DEST                PROTO DEST  SOURCE  ORIGINAL
 	#                                             PORT  PORT(S) DEST
 	shorewall::rule { 'ssh': rule => "
-	SSH/ACCEPT   net    $FW
-	SSH/ACCEPT   man    $FW
+	SSH/ACCEPT   net    $fw
+	SSH/ACCEPT   man    $fw
 	", comment => 'Allow SSH'}
 
 	shorewall::rule { 'ping': rule => "
-	#Ping/DROP    net    $FW
-	Ping/ACCEPT  net    $FW
-	Ping/ACCEPT  man    $FW
+	#Ping/DROP    net    $fw
+	Ping/ACCEPT  net    $fw
+	Ping/ACCEPT  man    $fw
 	", comment => 'Allow ping from the `bad` net zone'}
 
 	shorewall::rule { 'icmp': rule => "
-	ACCEPT       $FW    net                 icmp
-	ACCEPT       $FW    man                 icmp
+	ACCEPT       $fw    net                 icmp
+	ACCEPT       $fw    man                 icmp
 	", comment => 'Allow icmp from the firewall zone'}
 }
