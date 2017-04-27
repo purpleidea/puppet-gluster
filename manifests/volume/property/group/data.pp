@@ -35,7 +35,7 @@ class gluster::volume::property::group::data() {
 		force => true,
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_nobody}",
-		mode => 644,			# u=rwx
+		mode => '0644',			# u=rwx
 		backup => false,		# don't backup to filebucket
 		require => File["${vardir}/"],
 	}

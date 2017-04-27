@@ -76,7 +76,7 @@ define gluster::brick(
 		content => "${name}\n",
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_root}",
-		mode => 644,
+		mode => '0644',
 		ensure => present,
 		require => File["${vardir}/brick/"],
 	}
@@ -98,7 +98,7 @@ define gluster::brick(
 			content => "${fsuuid}\n",
 			owner => "${::gluster::params::misc_owner_root}",
 			group => "${::gluster::params::misc_group_root}",
-			mode => 600,	# might as well...
+			mode => '0600',	# might as well...
 			ensure => present,
 			require => File["${vardir}/brick/fsuuid/"],
 		}

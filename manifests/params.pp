@@ -109,7 +109,7 @@ class gluster::params(
 			content => inline_template('<%= @hash.to_yaml %>'),
 			owner => "${misc_owner_root}",
 			group => "${misc_group_root}",
-			mode => 644,		# u=rw,go=r
+			mode => '0644',		# u=rw,go=r
 			ensure => present,
 		}
 	}
