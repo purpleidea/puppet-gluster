@@ -77,7 +77,7 @@ define gluster::host(
 			},
 			owner => "${::gluster::params::misc_owner_root}",
 			group => "${::gluster::params::misc_group_root}",
-			mode => 600,	# might as well...
+			mode => '0600',	# might as well...
 			ensure => present,
 			require => File["${vardir}/uuid/"],
 		}
@@ -112,7 +112,7 @@ define gluster::host(
 				content => template('gluster/glusterd.info.erb'),
 				owner => "${::gluster::params::misc_owner_root}",
 				group => "${::gluster::params::misc_group_root}",
-				mode => 600,			# u=rw,go=r
+				mode => '0600',			# u=rw,go=r
 				seltype => 'glusterd_var_lib_t',
 				seluser => "${::gluster::params::selinux_glusterd_seluser}",
 				ensure => present,
@@ -126,7 +126,7 @@ define gluster::host(
 				tag => 'gluster_uuid',
 				owner => "${::gluster::params::misc_owner_root}",
 				group => "${::gluster::params::misc_group_root}",
-				mode => 600,
+				mode => '0600',
 				ensure => present,
 			}
 		}
@@ -198,7 +198,7 @@ define gluster::host(
 				owner => "${::gluster::params::misc_owner_root}",
 				group => "${::gluster::params::misc_group_root}",
 				# NOTE: this mode was found by inspecting the process
-				mode => 600,			# u=rw,go=r
+				mode => '0600',			# u=rw,go=r
 				seltype => 'glusterd_var_lib_t',
 				seluser => "${::gluster::params::selinux_glusterd_seluser}",
 				notify => [
@@ -232,7 +232,7 @@ define gluster::host(
 			content => "${valid_ip}\n",
 			owner => "${::gluster::params::misc_owner_root}",
 			group => "${::gluster::params::misc_group_root}",
-			mode => 600,	# might as well...
+			mode => '0600',	# might as well...
 			ensure => present,
 			require => File["${vardir}/vrrp/"],
 		}
@@ -245,7 +245,7 @@ define gluster::host(
 			},
 			owner => "${::gluster::params::misc_owner_root}",
 			group => "${::gluster::params::misc_group_root}",
-			mode => 600,	# might as well...
+			mode => '0600',	# might as well...
 			ensure => present,
 			require => File["${vardir}/vrrp/"],
 		}
@@ -256,7 +256,7 @@ define gluster::host(
 			tag => 'gluster_vrrp',
 			owner => "${::gluster::params::misc_owner_root}",
 			group => "${::gluster::params::misc_group_root}",
-			mode => 600,
+			mode => '0600',
 			ensure => present,
 		}
 

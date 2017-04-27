@@ -263,7 +263,7 @@ define gluster::volume(
 		content => inline_template("#!/bin/bash\n/bin/sleep 5s && ${::gluster::params::program_gluster} volume create ${name} ${valid_replica}${valid_arbiter}${valid_stripe}transport ${valid_transport} ${brick_spec} force > >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stdout') 2> >(/usr/bin/tee '/tmp/gluster-volume-create-${name}.stderr' >&2) || (${rmdir_volume_dirs} && /bin/false)\nexit \$?\n"),
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_root}",
-		mode => 755,
+		mode => '0755',
 		ensure => present,
 		# this notify is the first to kick off the 2nd step! it
 		# was put here after a process of elimination, and this

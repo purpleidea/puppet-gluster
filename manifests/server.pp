@@ -55,7 +55,7 @@ class gluster::server(
 		source => 'puppet:///modules/gluster/sponge.py',
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_nobody}",
-		mode => 700,			# u=rwx
+		mode => '0700',			# u=rwx
 		backup => false,		# don't backup to filebucket
 		ensure => present,
 		before => Package["${::gluster::params::package_glusterfs_server}"],
@@ -91,7 +91,7 @@ class gluster::server(
 		force => false,			# TODO: eventually...
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_root}",
-		mode => 644,
+		mode => '0644',
 		#notify => Service["${::gluster::params::service_glusterd}"],	# TODO: ???
 		require => Package["${::gluster::params::package_glusterfs_server}"],
 	}
@@ -109,7 +109,7 @@ class gluster::server(
 		content => template('gluster/glusterd.vol.erb'),
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_root}",
-		mode => 644,			# u=rw,go=r
+		mode => '0644',			# u=rw,go=r
 		ensure => present,
 		require => File['/etc/glusterfs/'],
 	}
@@ -121,7 +121,7 @@ class gluster::server(
 		force => false,			# TODO: eventually...
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_root}",
-		mode => 644,
+		mode => '0644',
 		#notify => Service["${::gluster::params::service_glusterd}"],	# TODO: eventually...
 		require => File['/etc/glusterfs/glusterd.vol'],
 	}
@@ -133,7 +133,7 @@ class gluster::server(
 		force => true,
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_root}",
-		mode => 644,
+		mode => '0644',
 		notify => Service["${::gluster::params::service_glusterd}"],
 		require => File['/var/lib/glusterd/'],
 	}

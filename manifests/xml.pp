@@ -40,7 +40,7 @@ class gluster::xml {
 		source => 'puppet:///modules/gluster/xml.py',
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_nobody}",
-		mode => 700,			# u=rwx
+		mode => '0700',			# u=rwx
 		backup => false,		# don't backup to filebucket
 		ensure => present,
 		require => File["${vardir}/"],

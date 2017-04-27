@@ -92,7 +92,7 @@ class gluster::mount::base(
 	#	content => "fuse\n",	# TODO: "install fuse ${::gluster::params::program_modprobe} --ignore-install fuse ; /bin/true\n" ?
 	#	owner => "${::gluster::params::misc_owner_root}",
 	#	group => "${::gluster::params::misc_group_root}",
-	#	mode => 644,		# u=rw,go=r
+	#	mode => '0644',		# u=rw,go=r
 	#	ensure => present,
 	#}
 

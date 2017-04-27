@@ -32,7 +32,7 @@ class gluster::vardir {	# module vardir snippet
 			force => true,		# also purge subdirs and links
 			owner => "${::gluster::params::misc_owner_root}",
 			group => "${::gluster::params::misc_group_nobody}",
-			mode => 600,
+			mode => '0600',
 			backup => false,	# don't backup to filebucket
 			#before => File["${module_vardir}"],	# redundant
 			#require => Package['puppet'],	# no puppet module seen
@@ -48,7 +48,7 @@ class gluster::vardir {	# module vardir snippet
 		force => true,			# also purge subdirs and links
 		owner => "${::gluster::params::misc_owner_root}",
 		group => "${::gluster::params::misc_group_nobody}",
-		mode => 600,
+		mode => '0600',
 		backup => false,
 		require => File["${tmp}"],	# File['/var/lib/puppet/tmp/']
 	}
